@@ -16,22 +16,31 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = NeoGreen,
+    onPrimary = NeoBlack,
+    secondary = NeoPink,
+    onSecondary = NeoBlack,
+    tertiary = NeoYellow,
+    onTertiary = NeoBlack,
+    background = NeoBlack,
+    onBackground = NeoWhite,
+    surface = NeoBlack,
+    onSurface = NeoWhite,
+    surfaceVariant = NeoGray,
+    onSurfaceVariant = NeoWhite,
+    outline = NeoWhite
 )
 
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-)
+// NeoPOP is predominantly dark, so we use the same scheme for light mode 
+// or a high-contrast version. For now, let's enforce the dark aesthetic.
+private val LightColorScheme = DarkColorScheme
 
 @Composable
 fun CalcHubTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    // We default to false to enforce NeoPOP branding
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -46,8 +55,8 @@ fun CalcHubTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
+            window.statusBarColor = colorScheme.background.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
         }
     }
 
