@@ -1,0 +1,107 @@
+package com.hsb.calchub.ui.screens.income_tax
+
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableDoubleStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.hsb.calchub.domain.logic.CalculatorLogic
+import com.hsb.calchub.ui.components.CalculatorInput
+import com.hsb.calchub.ui.components.DonutChart
+import com.hsb.calchub.ui.components.DonutChartData
+import com.hsb.calchub.ui.components.ResultRow
+import java.text.NumberFormat
+import java.util.Locale
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun IncomeTaxCalculatorScreen(onBackClick: () -> Unit) {
+    var annualIncome by remember { mutableDoubleStateOf(1000000.0) }
+    var deductions by remember { mutableDoubleStateOf(150000.0) }
+
+    val results = CalculatorLogic.calculateIncomeTax(annualIncome, deductions)
+    val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Income Tax Calculator") },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
+            CalculatorInput(
+                label = "Annual Income",
+                value = annualIncome,
+                onValueChange = { annualIncome = it },
+                range = 100000.0..10000000.0,
+                symbol = "₹"
+            )
+
+            CalculatorInput(
+                label = "Deductions (80C, etc.)",
+                value = deductions,
+                onValueChange = { deductions = it },
+                range = 0.0..500000.0,
+                symbol = "₹"
+            )
+
+            DonutChart(
+                data = listOf(
+                    DonutChartData(results.second, MaterialTheme.colorScheme.error, "Tax"),
+                    DonutChartData(results.third, MaterialTheme.colorScheme.primary, "Take Home")
+                )
+            )
+
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer
+                )
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    ResultRow("Gross Income", currencyFormat.format(results.first))
+                    ResultRow("Tax Payable", currencyFormat.format(results.second))
+                    ResultRow("Net Income", currencyFormat.format(results.third), isTotal = true)
+                }
+            }
+        }
+    }
+}
