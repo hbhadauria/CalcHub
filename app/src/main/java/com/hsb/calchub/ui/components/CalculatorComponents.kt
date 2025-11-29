@@ -32,76 +32,50 @@ fun CalculatorInput(
     symbol: String,
     modifier: Modifier = Modifier
 ) {
+    // We keep the internal state for the text field to allow free typing
     var textValue by remember(value) { mutableStateOf(value.toInt().toString()) }
-    var isEditing by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
+            .padding(vertical = 12.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium
-            )
-            
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                if (isEditing) {
-                    OutlinedTextField(
-                        value = textValue,
-                        onValueChange = { newText ->
-                            textValue = newText
-                            newText.toDoubleOrNull()?.let { newValue ->
-                                if (newValue in range) {
-                                    onValueChange(newValue)
-                                }
-                            }
-                        },
-                        modifier = Modifier.width(120.dp),
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Number,
-                            imeAction = ImeAction.Done
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onDone = { isEditing = false }
-                        ),
-                        singleLine = true,
-                        textStyle = MaterialTheme.typography.bodyMedium,
-                        suffix = { Text(symbol) }
-                    )
-                } else {
-                    Text(
-                        text = "${value.toInt()} $symbol",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold
-                    )
+        // NeoPOP Input Style
+        NeoPopInput(
+            value = textValue,
+            onValueChange = { newText ->
+                textValue = newText
+                newText.toDoubleOrNull()?.let { newValue ->
+                    if (newValue in range) {
+                        onValueChange(newValue)
+                    }
                 }
-                
-                IconButton(onClick = { isEditing = !isEditing }) {
-                    Icon(
-                        imageVector = if (isEditing) Icons.Default.Check else Icons.Default.Edit,
-                        contentDescription = if (isEditing) "Done" else "Edit",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-        }
+            },
+            label = label,
+            placeholder = "Enter $label",
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Number,
+                imeAction = ImeAction.Done
+            ),
+            modifier = Modifier.fillMaxWidth()
+        )
 
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Custom NeoPOP Slider (using standard slider for now but styled)
         Slider(
             value = value.toFloat(),
-            onValueChange = { 
+            onValueChange = {
                 onValueChange(it.toDouble())
                 textValue = it.toInt().toString()
             },
             valueRange = range.start.toFloat()..range.endInclusive.toFloat(),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = SliderDefaults.colors(
+                thumbColor = MaterialTheme.colorScheme.primary,
+                activeTrackColor = MaterialTheme.colorScheme.primary,
+                inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant
+            )
         )
     }
 }
@@ -118,18 +92,29 @@ fun ResultCard(
         NumberFormat.getCurrencyInstance(Locale("en", "IN"))
     }
 
-    Card(
+    NeoPopCard(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
-        )
+            .padding(vertical = 24.dp),
+        backgroundColor = MaterialTheme.colorScheme.surface,
+        borderColor = MaterialTheme.colorScheme.primary
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = "SUMMARY",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+            
             ResultRow("Invested Amount", currencyFormat.format(investedAmount))
             ResultRow("Est. Returns", currencyFormat.format(estimatedReturns))
-            Spacer(modifier = Modifier.height(8.dp))
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
+            Spacer(modifier = Modifier.height(16.dp))
+            
             ResultRow("Total Value", currencyFormat.format(totalValue), isTotal = true)
         }
     }
@@ -141,16 +126,19 @@ fun ResultRow(label: String, value: String, isTotal: Boolean = false) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = label,
-            style = if (isTotal) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodyMedium
+            style = if (isTotal) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodyLarge,
+            color = if (isTotal) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
         )
         Text(
             text = value,
-            style = if (isTotal) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodyMedium,
-            fontWeight = if (isTotal) FontWeight.Bold else FontWeight.Normal
+            style = if (isTotal) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleMedium,
+            fontWeight = if (isTotal) FontWeight.Black else FontWeight.Bold,
+            color = if (isTotal) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
         )
     }
 }
