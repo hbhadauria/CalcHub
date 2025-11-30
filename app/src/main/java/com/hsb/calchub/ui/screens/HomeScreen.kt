@@ -98,51 +98,21 @@ fun HomeScreen(onCalculatorClick: (String) -> Unit) {
         )
 
         LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
+            columns = GridCells.Fixed(3), // Changed to 3 columns
             contentPadding = PaddingValues(bottom = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.fillMaxSize()
         ) {
-            if (!isSearching) {
-                // Popular Section
-                if (popularCalculators.isNotEmpty()) {
-                    item(span = { GridItemSpan(2) }) {
-                        Text(
-                            text = "POPULAR",
-                            style = MaterialTheme.typography.titleSmall.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = NeonGreen,
-                                letterSpacing = 1.sp
-                            ),
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-                    }
-                    items(popularCalculators) { calculator ->
-                        PopularCalculatorCard(calculator, onCalculatorClick)
-                    }
+            if (isSearching) {
+                // Show all filtered results when searching
+                items(filteredCalculators) { calculator ->
+                    CalculatorCard(calculator, onCalculatorClick)
                 }
-                
-                // Categories
-                val categories = CalculatorCategory.values()
-                categories.forEach { category ->
-                    val calculators = allCalculators.filter { it.category == category && !it.isPopular }
-                    if (calculators.isNotEmpty()) {
-                        item(span = { GridItemSpan(2) }) {
-                            Text(
-                                text = category.name,
-                                style = MaterialTheme.typography.titleSmall.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    color = NeonPink,
-                                    letterSpacing = 1.sp
-                                ),
-                                modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
-                            )
-                        }
-                        items(calculators) { calculator ->
-                            CalculatorCard(calculator, onCalculatorClick)
-                        }
-                    }
+            } else {
+                // Show all calculators in grid (no sections)
+                items(filteredCalculators) { calculator ->
+                    CalculatorCard(calculator, onCalculatorClick)
                 }
             }
         }
@@ -166,13 +136,12 @@ fun SectionHeader(title: String) {
 
 @Composable
 fun PopularCalculatorCard(calculator: Calculator, onClick: (String) -> Unit) {
-    NeoPopGlossyCard(
+    NeonCard(
         modifier = Modifier
             .width(160.dp)
-            .aspectRatio(1.4f)
-            .clickable { onClick(calculator.route) },
-        backgroundColor = MaterialTheme.colorScheme.primaryContainer,
-        borderColor = MaterialTheme.colorScheme.primary
+            .aspectRatio(0.7f), // Vertical aspect ratio
+        onClick = { onClick(calculator.route) },
+        borderColor = NeonGreen
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -182,18 +151,18 @@ fun PopularCalculatorCard(calculator: Calculator, onClick: (String) -> Unit) {
             Icon(
                 imageVector = calculator.icon,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.size(32.dp)
+                tint = NeonGreen,
+                modifier = Modifier.size(48.dp)
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = calculator.name.uppercase(),
-                style = MaterialTheme.typography.titleSmall.copy(
-                    fontWeight = androidx.compose.ui.text.font.FontWeight.Black,
+                text = calculator.name,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold,
                     letterSpacing = 0.5.sp
                 ),
                 textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+                color = NeonText
             )
         }
     }
@@ -201,12 +170,12 @@ fun PopularCalculatorCard(calculator: Calculator, onClick: (String) -> Unit) {
 
 @Composable
 fun CalculatorCard(calculator: Calculator, onClick: (String) -> Unit) {
-    NeoPopGlossyCard(
+    NeonCard(
         modifier = Modifier
-            .aspectRatio(1.2f)
-            .clickable { onClick(calculator.route) },
-        backgroundColor = MaterialTheme.colorScheme.surface,
-        borderColor = MaterialTheme.colorScheme.outline
+            .aspectRatio(0.85f), // Slightly taller for better proportions
+        onClick = { onClick(calculator.route) },
+        borderColor = NeonPink,
+        useGradientBorder = true // Use gradient border
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -216,18 +185,18 @@ fun CalculatorCard(calculator: Calculator, onClick: (String) -> Unit) {
             Icon(
                 imageVector = calculator.icon,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(28.dp)
+                tint = if (calculator.isPopular) NeonPink else NeonGreen,
+                modifier = Modifier.size(48.dp) // Larger icon
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = calculator.name.uppercase(),
-                style = MaterialTheme.typography.labelLarge.copy(
-                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                    letterSpacing = 0.5.sp
+                text = calculator.name,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    fontWeight = FontWeight.Bold
                 ),
                 textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface
+                color = NeonText,
+                maxLines = 2
             )
         }
     }
