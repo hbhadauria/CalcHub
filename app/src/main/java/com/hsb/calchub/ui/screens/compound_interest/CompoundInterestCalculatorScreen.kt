@@ -21,17 +21,10 @@ fun CompoundInterestCalculatorScreen(onBackClick: () -> Unit) {
     var compoundingFrequency by remember { mutableDoubleStateOf(4.0) }
     val results = CalculatorLogic.calculateCompoundInterest(principal, rate, timeYears, compoundingFrequency.toInt())
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Compound Interest Calculator") },
-                navigationIcon = { IconButton(onClick = onBackClick) { Icon(Icons.Default.ArrowBack, null) } },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            )
-        }
+    CalculatorScaffold(
+        title = "Compound Interest Calculator",
+        onBackClick = onBackClick,
+        calculatorId = "compound_interest"
     ) { innerPadding ->
         Column(Modifier.fillMaxSize().padding(innerPadding).padding(16.dp).verticalScroll(rememberScrollState())) {
             CalculatorInput("Principal Amount", principal, { principal = it }, 1000.0..10000000.0, "₹")

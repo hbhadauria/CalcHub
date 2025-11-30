@@ -22,24 +22,16 @@ fun ApyCalculatorScreen(onBackClick: () -> Unit) {
     val results = CalculatorLogic.calculateAPY(currentAge, pensionAmount)
     val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("APY Calculator") },
-                navigationIcon = { IconButton(onClick = onBackClick) { Icon(Icons.Default.ArrowBack, null) } },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            )
-        }
+    CalculatorScaffold(
+        title = "APY Calculator",
+        onBackClick = onBackClick,
+        calculatorId = "apy"
     ) { innerPadding ->
         Column(Modifier.fillMaxSize().padding(innerPadding).padding(16.dp).verticalScroll(rememberScrollState())) {
             CalculatorInput("Current Age", currentAge, { currentAge = it }, 18.0..40.0, "Yr")
             CalculatorInput("Desired Pension", pensionAmount, { pensionAmount = it }, 1000.0..5000.0, "₹")
             
-            Card(Modifier.fillMaxWidth().padding(vertical = 16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
+            NeonCard(Modifier.fillMaxWidth().padding(vertical = 16.dp)) {
                 Column(Modifier.padding(16.dp)) {
                     ResultRow("Monthly Contribution", currencyFormat.format(results.first))
                     ResultRow("Total Contribution", currencyFormat.format(results.second))

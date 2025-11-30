@@ -26,10 +26,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.hsb.calchub.domain.logic.CalculatorLogic
 import com.hsb.calchub.ui.components.CalculatorInput
+import com.hsb.calchub.ui.components.CalculatorScaffold
 import com.hsb.calchub.ui.components.DonutChart
 import com.hsb.calchub.ui.components.DonutChartData
 import com.hsb.calchub.ui.components.ResultCard
 import com.hsb.calchub.ui.components.ResultRow
+import com.hsb.calchub.ui.components.NeonCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,21 +42,10 @@ fun EmiCalculatorScreen(onBackClick: () -> Unit) {
 
     val results = CalculatorLogic.calculateEMI(loanAmount, interestRate, tenureYears)
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("EMI Calculator") },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            )
-        }
+    CalculatorScaffold(
+        title = "EMI Calculator",
+        onBackClick = onBackClick,
+        calculatorId = "emi"
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -125,13 +116,10 @@ fun ResultCardWithLabels(
 ) {
     val currencyFormat = java.text.NumberFormat.getCurrencyInstance(java.util.Locale("en", "IN"))
     
-    androidx.compose.material3.Card(
+    NeonCard(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 16.dp),
-        colors = androidx.compose.material3.CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
-        )
+            .padding(vertical = 16.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             ResultRow(label1, currencyFormat.format(value1))

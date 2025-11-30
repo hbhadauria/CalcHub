@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.hsb.calchub.domain.logic.CalculatorLogic
 import com.hsb.calchub.ui.components.CalculatorInput
+import com.hsb.calchub.ui.components.CalculatorScaffold
 import com.hsb.calchub.ui.components.DonutChart
 import com.hsb.calchub.ui.components.DonutChartData
 import com.hsb.calchub.ui.components.ResultCard
@@ -37,21 +38,10 @@ fun EpfCalculatorScreen(onBackClick: () -> Unit) {
 
     val results = CalculatorLogic.calculateEPF(monthlyContribution, interestRate, timePeriodYears)
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("EPF Calculator") },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            )
-        }
+    CalculatorScaffold(
+        title = "EPF Calculator",
+        onBackClick = onBackClick,
+        calculatorId = "epf"
     ) { innerPadding ->
         Column(
             modifier = Modifier

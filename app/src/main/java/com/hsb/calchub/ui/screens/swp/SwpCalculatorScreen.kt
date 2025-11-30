@@ -27,6 +27,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.hsb.calchub.domain.logic.CalculatorLogic
 import com.hsb.calchub.ui.components.CalculatorInput
+import com.hsb.calchub.ui.components.CalculatorScaffold
+import com.hsb.calchub.ui.components.NeonCard
 import com.hsb.calchub.ui.components.ResultRow
 import java.text.NumberFormat
 import java.util.Locale
@@ -42,21 +44,10 @@ fun SwpCalculatorScreen(onBackClick: () -> Unit) {
     val results = CalculatorLogic.calculateSWP(totalInvestment, withdrawalPerMonth, expectedReturnRate, timePeriodYears)
     val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("SWP Calculator") },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            )
-        }
+    CalculatorScaffold(
+        title = "SWP Calculator",
+        onBackClick = onBackClick,
+        calculatorId = "swp"
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -97,13 +88,10 @@ fun SwpCalculatorScreen(onBackClick: () -> Unit) {
                 symbol = "Yr"
             )
 
-            Card(
+            NeonCard(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer
-                )
+                    .padding(vertical = 16.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     ResultRow("Initial Investment", currencyFormat.format(results.first))

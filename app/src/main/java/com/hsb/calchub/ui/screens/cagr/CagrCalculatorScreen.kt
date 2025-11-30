@@ -23,17 +23,10 @@ fun CagrCalculatorScreen(onBackClick: () -> Unit) {
     val results = CalculatorLogic.calculateCAGR(initialValue, finalValue, years)
     val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("CAGR Calculator") },
-                navigationIcon = { IconButton(onClick = onBackClick) { Icon(Icons.Default.ArrowBack, null) } },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            )
-        }
+    CalculatorScaffold(
+        title = "CAGR Calculator",
+        onBackClick = onBackClick,
+        calculatorId = "cagr"
     ) { innerPadding ->
         Column(Modifier.fillMaxSize().padding(innerPadding).padding(16.dp).verticalScroll(rememberScrollState())) {
             CalculatorInput("Initial Value", initialValue, { initialValue = it }, 1000.0..10000000.0, "₹")
@@ -45,8 +38,7 @@ fun CagrCalculatorScreen(onBackClick: () -> Unit) {
                 DonutChartData(results.third, MaterialTheme.colorScheme.tertiary, "Gain")
             ))
             
-            Card(Modifier.fillMaxWidth().padding(vertical = 16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
+            NeonCard(Modifier.fillMaxWidth().padding(vertical = 16.dp)) {
                 Column(Modifier.padding(16.dp)) {
                     ResultRow("CAGR", String.format("%.2f%%", results.first))
                     ResultRow("Total Return", String.format("%.2f%%", results.second))

@@ -40,8 +40,8 @@ fun CalculatorInput(
             .fillMaxWidth()
             .padding(vertical = 12.dp)
     ) {
-        // NeoPOP Input Style
-        NeoPopInput(
+        // Neon Input Style
+        NeonInput(
             value = textValue,
             onValueChange = { newText ->
                 textValue = newText
@@ -62,7 +62,7 @@ fun CalculatorInput(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Custom NeoPOP Slider (using standard slider for now but styled)
+        // Custom Slider
         Slider(
             value = value.toFloat(),
             onValueChange = {
@@ -88,11 +88,10 @@ fun ResultCard(
 ) {
     val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
 
-    NeoPopGlossyCard(
+    NeonCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 24.dp),
-        backgroundColor = MaterialTheme.colorScheme.surface,
         borderColor = MaterialTheme.colorScheme.primary
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {

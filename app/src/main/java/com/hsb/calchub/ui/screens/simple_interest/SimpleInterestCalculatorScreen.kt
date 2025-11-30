@@ -10,7 +10,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.hsb.calchub.domain.logic.CalculatorLogic
-import com.hsb.calchub.ui.components.*
+import com.hsb.calchub.ui.components.CalculatorInput
+import com.hsb.calchub.ui.components.CalculatorScaffold
+import com.hsb.calchub.ui.components.DonutChart
+import com.hsb.calchub.ui.components.DonutChartData
+import com.hsb.calchub.ui.components.ResultCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -20,17 +24,10 @@ fun SimpleInterestCalculatorScreen(onBackClick: () -> Unit) {
     var timeYears by remember { mutableDoubleStateOf(5.0) }
     val results = CalculatorLogic.calculateSimpleInterest(principal, rate, timeYears)
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Simple Interest Calculator") },
-                navigationIcon = { IconButton(onClick = onBackClick) { Icon(Icons.Default.ArrowBack, null) } },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            )
-        }
+    CalculatorScaffold(
+        title = "Simple Interest Calculator",
+        onBackClick = onBackClick,
+        calculatorId = "simple_interest"
     ) { innerPadding ->
         Column(Modifier.fillMaxSize().padding(innerPadding).padding(16.dp).verticalScroll(rememberScrollState())) {
             CalculatorInput("Principal Amount", principal, { principal = it }, 1000.0..10000000.0, "₹")

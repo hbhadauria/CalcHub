@@ -15,110 +15,130 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Calculate
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hsb.calchub.domain.model.Calculator
 import com.hsb.calchub.domain.model.CalculatorCategory
 import com.hsb.calchub.domain.model.allCalculators
+import com.hsb.calchub.ui.components.NeonCard
+import com.hsb.calchub.ui.components.NeonSearch
 import com.hsb.calchub.ui.components.NeoPopGlossyCard
+import com.hsb.calchub.ui.theme.NeonGreen
+import com.hsb.calchub.ui.theme.NeonPink
+import com.hsb.calchub.ui.theme.NeonText
+import androidx.compose.ui.text.style.TextAlign
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(onCalculatorClick: (String) -> Unit) {
-    val popularCalculators = allCalculators.filter { it.isPopular }
-    val categorizedCalculators = allCalculators.groupBy { it.category }
-    val categories = listOf(
-        CalculatorCategory.INVESTMENT,
-        CalculatorCategory.LOAN,
-        CalculatorCategory.TAX,
-        CalculatorCategory.RETIREMENT,
-        CalculatorCategory.TRADING,
-        CalculatorCategory.OTHER
-    )
+    var searchQuery by remember { mutableStateOf("") }
+    
+    // Filter calculators based on search
+    val filteredCalculators = if (searchQuery.isEmpty()) {
+        allCalculators
+    } else {
+        allCalculators.filter { it.name.contains(searchQuery, ignoreCase = true) }
+    }
 
-    // Animation state
-    val visibleState = remember { MutableTransitionState(false).apply { targetState = true } }
+    val popularCalculators = filteredCalculators.filter { it.isPopular }
+    
+    // If searching, show all results in one grid. If not, show sections.
+    val isSearching = searchQuery.isNotEmpty()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { 
-                    Text(
-                        "CALCHUB",
-                        style = MaterialTheme.typography.headlineMedium.copy(
-                            fontWeight = androidx.compose.ui.text.font.FontWeight.Black,
-                            letterSpacing = 1.sp
-                        )
-                    ) 
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    titleContentColor = MaterialTheme.colorScheme.primary
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        // Header
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(bottom = 16.dp)
+        ) {
+            Text(
+                text = "Calc",
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = NeonGreen
                 )
             )
-        },
-        containerColor = MaterialTheme.colorScheme.background
-    ) { innerPadding ->
-        AnimatedVisibility(
-            visibleState = visibleState,
-            enter = fadeIn(animationSpec = tween(500)) + slideInVertically(animationSpec = tween(500))
-        ) {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                contentPadding = PaddingValues(bottom = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+            Text(
+                text = "Hub",
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = NeonPink
+                )
+            )
+            Icon(
+                imageVector = Icons.Default.Calculate,
+                contentDescription = null,
+                tint = NeonText,
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-            ) {
-                // 1. Popular Section (Horizontal Carousel)
-                item(span = { GridItemSpan(2) }) {
-                    Column(modifier = Modifier.padding(top = 16.dp)) {
-                        SectionHeader("POPULAR")
-                        LazyRow(
-                            contentPadding = PaddingValues(horizontal = 16.dp),
-                            horizontalArrangement = Arrangement.spacedBy(16.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            items(popularCalculators) { calculator ->
-                                PopularCalculatorCard(calculator, onCalculatorClick)
-                            }
-                        }
+                    .padding(start = 8.dp)
+                    .size(32.dp)
+            )
+        }
+
+        // Search Bar
+        NeonSearch(
+            query = searchQuery,
+            onQueryChange = { searchQuery = it },
+            modifier = Modifier.padding(bottom = 24.dp)
+        )
+
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            contentPadding = PaddingValues(bottom = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.fillMaxSize()
+        ) {
+            if (!isSearching) {
+                // Popular Section
+                if (popularCalculators.isNotEmpty()) {
+                    item(span = { GridItemSpan(2) }) {
+                        Text(
+                            text = "POPULAR",
+                            style = MaterialTheme.typography.titleSmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = NeonGreen,
+                                letterSpacing = 1.sp
+                            ),
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                    }
+                    items(popularCalculators) { calculator ->
+                        PopularCalculatorCard(calculator, onCalculatorClick)
                     }
                 }
-
-                // 2. Categorized Sections
+                
+                // Categories
+                val categories = CalculatorCategory.values()
                 categories.forEach { category ->
-                    val calculators = categorizedCalculators[category] ?: emptyList()
+                    val calculators = allCalculators.filter { it.category == category && !it.isPopular }
                     if (calculators.isNotEmpty()) {
-                        // Category Header
                         item(span = { GridItemSpan(2) }) {
-                            SectionHeader(category.name)
+                            Text(
+                                text = category.name,
+                                style = MaterialTheme.typography.titleSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = NeonPink,
+                                    letterSpacing = 1.sp
+                                ),
+                                modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+                            )
                         }
-                        
-                        // Calculator Items
                         items(calculators) { calculator ->
                             CalculatorCard(calculator, onCalculatorClick)
                         }
@@ -134,7 +154,7 @@ fun SectionHeader(title: String) {
     Text(
         text = title,
         style = MaterialTheme.typography.titleMedium.copy(
-            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+            fontWeight = FontWeight.Bold,
             letterSpacing = 1.sp
         ),
         color = MaterialTheme.colorScheme.primary,

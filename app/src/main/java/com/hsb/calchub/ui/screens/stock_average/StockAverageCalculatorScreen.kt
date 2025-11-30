@@ -24,17 +24,10 @@ fun StockAverageCalculatorScreen(onBackClick: () -> Unit) {
     val results = CalculatorLogic.calculateStockAverage(firstQuantity, firstPrice, secondQuantity, secondPrice)
     val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Stock Average Calculator") },
-                navigationIcon = { IconButton(onClick = onBackClick) { Icon(Icons.Default.ArrowBack, null) } },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            )
-        }
+    CalculatorScaffold(
+        title = "Stock Average Calculator",
+        onBackClick = onBackClick,
+        calculatorId = "stock_average"
     ) { innerPadding ->
         Column(Modifier.fillMaxSize().padding(innerPadding).padding(16.dp).verticalScroll(rememberScrollState())) {
             Text("First Purchase", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(vertical = 8.dp))
@@ -45,8 +38,7 @@ fun StockAverageCalculatorScreen(onBackClick: () -> Unit) {
             CalculatorInput("Quantity", secondQuantity, { secondQuantity = it }, 1.0..10000.0, "Qty")
             CalculatorInput("Price per Share", secondPrice, { secondPrice = it }, 1.0..100000.0, "₹")
             
-            Card(Modifier.fillMaxWidth().padding(vertical = 16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
+            NeonCard(Modifier.fillMaxWidth().padding(vertical = 16.dp)) {
                 Column(Modifier.padding(16.dp)) {
                     ResultRow("Total Quantity", String.format("%.0f shares", results.first))
                     ResultRow("Average Price", currencyFormat.format(results.second))

@@ -24,17 +24,10 @@ fun BrokerageCalculatorScreen(onBackClick: () -> Unit) {
     val results = CalculatorLogic.calculateBrokerage(tradeValue, brokerageRate, isIntraday)
     val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Brokerage Calculator") },
-                navigationIcon = { IconButton(onClick = onBackClick) { Icon(Icons.Default.ArrowBack, null) } },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            )
-        }
+    CalculatorScaffold(
+        title = "Brokerage Calculator",
+        onBackClick = onBackClick,
+        calculatorId = "brokerage"
     ) { innerPadding ->
         Column(Modifier.fillMaxSize().padding(innerPadding).padding(16.dp).verticalScroll(rememberScrollState())) {
             CalculatorInput("Trade Value", tradeValue, { tradeValue = it }, 1000.0..10000000.0, "₹")
@@ -45,8 +38,7 @@ fun BrokerageCalculatorScreen(onBackClick: () -> Unit) {
                 Text("Intraday Trade")
             }
             
-            Card(Modifier.fillMaxWidth().padding(vertical = 16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
+            NeonCard(Modifier.fillMaxWidth().padding(vertical = 16.dp)) {
                 Column(Modifier.padding(16.dp)) {
                     ResultRow("Trade Value", currencyFormat.format(results.first))
                     ResultRow("Total Charges", currencyFormat.format(results.second))

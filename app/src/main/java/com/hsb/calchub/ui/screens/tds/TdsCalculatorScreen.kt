@@ -22,17 +22,10 @@ fun TdsCalculatorScreen(onBackClick: () -> Unit) {
     val results = CalculatorLogic.calculateTDS(amount, tdsRate)
     val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("TDS Calculator") },
-                navigationIcon = { IconButton(onClick = onBackClick) { Icon(Icons.Default.ArrowBack, null) } },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            )
-        }
+    CalculatorScaffold(
+        title = "TDS Calculator",
+        onBackClick = onBackClick,
+        calculatorId = "tds"
     ) { innerPadding ->
         Column(Modifier.fillMaxSize().padding(innerPadding).padding(16.dp).verticalScroll(rememberScrollState())) {
             CalculatorInput("Gross Amount", amount, { amount = it }, 1000.0..10000000.0, "₹")
@@ -43,8 +36,7 @@ fun TdsCalculatorScreen(onBackClick: () -> Unit) {
                 DonutChartData(results.third, MaterialTheme.colorScheme.primary, "Net Amount")
             ))
             
-            Card(Modifier.fillMaxWidth().padding(vertical = 16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
+            NeonCard(Modifier.fillMaxWidth().padding(vertical = 16.dp)) {
                 Column(Modifier.padding(16.dp)) {
                     ResultRow("Gross Amount", currencyFormat.format(results.first))
                     ResultRow("TDS Deducted", currencyFormat.format(results.second))
