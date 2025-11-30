@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -130,6 +131,155 @@ fun NeoPopCard(
                 .padding(16.dp)
         ) {
             content()
+        }
+    }
+}
+
+@Composable
+fun NeoPopGlossyButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    text: String,
+    containerColor: Color = MaterialTheme.colorScheme.primary,
+    contentColor: Color = MaterialTheme.colorScheme.onPrimary,
+    shadowColor: Color = NeoBlack,
+    borderColor: Color = NeoBlack,
+    enabled: Boolean = true
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    
+    val shadowOffset = 4.dp
+    val pressOffset by animateDpAsState(if (isPressed) shadowOffset else 0.dp, label = "press")
+    val contentOffset by animateDpAsState(if (isPressed) shadowOffset else 0.dp, label = "content")
+
+    Box(
+        modifier = modifier
+            .height(56.dp)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                enabled = enabled,
+                onClick = onClick
+            )
+    ) {
+        // Shadow Layer
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                .offset(x = shadowOffset, y = shadowOffset)
+                .background(shadowColor)
+                .border(BorderStroke(1.dp, borderColor))
+        )
+
+        // Content Layer (Glossy)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                .offset(x = contentOffset, y = contentOffset)
+                .background(
+                    brush = androidx.compose.ui.graphics.Brush.linearGradient(
+                        colors = listOf(
+                            containerColor.copy(alpha = 0.9f),
+                            containerColor
+                        ),
+                        start = androidx.compose.ui.geometry.Offset(0f, 0f),
+                        end = androidx.compose.ui.geometry.Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
+                    )
+                )
+                .border(BorderStroke(1.dp, borderColor))
+        ) {
+            // Gloss Shine
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(24.dp)
+                    .background(
+                        brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                            colors = listOf(
+                                Color.White.copy(alpha = 0.2f),
+                                Color.Transparent
+                            )
+                        )
+                    )
+            )
+            
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = text.uppercase(),
+                    style = TextStyle(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        letterSpacing = 1.sp,
+                        color = contentColor
+                    )
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun NeoPopGlossyCard(
+    modifier: Modifier = Modifier,
+    backgroundColor: Color = MaterialTheme.colorScheme.surface,
+    borderColor: Color = MaterialTheme.colorScheme.outline,
+    shadowColor: Color = NeoWhite,
+    content: @Composable () -> Unit
+) {
+    val shadowOffset = 4.dp
+    
+    Box(modifier = modifier.padding(bottom = shadowOffset, end = shadowOffset)) {
+        // Shadow
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .offset(x = shadowOffset, y = shadowOffset)
+                .background(shadowColor)
+                .border(BorderStroke(1.dp, borderColor))
+        )
+        
+        // Content (Glossy)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    brush = androidx.compose.ui.graphics.Brush.linearGradient(
+                        colors = listOf(
+                            backgroundColor.copy(alpha = 0.95f),
+                            backgroundColor
+                        ),
+                        start = androidx.compose.ui.geometry.Offset(0f, 0f),
+                        end = androidx.compose.ui.geometry.Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
+                    )
+                )
+                .border(BorderStroke(1.dp, borderColor))
+        ) {
+            // Gloss Shine
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(40.dp)
+                    .background(
+                        brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                            colors = listOf(
+                                Color.White.copy(alpha = 0.1f),
+                                Color.Transparent
+                            )
+                        )
+                    )
+            )
+            
+            Box(modifier = Modifier.padding(16.dp)) {
+                content()
+            }
         }
     }
 }
