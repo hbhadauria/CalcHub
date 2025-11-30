@@ -52,7 +52,6 @@ fun NeoPopButton(
     val isPressed by interactionSource.collectIsPressedAsState()
     
     val shadowOffset = 4.dp
-    val pressOffset by animateDpAsState(if (isPressed) shadowOffset else 0.dp, label = "press")
     val contentOffset by animateDpAsState(if (isPressed) shadowOffset else 0.dp, label = "content")
 
     Box(
@@ -150,7 +149,6 @@ fun NeoPopGlossyButton(
     val isPressed by interactionSource.collectIsPressedAsState()
     
     val shadowOffset = 4.dp
-    val pressOffset by animateDpAsState(if (isPressed) shadowOffset else 0.dp, label = "press")
     val contentOffset by animateDpAsState(if (isPressed) shadowOffset else 0.dp, label = "content")
 
     Box(
