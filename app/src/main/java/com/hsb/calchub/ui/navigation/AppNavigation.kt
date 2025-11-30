@@ -45,13 +45,15 @@ import com.hsb.calchub.ui.screens.simple_interest.SimpleInterestCalculatorScreen
 import com.hsb.calchub.ui.screens.compound_interest.CompoundInterestCalculatorScreen
 import com.hsb.calchub.ui.screens.step_up_sip.StepUpSipCalculatorScreen
 
+import com.hsb.calchub.ui.screens.MainScreen
+
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "home") {
-        composable("home") {
-            HomeScreen(onCalculatorClick = { route ->
+    NavHost(navController = navController, startDestination = "main") {
+        composable("main") {
+            MainScreen(onCalculatorClick = { route ->
                 navController.navigate(route)
             })
         }

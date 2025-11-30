@@ -22,24 +22,16 @@ fun PostOfficeMisCalculatorScreen(onBackClick: () -> Unit) {
     val results = CalculatorLogic.calculatePostOfficeMIS(investment, interestRate)
     val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Post Office MIS") },
-                navigationIcon = { IconButton(onClick = onBackClick) { Icon(Icons.Default.ArrowBack, null) } },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            )
-        }
+    CalculatorScaffold(
+        title = "Post Office MIS",
+        onBackClick = onBackClick,
+        calculatorId = "post_office_mis"
     ) { innerPadding ->
         Column(Modifier.fillMaxSize().padding(innerPadding).padding(16.dp).verticalScroll(rememberScrollState())) {
             CalculatorInput("Investment Amount", investment, { investment = it }, 1000.0..900000.0, "₹")
             CalculatorInput("Interest Rate", interestRate, { interestRate = it }, 1.0..15.0, "%")
             
-            Card(Modifier.fillMaxWidth().padding(vertical = 16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
+            NeonCard(Modifier.fillMaxWidth().padding(vertical = 16.dp)) {
                 Column(Modifier.padding(16.dp)) {
                     ResultRow("Investment", currencyFormat.format(results.first))
                     ResultRow("Monthly Income", currencyFormat.format(results.second))

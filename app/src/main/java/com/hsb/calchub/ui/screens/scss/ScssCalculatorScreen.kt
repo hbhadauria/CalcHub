@@ -22,17 +22,10 @@ fun ScssCalculatorScreen(onBackClick: () -> Unit) {
     val results = CalculatorLogic.calculateSCSS(investment, interestRate)
     val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("SCSS Calculator") },
-                navigationIcon = { IconButton(onClick = onBackClick) { Icon(Icons.Default.ArrowBack, null) } },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            )
-        }
+    CalculatorScaffold(
+        title = "SCSS Calculator",
+        onBackClick = onBackClick,
+        calculatorId = "scss"
     ) { innerPadding ->
         Column(Modifier.fillMaxSize().padding(innerPadding).padding(16.dp).verticalScroll(rememberScrollState())) {
             CalculatorInput("Investment Amount", investment, { investment = it }, 1000.0..3000000.0, "₹")
@@ -43,8 +36,7 @@ fun ScssCalculatorScreen(onBackClick: () -> Unit) {
                 DonutChartData(results.second, MaterialTheme.colorScheme.tertiary, "Interest")
             ))
             
-            Card(Modifier.fillMaxWidth().padding(vertical = 16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
+            NeonCard(Modifier.fillMaxWidth().padding(vertical = 16.dp)) {
                 Column(Modifier.padding(16.dp)) {
                     ResultRow("Investment", currencyFormat.format(results.first))
                     ResultRow("Total Interest (5 Yr)", currencyFormat.format(results.second))

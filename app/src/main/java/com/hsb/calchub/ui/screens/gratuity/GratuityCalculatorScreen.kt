@@ -22,24 +22,16 @@ fun GratuityCalculatorScreen(onBackClick: () -> Unit) {
     val results = CalculatorLogic.calculateGratuity(lastSalary, yearsOfService)
     val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Gratuity Calculator") },
-                navigationIcon = { IconButton(onClick = onBackClick) { Icon(Icons.Default.ArrowBack, null) } },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            )
-        }
+    CalculatorScaffold(
+        title = "Gratuity Calculator",
+        onBackClick = onBackClick,
+        calculatorId = "gratuity"
     ) { innerPadding ->
         Column(Modifier.fillMaxSize().padding(innerPadding).padding(16.dp).verticalScroll(rememberScrollState())) {
             CalculatorInput("Last Drawn Salary", lastSalary, { lastSalary = it }, 10000.0..500000.0, "₹")
             CalculatorInput("Years of Service", yearsOfService, { yearsOfService = it }, 1.0..40.0, "Yr")
             
-            Card(Modifier.fillMaxWidth().padding(vertical = 16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
+            NeonCard(Modifier.fillMaxWidth().padding(vertical = 16.dp)) {
                 Column(Modifier.padding(16.dp)) {
                     ResultRow("Total Gratuity", currencyFormat.format(results.first))
                     ResultRow("Tax Free Amount", currencyFormat.format(results.second))

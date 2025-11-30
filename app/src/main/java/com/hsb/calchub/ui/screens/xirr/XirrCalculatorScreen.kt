@@ -24,17 +24,10 @@ fun XirrCalculatorScreen(onBackClick: () -> Unit) {
     val results = CalculatorLogic.calculateXIRR(listOf(investment1, investment2, investment3), returns)
     val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("XIRR Calculator") },
-                navigationIcon = { IconButton(onClick = onBackClick) { Icon(Icons.Default.ArrowBack, null) } },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            )
-        }
+    CalculatorScaffold(
+        title = "XIRR Calculator",
+        onBackClick = onBackClick,
+        calculatorId = "xirr"
     ) { innerPadding ->
         Column(Modifier.fillMaxSize().padding(innerPadding).padding(16.dp).verticalScroll(rememberScrollState())) {
             Text("Investments", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(vertical = 8.dp))
@@ -43,8 +36,7 @@ fun XirrCalculatorScreen(onBackClick: () -> Unit) {
             CalculatorInput("Investment 3", investment3, { investment3 = it }, 1000.0..1000000.0, "₹")
             CalculatorInput("Current Value", returns, { returns = it }, 1000.0..5000000.0, "₹")
             
-            Card(Modifier.fillMaxWidth().padding(vertical = 16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
+            NeonCard(Modifier.fillMaxWidth().padding(vertical = 16.dp)) {
                 Column(Modifier.padding(16.dp)) {
                     ResultRow("Total Invested", currencyFormat.format(results.first))
                     ResultRow("Profit", currencyFormat.format(results.second))

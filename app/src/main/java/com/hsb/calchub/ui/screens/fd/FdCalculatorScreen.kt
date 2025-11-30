@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.hsb.calchub.domain.logic.CalculatorLogic
 import com.hsb.calchub.ui.components.CalculatorInput
+import com.hsb.calchub.ui.components.CalculatorScaffold
 import com.hsb.calchub.ui.components.DonutChart
 import com.hsb.calchub.ui.components.DonutChartData
 import com.hsb.calchub.ui.components.ResultCard
@@ -38,21 +39,10 @@ fun FdCalculatorScreen(onBackClick: () -> Unit) {
 
     val results = CalculatorLogic.calculateFD(totalInvestment, rateOfInterest, timePeriodYears)
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("FD Calculator") },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            )
-        }
+    CalculatorScaffold(
+        title = "FD Calculator",
+        onBackClick = onBackClick,
+        calculatorId = "fd"
     ) { innerPadding ->
         Column(
             modifier = Modifier

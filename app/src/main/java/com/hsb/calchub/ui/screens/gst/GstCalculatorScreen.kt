@@ -24,17 +24,10 @@ fun GstCalculatorScreen(onBackClick: () -> Unit) {
     val results = CalculatorLogic.calculateGST(amount, gstRate, isInclusive)
     val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("GST Calculator") },
-                navigationIcon = { IconButton(onClick = onBackClick) { Icon(Icons.Default.ArrowBack, null) } },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            )
-        }
+    CalculatorScaffold(
+        title = "GST Calculator",
+        onBackClick = onBackClick,
+        calculatorId = "gst"
     ) { innerPadding ->
         Column(Modifier.fillMaxSize().padding(innerPadding).padding(16.dp).verticalScroll(rememberScrollState())) {
             CalculatorInput("Amount", amount, { amount = it }, 100.0..10000000.0, "₹")
@@ -45,8 +38,7 @@ fun GstCalculatorScreen(onBackClick: () -> Unit) {
                 Text("GST Inclusive")
             }
             
-            Card(Modifier.fillMaxWidth().padding(vertical = 16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
+            NeonCard(Modifier.fillMaxWidth().padding(vertical = 16.dp)) {
                 Column(Modifier.padding(16.dp)) {
                     ResultRow("Base Amount", currencyFormat.format(results.first))
                     ResultRow("GST Amount", currencyFormat.format(results.second))

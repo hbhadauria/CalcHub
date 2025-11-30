@@ -24,17 +24,10 @@ fun SalaryCalculatorScreen(onBackClick: () -> Unit) {
     val results = CalculatorLogic.calculateSalary(basicSalary, hra, otherAllowances, pf)
     val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Salary Calculator") },
-                navigationIcon = { IconButton(onClick = onBackClick) { Icon(Icons.Default.ArrowBack, null) } },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            )
-        }
+    CalculatorScaffold(
+        title = "Salary Calculator",
+        onBackClick = onBackClick,
+        calculatorId = "salary"
     ) { innerPadding ->
         Column(Modifier.fillMaxSize().padding(innerPadding).padding(16.dp).verticalScroll(rememberScrollState())) {
             CalculatorInput("Basic Salary", basicSalary, { basicSalary = it }, 10000.0..500000.0, "₹")
@@ -47,8 +40,7 @@ fun SalaryCalculatorScreen(onBackClick: () -> Unit) {
                 DonutChartData(results.third, MaterialTheme.colorScheme.primary, "Take Home")
             ))
             
-            Card(Modifier.fillMaxWidth().padding(vertical = 16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
+            NeonCard(Modifier.fillMaxWidth().padding(vertical = 16.dp)) {
                 Column(Modifier.padding(16.dp)) {
                     ResultRow("Gross Salary", currencyFormat.format(results.first))
                     ResultRow("Total Deductions", currencyFormat.format(results.second))

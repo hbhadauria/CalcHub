@@ -16,19 +16,19 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = NeoGreen,
+    primary = NeonGreen,
     onPrimary = NeoBlack,
-    secondary = NeoPink,
+    secondary = NeonPink,
     onSecondary = NeoBlack,
-    tertiary = NeoYellow,
+    tertiary = NeonCyan,
     onTertiary = NeoBlack,
-    background = NeoBlack,
-    onBackground = NeoWhite,
-    surface = NeoBlack,
-    onSurface = NeoWhite,
-    surfaceVariant = NeoGray,
-    onSurfaceVariant = NeoWhite,
-    outline = NeoWhite
+    background = NeonBackground,
+    onBackground = NeonText,
+    surface = NeonSurface,
+    onSurface = NeonText,
+    surfaceVariant = NeonBorder,
+    onSurfaceVariant = NeonTextSecondary,
+    outline = NeonGreen
 )
 
 // NeoPOP is predominantly dark, so we use the same scheme for light mode 

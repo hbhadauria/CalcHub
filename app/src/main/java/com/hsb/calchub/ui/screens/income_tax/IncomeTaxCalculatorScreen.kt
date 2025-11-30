@@ -27,8 +27,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.hsb.calchub.domain.logic.CalculatorLogic
 import com.hsb.calchub.ui.components.CalculatorInput
+import com.hsb.calchub.ui.components.CalculatorScaffold
 import com.hsb.calchub.ui.components.DonutChart
 import com.hsb.calchub.ui.components.DonutChartData
+import com.hsb.calchub.ui.components.NeonCard
 import com.hsb.calchub.ui.components.ResultRow
 import java.text.NumberFormat
 import java.util.Locale
@@ -42,21 +44,10 @@ fun IncomeTaxCalculatorScreen(onBackClick: () -> Unit) {
     val results = CalculatorLogic.calculateIncomeTax(annualIncome, deductions)
     val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Income Tax Calculator") },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            )
-        }
+    CalculatorScaffold(
+        title = "Income Tax Calculator",
+        onBackClick = onBackClick,
+        calculatorId = "income_tax"
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -88,13 +79,10 @@ fun IncomeTaxCalculatorScreen(onBackClick: () -> Unit) {
                 )
             )
 
-            Card(
+            NeonCard(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer
-                )
+                    .padding(vertical = 16.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     ResultRow("Gross Income", currencyFormat.format(results.first))

@@ -23,17 +23,10 @@ fun InflationCalculatorScreen(onBackClick: () -> Unit) {
     val results = CalculatorLogic.calculateInflation(currentPrice, inflationRate, years)
     val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Inflation Calculator") },
-                navigationIcon = { IconButton(onClick = onBackClick) { Icon(Icons.Default.ArrowBack, null) } },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            )
-        }
+    CalculatorScaffold(
+        title = "Inflation Calculator",
+        onBackClick = onBackClick,
+        calculatorId = "inflation"
     ) { innerPadding ->
         Column(Modifier.fillMaxSize().padding(innerPadding).padding(16.dp).verticalScroll(rememberScrollState())) {
             CalculatorInput("Current Price", currentPrice, { currentPrice = it }, 100.0..10000000.0, "₹")
@@ -45,8 +38,7 @@ fun InflationCalculatorScreen(onBackClick: () -> Unit) {
                 DonutChartData(results.second, MaterialTheme.colorScheme.tertiary, "Increase")
             ))
             
-            Card(Modifier.fillMaxWidth().padding(vertical = 16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
+            NeonCard(Modifier.fillMaxWidth().padding(vertical = 16.dp)) {
                 Column(Modifier.padding(16.dp)) {
                     ResultRow("Current Price", currencyFormat.format(results.first))
                     ResultRow("Price Increase", currencyFormat.format(results.second))
