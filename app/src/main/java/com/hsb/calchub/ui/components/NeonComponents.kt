@@ -11,9 +11,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.Build
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -38,12 +39,21 @@ fun NeonCard(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
     borderColor: Color = NeonGreen,
+    useGradientBorder: Boolean = false,
     content: @Composable ColumnScope.() -> Unit
 ) {
     val shape = RoundedCornerShape(16.dp)
-    val borderBrush = Brush.verticalGradient(
-        colors = listOf(borderColor, borderColor.copy(alpha = 0.2f))
-    )
+    val borderBrush = if (useGradientBorder) {
+        Brush.verticalGradient(
+            colors = listOf(NeonGreen, NeonPink),
+            startY = 0f,
+            endY = 1000f
+        )
+    } else {
+        Brush.verticalGradient(
+            colors = listOf(borderColor, borderColor.copy(alpha = 0.2f))
+        )
+    }
 
     Surface(
         modifier = modifier
@@ -51,8 +61,8 @@ fun NeonCard(
             .shadow(8.dp, shape, ambientColor = borderColor, spotColor = borderColor)
             .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
         shape = shape,
-        color = NeonSurface.copy(alpha = 0.9f), // Glassmorphism base
-        border = BorderStroke(1.dp, borderBrush)
+        color = NeonSurface.copy(alpha = 0.6f), // More transparent for glass effect
+        border = BorderStroke(2.dp, borderBrush) // Thicker border
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -154,43 +164,46 @@ fun NeonNavBar(
 ) {
     NavigationBar(
         containerColor = NeonSurface,
-        contentColor = NeonGreen
+        contentColor = NeonGreen,
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            .clip(RoundedCornerShape(32.dp))
+            .border(1.dp, NeonGreen.copy(alpha = 0.3f), RoundedCornerShape(32.dp))
     ) {
         NavigationBarItem(
-            icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
+            icon = { Icon(Icons.Outlined.Home, contentDescription = "Home") },
             label = { Text("Home") },
             selected = selectedItem == 0,
             onClick = { onItemSelected(0) },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = NeonGreen,
                 selectedTextColor = NeonGreen,
-                indicatorColor = NeonGreen.copy(alpha = 0.2f),
+                indicatorColor = NeonGreen.copy(alpha = 0.1f),
                 unselectedIconColor = NeonText.copy(alpha = 0.5f),
                 unselectedTextColor = NeonText.copy(alpha = 0.5f)
             )
         )
         NavigationBarItem(
-            icon = { Icon(Icons.Default.Favorite, contentDescription = "Saved") },
+            icon = { Icon(Icons.Outlined.FavoriteBorder, contentDescription = "Saved") },
             label = { Text("Saved") },
             selected = selectedItem == 1,
             onClick = { onItemSelected(1) },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = NeonPink,
                 selectedTextColor = NeonPink,
-                indicatorColor = NeonPink.copy(alpha = 0.2f),
+                indicatorColor = NeonPink.copy(alpha = 0.1f),
                 unselectedIconColor = NeonText.copy(alpha = 0.5f),
                 unselectedTextColor = NeonText.copy(alpha = 0.5f)
             )
         )
         NavigationBarItem(
-            icon = { Icon(Icons.Default.Settings, contentDescription = "Tools") },
+            icon = { Icon(Icons.Outlined.Build, contentDescription = "Tools") },
             label = { Text("Tools") },
             selected = selectedItem == 2,
             onClick = { onItemSelected(2) },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = NeonGreen,
                 selectedTextColor = NeonGreen,
-                indicatorColor = NeonGreen.copy(alpha = 0.2f),
+                indicatorColor = NeonGreen.copy(alpha = 0.1f),
                 unselectedIconColor = NeonText.copy(alpha = 0.5f),
                 unselectedTextColor = NeonText.copy(alpha = 0.5f)
             )

@@ -22,6 +22,21 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import java.text.NumberFormat
 import java.util.Locale
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.icons.outlined.AccountBalanceWallet
+import androidx.compose.material.icons.outlined.AttachMoney
+import androidx.compose.material.icons.outlined.TrendingUp
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
+import com.hsb.calchub.ui.theme.NeonGreen
+import com.hsb.calchub.ui.theme.NeonPink
+import com.hsb.calchub.ui.theme.NeonText
+import com.hsb.calchub.ui.theme.NeonSurface
 
 @Composable
 fun CalculatorInput(
@@ -40,25 +55,61 @@ fun CalculatorInput(
             .fillMaxWidth()
             .padding(vertical = 12.dp)
     ) {
-        // Neon Input Style
-        NeonInput(
-            value = textValue,
-            onValueChange = { newText ->
-                textValue = newText
-                newText.toDoubleOrNull()?.let { newValue ->
-                    if (newValue in range) {
-                        onValueChange(newValue)
+        // Label and Input Row
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyLarge,
+                color = NeonText.copy(alpha = 0.8f)
+            )
+
+            // Small Glass Input Box
+            BasicTextField(
+                value = textValue,
+                onValueChange = { newText ->
+                    textValue = newText
+                    newText.toDoubleOrNull()?.let { newValue ->
+                        if (newValue in range) {
+                            onValueChange(newValue)
+                        }
+                    }
+                },
+                textStyle = TextStyle(
+                    color = NeonGreen,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.End
+                ),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Done
+                ),
+                cursorBrush = SolidColor(NeonGreen),
+                decorationBox = { innerTextField ->
+                    Box(
+                        modifier = Modifier
+                            .width(120.dp)
+                            .background(NeonSurface.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                            .border(1.dp, NeonGreen.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        contentAlignment = Alignment.CenterEnd
+                    ) {
+                        if (textValue.isEmpty()) {
+                            Text(
+                                text = "0",
+                                color = NeonText.copy(alpha = 0.3f),
+                                fontSize = 16.sp
+                            )
+                        }
+                        innerTextField()
                     }
                 }
-            },
-            label = label,
-            placeholder = "Enter $label",
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Number,
-                imeAction = ImeAction.Done
-            ),
-            modifier = Modifier.fillMaxWidth()
-        )
+            )
+        }
 
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -72,9 +123,11 @@ fun CalculatorInput(
             valueRange = range.start.toFloat()..range.endInclusive.toFloat(),
             modifier = Modifier.fillMaxWidth(),
             colors = SliderDefaults.colors(
-                thumbColor = MaterialTheme.colorScheme.primary,
-                activeTrackColor = MaterialTheme.colorScheme.primary,
-                inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant
+                thumbColor = NeonGreen,
+                activeTrackColor = NeonPink,
+                inactiveTrackColor = NeonSurface,
+                activeTickColor = NeonPink,
+                inactiveTickColor = NeonSurface
             )
         )
     }
@@ -92,25 +145,100 @@ fun ResultCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 24.dp),
-        borderColor = MaterialTheme.colorScheme.primary
+        borderColor = NeonGreen.copy(alpha = 0.5f)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            Text(
-                text = "SUMMARY",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-            
-            ResultRow("Invested Amount", currencyFormat.format(investedAmount))
-            ResultRow("Est. Returns", currencyFormat.format(estimatedReturns))
+            // Invested Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Outlined.AttachMoney, // Using AttachMoney as generic currency/investment icon
+                        contentDescription = null,
+                        tint = NeonPink,
+                        modifier = Modifier.size(24.dp).background(NeonPink.copy(alpha = 0.1f), RoundedCornerShape(50)).padding(4.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Invested",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = NeonText.copy(alpha = 0.8f)
+                    )
+                }
+                Text(
+                    text = currencyFormat.format(investedAmount),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = NeonPink,
+                    fontWeight = FontWeight.Bold
+                )
+            }
             
             Spacer(modifier = Modifier.height(16.dp))
-            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
+            HorizontalDivider(color = NeonGreen.copy(alpha = 0.1f))
             Spacer(modifier = Modifier.height(16.dp))
             
-            ResultRow("Total Value", currencyFormat.format(totalValue), isTotal = true)
+            // Returns Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Outlined.TrendingUp,
+                        contentDescription = null,
+                        tint = NeonGreen,
+                        modifier = Modifier.size(24.dp).background(NeonGreen.copy(alpha = 0.1f), RoundedCornerShape(50)).padding(4.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Returns",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = NeonText.copy(alpha = 0.8f)
+                    )
+                }
+                Text(
+                    text = currencyFormat.format(estimatedReturns),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = NeonGreen,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            HorizontalDivider(color = NeonGreen.copy(alpha = 0.1f))
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Total Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Outlined.AccountBalanceWallet,
+                        contentDescription = null,
+                        tint = NeonText,
+                        modifier = Modifier.size(24.dp).background(NeonText.copy(alpha = 0.1f), RoundedCornerShape(50)).padding(4.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Total Value",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = NeonText
+                    )
+                }
+                Text(
+                    text = currencyFormat.format(totalValue),
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = NeonText,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
     }
 }
