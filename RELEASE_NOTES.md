@@ -1,11 +1,11 @@
-# CalcHub v1.0 - Initial Release 🚀
+🚀 **CalcHub v1.0 is here!**
 
-Welcome to **CalcHub**, your ultimate financial calculator companion!
+The ultimate financial calculator with 30+ tools for Investment, Loans, Tax & Trading.
 
-**Key Features:**
-*   **30+ Smart Calculators:** Comprehensive tools for Investment (SIP, FD, PPF), Loans (EMI), Tax (GST, Income Tax), Retirement, and Trading.
-*   **Premium NeoPOP Design:** Enjoy a stunning, glossy dark-themed interface with smooth animations and haptic feel.
-*   **Visual Insights:** Visualize your wealth growth with interactive charts and detailed breakdowns.
-*   **Privacy First:** Works 100% offline. No data collection.
+✨ **Highlights:**
+*   **NeoPOP Design:** Stunning glossy dark UI with smooth animations.
+*   **Smart Tools:** SIP, EMI, GST, Income Tax & more.
+*   **Visual Insights:** Interactive wealth charts.
+*   **Privacy First:** 100% Offline & Secure.
 
-Simplify your financial planning today with CalcHub! ✨
+Master your finances with style! ✨
