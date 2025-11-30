@@ -86,13 +86,9 @@ fun ResultCard(
     estimatedReturns: Double,
     totalValue: Double
 ) {
-    val currencyFormat = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
-        NumberFormat.getCurrencyInstance(Locale.of("en", "IN"))
-    } else {
-        NumberFormat.getCurrencyInstance(Locale("en", "IN"))
-    }
+    val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
 
-    NeoPopCard(
+    NeoPopGlossyCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 24.dp),
@@ -112,7 +108,7 @@ fun ResultCard(
             ResultRow("Est. Returns", currencyFormat.format(estimatedReturns))
             
             Spacer(modifier = Modifier.height(16.dp))
-            Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
             Spacer(modifier = Modifier.height(16.dp))
             
             ResultRow("Total Value", currencyFormat.format(totalValue), isTotal = true)
