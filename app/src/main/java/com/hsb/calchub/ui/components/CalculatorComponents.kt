@@ -64,61 +64,71 @@ fun CalculatorInput(
             .fillMaxWidth()
             .padding(vertical = 12.dp)
     ) {
-        // Label and Input Row
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodyLarge,
-                color = NeonText.copy(alpha = 0.8f)
-            )
+        // Label
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = NeonText.copy(alpha = 0.7f),
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
 
-            // Small Glass Input Box
-            BasicTextField(
-                value = textValue,
-                onValueChange = { newText ->
-                    textValue = newText
-                    newText.toDoubleOrNull()?.let { newValue ->
-                        if (newValue in range) {
-                            onValueChange(newValue)
-                        }
-                    }
-                },
-                textStyle = TextStyle(
-                    color = NeonGreen,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.End
-                ),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Done
-                ),
-                cursorBrush = SolidColor(NeonGreen),
-                decorationBox = { innerTextField ->
-                    Box(
-                        modifier = Modifier
-                            .width(120.dp)
-                            .background(NeonSurface.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
-                            .border(1.dp, NeonGreen.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
-                            .padding(horizontal = 12.dp, vertical = 8.dp),
-                        contentAlignment = Alignment.CenterEnd
-                    ) {
-                        if (textValue.isEmpty()) {
-                            Text(
-                                text = "0",
-                                color = NeonText.copy(alpha = 0.3f),
-                                fontSize = 16.sp
-                            )
-                        }
-                        innerTextField()
+        // NeonInput-styled TextField
+        BasicTextField(
+            value = textValue,
+            onValueChange = { newText ->
+                textValue = newText
+                newText.toDoubleOrNull()?.let { newValue ->
+                    if (newValue in range) {
+                        onValueChange(newValue)
                     }
                 }
-            )
-        }
+            },
+            textStyle = TextStyle(
+                color = NeonText,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Medium
+            ),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Number,
+                imeAction = ImeAction.Done
+            ),
+            cursorBrush = SolidColor(NeonGreen),
+            decorationBox = { innerTextField ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(NeonSurface, RoundedCornerShape(12.dp))
+                        .border(1.dp, NeonGreen.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                        .padding(16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(modifier = Modifier.weight(1f)) {
+                            if (textValue.isEmpty()) {
+                                Text(
+                                    text = "0",
+                                    color = NeonText.copy(alpha = 0.3f),
+                                    fontSize = 18.sp
+                                )
+                            }
+                            innerTextField()
+                        }
+                        if (symbol.isNotEmpty()) {
+                            Text(
+                                text = symbol,
+                                color = NeonGreen,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(start = 8.dp)
+                            )
+                        }
+                    }
+                }
+            }
+        )
 
         Spacer(modifier = Modifier.height(8.dp))
 

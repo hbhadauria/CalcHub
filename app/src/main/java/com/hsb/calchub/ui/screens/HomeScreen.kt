@@ -101,13 +101,41 @@ fun HomeScreen(onCalculatorClick: (String) -> Unit) {
             )
         }
 
+        // Main Content (Grid) - Now behind the floating elements
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(3),
+            contentPadding = PaddingValues(
+                top = 180.dp, // Space for floating header + search
+                bottom = 120.dp, // Space for floating nav bar
+                start = 16.dp,
+                end = 16.dp
+            ),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.fillMaxSize()
+        ) {
+            items(filteredCalculators) { calculator ->
+                CalculatorCard(calculator, onCalculatorClick)
+            }
+        }
+
+        // Floating Header & Search
         Column(
             modifier = Modifier
-                .fillMaxSize()
+                .align(Alignment.TopCenter)
+                .fillMaxWidth()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0xFF050505).copy(alpha = 0.95f),
+                            Color(0xFF050505).copy(alpha = 0.8f),
+                            Color.Transparent
+                        )
+                    )
+                )
                 .padding(horizontal = 16.dp)
+                .padding(top = 16.dp, bottom = 24.dp) // Add some bottom padding for the gradient fade
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
-            
             // Header
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -151,20 +179,8 @@ fun HomeScreen(onCalculatorClick: (String) -> Unit) {
             NeonSearch(
                 query = searchQuery,
                 onQueryChange = { searchQuery = it },
-                modifier = Modifier.padding(bottom = 24.dp)
+                modifier = Modifier.padding(bottom = 8.dp)
             )
-
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(3),
-                contentPadding = PaddingValues(bottom = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(filteredCalculators) { calculator ->
-                    CalculatorCard(calculator, onCalculatorClick)
-                }
-            }
         }
     }
 }

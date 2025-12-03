@@ -12,11 +12,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -237,50 +239,47 @@ fun NeonNavBar(
     onItemSelected: (Int) -> Unit
 ) {
     NavigationBar(
-        containerColor = NeonSurface,
-        contentColor = NeonGreen,
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+        containerColor = NeonSurface.copy(alpha = 0.9f),
+        // *** THE DEFINITIVE FIX ***
+        // Apply the aesthetic modifiers AND explicitly clear default inset handling.
+        modifier = Modifier
+            .fillMaxWidth()
+            .windowInsetsPadding(WindowInsets(0, 0, 0, 0)) // 1. PREVENT DOUBLE PADDING
             .clip(RoundedCornerShape(32.dp))
-            .border(1.dp, NeonGreen.copy(alpha = 0.3f), RoundedCornerShape(32.dp))
+            .border(1.dp, NeonText.copy(alpha = 0.1f), RoundedCornerShape(32.dp))
     ) {
-        NavigationBarItem(
-            icon = { Icon(Icons.Outlined.Home, contentDescription = "Home") },
-            label = { Text("Home") },
-            selected = selectedItem == 0,
-            onClick = { onItemSelected(0) },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = NeonGreen,
-                selectedTextColor = NeonGreen,
-                indicatorColor = NeonGreen.copy(alpha = 0.1f),
-                unselectedIconColor = NeonText.copy(alpha = 0.5f),
-                unselectedTextColor = NeonText.copy(alpha = 0.5f)
+        // ... (The rest of the function remains the same) ...
+        val navItems = listOf("Home", "Favorites", "Tools")
+        val navIcons = listOf(Icons.Outlined.Home, Icons.Outlined.FavoriteBorder, Icons.Outlined.Build)
+        val navColors = listOf(NeonGreen, NeonPink, NeonGreen)
+
+        navItems.forEachIndexed { index, title ->
+            val isSelected = selectedItem == index
+
+            NavigationBarItem(
+                selected = isSelected,
+                onClick = { onItemSelected(index) },
+                icon = {
+                    Icon(
+                        imageVector = navIcons[index],
+                        contentDescription = title
+                    )
+                },
+                label = {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                },
+                alwaysShowLabel = true,
+                colors = NavigationBarItemDefaults.colors(
+                    indicatorColor = navColors[index].copy(alpha = 0.15f),
+                    selectedIconColor = navColors[index],
+                    selectedTextColor = navColors[index],
+                    unselectedIconColor = NeonText.copy(alpha = 0.7f),
+                    unselectedTextColor = NeonText.copy(alpha = 0.7f)
+                )
             )
-        )
-        NavigationBarItem(
-            icon = { Icon(Icons.Outlined.FavoriteBorder, contentDescription = "Saved") },
-            label = { Text("Saved") },
-            selected = selectedItem == 1,
-            onClick = { onItemSelected(1) },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = NeonPink,
-                selectedTextColor = NeonPink,
-                indicatorColor = NeonPink.copy(alpha = 0.1f),
-                unselectedIconColor = NeonText.copy(alpha = 0.5f),
-                unselectedTextColor = NeonText.copy(alpha = 0.5f)
-            )
-        )
-        NavigationBarItem(
-            icon = { Icon(Icons.Outlined.Build, contentDescription = "Tools") },
-            label = { Text("Tools") },
-            selected = selectedItem == 2,
-            onClick = { onItemSelected(2) },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = NeonGreen,
-                selectedTextColor = NeonGreen,
-                indicatorColor = NeonGreen.copy(alpha = 0.1f),
-                unselectedIconColor = NeonText.copy(alpha = 0.5f),
-                unselectedTextColor = NeonText.copy(alpha = 0.5f)
-            )
-        )
+        }
     }
 }
