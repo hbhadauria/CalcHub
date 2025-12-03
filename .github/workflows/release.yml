@@ -3,6 +3,22 @@ name: Create New Release
 on:
   workflow_dispatch:
     inputs:
+      run_security_scan:
+        description: 'Run CodeQL security scan?'
+        required: true
+        default: 'no'
+        type: choice
+        options:
+          - 'yes'
+          - 'no'
+      run_unit_tests:
+        description: 'Run unit tests?'
+        required: true
+        default: 'yes'
+        type: choice
+        options:
+          - 'yes'
+          - 'no'
       track:
         description: 'The track to deploy to'
         required: true
@@ -16,14 +32,17 @@ on:
 
 jobs:
   security-scan:
+    if: ${{ github.event.inputs.run_security_scan == 'yes' }}
     uses: ./.github/workflows/codeql-analysis.yml
 
   test:
-    needs: security-scan
+    if: ${{ github.event.inputs.run_unit_tests == 'yes' }}
+    needs: [security-scan]
     uses: ./.github/workflows/unit-test.yml
 
   build:
-    needs: test
+    needs: [test]
+    if: ${{ always() && (needs.test.result == 'success' || needs.test.result == 'skipped') }}
     uses: ./.github/workflows/build-bundle.yml
 
   deploy:

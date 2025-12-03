@@ -25,10 +25,16 @@ jobs:
       
       - name: Run unit tests
         run: ./gradlew test --stacktrace
-      
-      - name: Upload test results
+
+      - name: Publish Test Report
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: '**/build/test-results/test*/*.xml'
+
+      - name: Upload Full Test Report Artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results
+          name: full-test-report
           path: app/build/reports/tests/
