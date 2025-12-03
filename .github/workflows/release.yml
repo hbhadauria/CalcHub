@@ -1,0 +1,34 @@
+name: Create New Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      track:
+        description: 'The track to deploy to'
+        required: true
+        default: 'internal'
+        type: choice
+        options:
+          - production
+          - beta
+          - alpha
+          - internal
+
+jobs:
+  security-scan:
+    uses: ./.github/workflows/codeql-analysis.yml
+
+  test:
+    needs: security-scan
+    uses: ./.github/workflows/unit-test.yml
+
+  build:
+    needs: test
+    uses: ./.github/workflows/build-bundle.yml
+
+  deploy:
+    needs: build
+    uses: ./.github/workflows/deploy-playstore.yml
+    with:
+      track: ${{ github.event.inputs.track }}
+    secrets: inherit
