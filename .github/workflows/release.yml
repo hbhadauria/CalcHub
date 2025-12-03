@@ -33,17 +33,25 @@ on:
 jobs:
   security-scan:
     if: ${{ github.event.inputs.run_security_scan == 'yes' }}
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
     uses: ./.github/workflows/codeql-analysis.yml
 
   test:
     if: ${{ github.event.inputs.run_unit_tests == 'yes' }}
-    needs: [security-scan]
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
     uses: ./.github/workflows/unit-test.yml
 
   build:
     needs: [test]
     if: ${{ always() && (needs.test.result == 'success' || needs.test.result == 'skipped') }}
     uses: ./.github/workflows/build-bundle.yml
+    secrets: inherit
 
   deploy:
     needs: build

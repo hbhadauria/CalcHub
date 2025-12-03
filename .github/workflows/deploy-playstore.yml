@@ -13,6 +13,12 @@ on:
           - beta
           - alpha
           - internal
+  workflow_call:
+    inputs:
+      track:
+        description: 'The track to deploy to'
+        required: true
+        type: string
 
 jobs:
   deploy:
@@ -29,13 +35,18 @@ jobs:
           name: release-artifacts
           path: app/build/outputs/
       
+      - name: Decode Service Account Key
+        env:
+          SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_STORE_SERVICE_ACCOUNT_JSON }}
+        run: echo "$SERVICE_ACCOUNT_JSON" | base64 -d > service_account.json
+
       - name: Deploy to Play Store
         uses: r0adkll/upload-google-play@v1
         with:
-          serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_SERVICE_ACCOUNT_JSON }}
+          serviceAccountJson: service_account.json
           packageName: com.hsb.calchub
           releaseFiles: app/build/outputs/bundle/release/*.aab
-          track: ${{ github.event.inputs.track }}
+          track: ${{ inputs.track }}
           status: completed
           whatsNewDirectory: distribution/whatsnew
           mappingFile: app/build/outputs/mapping/release/mapping.txt
