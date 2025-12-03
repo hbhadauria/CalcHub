@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,10 +15,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.hsb.calchub.domain.model.CalculatorCategory
+import com.hsb.calchub.data.repository.FavoritesRepository
 import com.hsb.calchub.domain.model.allCalculators
 import com.hsb.calchub.ui.components.NeonCard
 import com.hsb.calchub.ui.components.NeonSearch
@@ -26,22 +26,21 @@ import com.hsb.calchub.ui.theme.NeonGreen
 import com.hsb.calchub.ui.theme.NeonPink
 import com.hsb.calchub.ui.theme.NeonText
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ToolsScreen(onCalculatorClick: (String) -> Unit) {
+fun FavoritesScreen(onCalculatorClick: (String) -> Unit) {
+    val context = LocalContext.current
+    val favoritesRepository = remember { FavoritesRepository.getInstance(context) }
+    val favorites by favoritesRepository.favorites.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
+
+    val favoriteCalculators = allCalculators.filter { favorites.contains(it.route) }
     
-    val categorizedCalculators = allCalculators.groupBy { it.category }
-    val categories = CalculatorCategory.values()
-    
-    // Filter calculators based on search
-    val filteredCategories = if (searchQuery.isEmpty()) {
-        categories.associateWith { categorizedCalculators[it] ?: emptyList() }
+    // Filter favorite calculators based on search
+    val filteredCalculators = if (searchQuery.isEmpty()) {
+        favoriteCalculators
     } else {
-        categories.associateWith { category ->
-            categorizedCalculators[category]?.filter { 
-                it.name.contains(searchQuery, ignoreCase = true) 
-            } ?: emptyList()
-        }.filterValues { it.isNotEmpty() }
+        favoriteCalculators.filter { it.name.contains(searchQuery, ignoreCase = true) }
     }
 
     // Background with gradient
@@ -65,7 +64,7 @@ fun ToolsScreen(onCalculatorClick: (String) -> Unit) {
             
             drawCircle(
                 brush = Brush.radialGradient(
-                    colors = listOf(NeonGreen.copy(alpha = 0.15f), Color.Transparent),
+                    colors = listOf(NeonPink.copy(alpha = 0.15f), Color.Transparent),
                     center = Offset(width / 2, height * 0.1f),
                     radius = width * 0.8f
                 )
@@ -73,14 +72,14 @@ fun ToolsScreen(onCalculatorClick: (String) -> Unit) {
             
             drawCircle(
                 brush = Brush.radialGradient(
-                    colors = listOf(NeonPink.copy(alpha = 0.1f), Color.Transparent),
+                    colors = listOf(NeonGreen.copy(alpha = 0.1f), Color.Transparent),
                     center = Offset(0f, height),
                     radius = width * 0.6f
                 )
             )
             drawCircle(
                 brush = Brush.radialGradient(
-                    colors = listOf(NeonPink.copy(alpha = 0.1f), Color.Transparent),
+                    colors = listOf(NeonGreen.copy(alpha = 0.1f), Color.Transparent),
                     center = Offset(width, height),
                     radius = width * 0.6f
                 )
@@ -88,56 +87,70 @@ fun ToolsScreen(onCalculatorClick: (String) -> Unit) {
         }
 
         // Main Content (List)
-        LazyColumn(
-            contentPadding = PaddingValues(
-                top = 180.dp,
-                bottom = 120.dp,
-                start = 16.dp,
-                end = 16.dp
-            ),
-            verticalArrangement = Arrangement.spacedBy(24.dp),
-            modifier = Modifier.fillMaxSize()
-        ) {
-            items(filteredCategories.keys.toList()) { category ->
-                val calculators = filteredCategories[category] ?: emptyList()
-                if (calculators.isNotEmpty()) {
-                    Column {
-                        Text(
-                            text = category.name,
-                            style = MaterialTheme.typography.titleSmall.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = NeonPink,
-                                letterSpacing = 1.sp
-                            ),
-                            modifier = Modifier.padding(bottom = 12.dp)
-                        )
-                        
-                        calculators.forEach { calculator ->
-                            NeonCard(
-                                onClick = { onCalculatorClick(calculator.route) },
-                                modifier = Modifier.padding(bottom = 12.dp)
+        if (favoriteCalculators.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 180.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "No favorite calculators yet.",
+                    color = NeonText.copy(alpha = 0.5f),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+        } else {
+            LazyColumn(
+                contentPadding = PaddingValues(
+                    top = 180.dp,
+                    bottom = 120.dp,
+                    start = 16.dp,
+                    end = 16.dp
+                ),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                if (filteredCalculators.isEmpty()) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 32.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "No calculators match your search.",
+                                color = NeonText.copy(alpha = 0.5f),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+                    }
+                } else {
+                    items(filteredCalculators) { calculator ->
+                        NeonCard(
+                            onClick = { onCalculatorClick(calculator.route) }
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxWidth()
                             ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    calculator.icon?.let { icon ->
-                                        Icon(
-                                            imageVector = icon,
-                                            contentDescription = null,
-                                            tint = NeonGreen,
-                                            modifier = Modifier.size(24.dp)
-                                        )
-                                        Spacer(modifier = Modifier.width(16.dp))
-                                    }
-                                    Text(
-                                        text = calculator.name,
-                                        style = MaterialTheme.typography.bodyLarge.copy(
-                                            fontWeight = FontWeight.Medium,
-                                            color = NeonText
-                                        )
+                                calculator.icon?.let { icon ->
+                                    Icon(
+                                        imageVector = icon,
+                                        contentDescription = null,
+                                        tint = NeonPink,
+                                        modifier = Modifier.size(32.dp)
                                     )
+                                    Spacer(modifier = Modifier.width(16.dp))
                                 }
+                                Text(
+                                    text = calculator.name,
+                                    style = MaterialTheme.typography.titleMedium.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        color = NeonText
+                                    )
+                                )
                             }
                         }
                     }
@@ -171,19 +184,19 @@ fun ToolsScreen(onCalculatorClick: (String) -> Unit) {
                     .padding(vertical = 16.dp)
             ) {
                 Text(
-                    text = "Tools",
+                    text = "Favorites",
                     style = MaterialTheme.typography.headlineLarge.copy(
                         fontWeight = FontWeight.Bold,
-                        color = NeonGreen,
+                        color = NeonPink,
                         shadow = Shadow(
-                            color = NeonGreen,
+                            color = NeonPink,
                             blurRadius = 20f
                         )
                     )
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Icon(
-                    imageVector = Icons.Default.Build,
+                    imageVector = Icons.Default.Favorite,
                     contentDescription = null,
                     tint = NeonText,
                     modifier = Modifier.size(32.dp)
