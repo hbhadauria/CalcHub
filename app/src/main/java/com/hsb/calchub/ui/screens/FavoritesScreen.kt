@@ -91,7 +91,7 @@ fun FavoritesScreen(onCalculatorClick: (String) -> Unit) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = 180.dp),
+                    .padding(top = 230.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -103,7 +103,7 @@ fun FavoritesScreen(onCalculatorClick: (String) -> Unit) {
         } else {
             LazyColumn(
                 contentPadding = PaddingValues(
-                    top = 180.dp,
+                    top = 230.dp,
                     bottom = 120.dp,
                     start = 16.dp,
                     end = 16.dp
@@ -173,6 +173,7 @@ fun FavoritesScreen(onCalculatorClick: (String) -> Unit) {
                     )
                 )
                 .padding(horizontal = 16.dp)
+                .statusBarsPadding()
                 .padding(top = 16.dp, bottom = 24.dp)
         ) {
             // Header

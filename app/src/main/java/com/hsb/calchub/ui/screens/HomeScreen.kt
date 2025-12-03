@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -105,7 +106,7 @@ fun HomeScreen(onCalculatorClick: (String) -> Unit) {
         LazyVerticalGrid(
             columns = GridCells.Fixed(3),
             contentPadding = PaddingValues(
-                top = 180.dp, // Space for floating header + search
+                top = 230.dp, // Increased to avoid overlap with header + status bar
                 bottom = 120.dp, // Space for floating nav bar
                 start = 16.dp,
                 end = 16.dp
@@ -134,6 +135,7 @@ fun HomeScreen(onCalculatorClick: (String) -> Unit) {
                     )
                 )
                 .padding(horizontal = 16.dp)
+                .statusBarsPadding()
                 .padding(top = 16.dp, bottom = 24.dp) // Add some bottom padding for the gradient fade
         ) {
             // Header

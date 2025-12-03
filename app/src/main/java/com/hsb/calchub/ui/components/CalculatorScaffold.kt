@@ -33,38 +33,12 @@ fun CalculatorScaffold(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = NeonText
-                        )
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Back",
-                            tint = NeonText
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { favoritesRepository.toggleFavorite(calculatorId) }) {
-                        Icon(
-                            imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                            contentDescription = "Save",
-                            tint = if (isFavorite) NeonPink else NeonText
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = NeonBackground,
-                    titleContentColor = NeonText
-                )
+            NeonHeader(
+                title = "CalcHub",
+                subtitle = title,
+                isFavorite = isFavorite,
+                onBackClick = onBackClick,
+                onFavoriteClick = { favoritesRepository.toggleFavorite(calculatorId) }
             )
         },
         containerColor = NeonBackground,

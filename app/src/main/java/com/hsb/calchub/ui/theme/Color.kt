@@ -11,6 +11,7 @@ val NeonSurface = Color(0xFF121212) // Slightly lighter black for cards
 val NeonText = Color(0xFFFFFFFF)
 val NeonTextSecondary = Color(0xFFB0B0B0)
 val NeonBorder = Color(0xFF2A2A2A)
+val NeonInactiveTrack = Color(0xFF333333)
 
 // Legacy NeoPOP Colors (Keeping for reference if needed, but mostly replacing)
 val NeoWhite = Color(0xFFFFFFFF)

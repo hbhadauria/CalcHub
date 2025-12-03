@@ -17,12 +17,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Build
 import androidx.compose.material.icons.outlined.FavoriteBorder
@@ -46,6 +51,8 @@ import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hsb.calchub.ui.theme.NeonGreen
@@ -279,6 +286,99 @@ fun NeonNavBar(
                     unselectedIconColor = NeonText.copy(alpha = 0.7f),
                     unselectedTextColor = NeonText.copy(alpha = 0.7f)
                 )
+            )
+        }
+    }
+}
+
+@Composable
+fun NeonHeader(
+    title: String,
+    subtitle: String,
+    isFavorite: Boolean,
+    onBackClick: () -> Unit,
+    onFavoriteClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .statusBarsPadding() // Fix status bar overlap
+            .padding(horizontal = 16.dp, vertical = 16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Left: Menu/Back Button
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .coloredGlow(NeonGreen, RoundedCornerShape(12.dp), blurRadius = 15f)
+                .background(NeonSurface.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                .border(1.dp, NeonGreen.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = androidx.compose.foundation.LocalIndication.current,
+                    onClick = onBackClick
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Back",
+                tint = NeonGreen
+            )
+        }
+
+        // Center: Title and Subtitle
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "Calc",
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = NeonGreen,
+                        shadow = androidx.compose.ui.graphics.Shadow(
+                            color = NeonGreen,
+                            blurRadius = 20f
+                        )
+                    )
+                )
+                Text(
+                    text = "Hub",
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = NeonPink,
+                        shadow = androidx.compose.ui.graphics.Shadow(
+                            color = NeonPink,
+                            blurRadius = 20f
+                        )
+                    )
+                )
+            }
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodyMedium,
+                color = NeonText.copy(alpha = 0.7f)
+            )
+        }
+
+        // Right: Favorite Button
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .coloredGlow(if (isFavorite) NeonPink else NeonGreen, RoundedCornerShape(12.dp), blurRadius = 15f)
+                .background(NeonSurface.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                .border(1.dp, if (isFavorite) NeonPink.copy(alpha = 0.5f) else NeonGreen.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = androidx.compose.foundation.LocalIndication.current,
+                    onClick = onFavoriteClick
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                contentDescription = "Favorite",
+                tint = if (isFavorite) NeonPink else NeonGreen
             )
         }
     }

@@ -71,22 +71,21 @@ fun DonutChart(
             Canvas(modifier = Modifier.fillMaxWidth().aspectRatio(1f)) {
                 var startAngle = -90f
                 val stroke = Stroke(width = strokeWidth.toPx(), cap = StrokeCap.Round)
-                val glowStroke = Stroke(width = strokeWidth.toPx() + 10f, cap = StrokeCap.Round)
-
+                
                 sweepAngles.forEachIndexed { index, sweepAngle ->
                     val strokeWidthPx = strokeWidth.toPx()
-                    val glowWidthPx = strokeWidthPx + 10f
+                    val glowWidthPx = strokeWidthPx + 20f // Increased glow width
                     
                     // Draw Glow
                     drawIntoCanvas { canvas ->
                         val paint = Paint().apply {
-                            color = data[index].color.copy(alpha = 0.5f)
+                            color = data[index].color.copy(alpha = 0.6f) // Increased opacity
                             style = PaintingStyle.Stroke
                             this.strokeWidth = glowWidthPx
                             strokeCap = StrokeCap.Round
                         }
                         paint.asFrameworkPaint().apply {
-                            maskFilter = android.graphics.BlurMaskFilter(30f, android.graphics.BlurMaskFilter.Blur.NORMAL)
+                            maskFilter = android.graphics.BlurMaskFilter(40f, android.graphics.BlurMaskFilter.Blur.NORMAL) // Increased blur
                         }
                         canvas.drawArc(
                             rect = androidx.compose.ui.geometry.Rect(
@@ -118,12 +117,12 @@ fun DonutChart(
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     text = "Total",
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelLarge,
                     color = NeonText.copy(alpha = 0.7f)
                 )
                 Text(
                     text = "Value",
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleLarge,
                     color = NeonText,
                     fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
                 )
