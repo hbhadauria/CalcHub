@@ -29,9 +29,67 @@ on:
           - beta
           - alpha
           - internal
+      version_name:
+        description: 'New Version Name (Optional)'
+        required: false
+        type: string
 
 jobs:
+  version-bump:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      new_version_code: ${{ steps.bump.outputs.version_code }}
+      new_version_name: ${{ steps.bump.outputs.version_name }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Bump Version
+        id: bump
+        run: |
+          # Read properties
+          FILE="version.properties"
+          if [ -f "$FILE" ]; then
+            while IFS='=' read -r key value; do
+              export "$key=$value"
+            done < "$FILE"
+          else
+            echo "version.properties not found!"
+            exit 1
+          fi
+
+          # Increment Code
+          NEW_CODE=$((VERSION_CODE + 1))
+          
+          # Determine Name
+          if [ -n "${{ github.event.inputs.version_name }}" ]; then
+            NEW_NAME="${{ github.event.inputs.version_name }}"
+          else
+            NEW_NAME="$VERSION_NAME"
+          fi
+
+          # Write back
+          echo "VERSION_CODE=$NEW_CODE" > "$FILE"
+          echo "VERSION_NAME=$NEW_NAME" >> "$FILE"
+          
+          echo "version_code=$NEW_CODE" >> $GITHUB_OUTPUT
+          echo "version_name=$NEW_NAME" >> $GITHUB_OUTPUT
+          
+          # Display
+          echo "Bumping version: $VERSION_NAME ($VERSION_CODE) -> $NEW_NAME ($NEW_CODE)"
+
+      - name: Commit & Push
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "ci: bump version to ${{ steps.bump.outputs.version_name }} ($((VERSION_CODE + 1))) [skip ci]"
+          file_pattern: version.properties
+
   security-scan:
+    needs: version-bump
     if: ${{ github.event.inputs.run_security_scan == 'yes' }}
     permissions:
       actions: read
@@ -48,8 +106,9 @@ jobs:
     uses: ./.github/workflows/unit-test.yml
 
   build:
-    needs: [test]
-    if: ${{ always() && (needs.test.result == 'success' || needs.test.result == 'skipped') }}
+    needs: [test, version-bump]
+    # Run build if version-bump succeeded AND (tests succeeded OR tests were skipped)
+    if: ${{ always() && needs.version-bump.result == 'success' && (needs.test.result == 'success' || needs.test.result == 'skipped') }}
     uses: ./.github/workflows/build-bundle.yml
     secrets: inherit
 

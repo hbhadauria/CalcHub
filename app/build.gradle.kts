@@ -1,3 +1,6 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
@@ -9,11 +12,17 @@ android {
     compileSdk = 36
 
     defaultConfig {
+        val versionPropsFile = file("../version.properties")
+        val versionProps = Properties()
+        if (versionPropsFile.canRead()) {
+            versionProps.load(FileInputStream(versionPropsFile))
+        }
+
         applicationId = "com.hsb.calchub"
-        minSdk = 23
+        minSdk = 26
         targetSdk = 36
-        versionCode = 2
-        versionName = "2.0.0"
+        versionCode = (versionProps["VERSION_CODE"] as String).toInt()
+        versionName = versionProps["VERSION_NAME"] as String
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
