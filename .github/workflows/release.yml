@@ -131,3 +131,63 @@ jobs:
     with:
       track: ${{ github.event.inputs.track }}
     secrets: inherit
+
+  create-github-release:
+    needs: [version-bump, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-artifacts
+          path: artifacts/
+
+      - name: Extract Release Notes from CHANGELOG
+        id: extract_notes
+        run: |
+          VERSION="${{ needs.version-bump.outputs.new_version_name }}"
+          
+          # Extract content between version header and next version or separator
+          # Stop at next ## [ or --- line using flag-based awk
+          NOTES=$(awk "/## \\[$VERSION\\]/{flag=1; next} /^## \\[/{flag=0} /^---$/{flag=0} flag" CHANGELOG.md)
+          
+          # If no notes found, create basic release notes
+          if [ -z "$NOTES" ]; then
+            NOTES="Release version $VERSION (Build ${{ needs.version-bump.outputs.new_version_code }})"
+          fi
+          
+          # Save to file for multiline content
+          echo "$NOTES" > release_notes.md
+          
+          echo "Release notes extracted for version $VERSION"
+          cat release_notes.md
+
+      - name: Create Git Tag
+        run: |
+          VERSION="${{ needs.version-bump.outputs.new_version_name }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "v$VERSION" -m "Release v$VERSION (Build ${{ needs.version-bump.outputs.new_version_code }})"
+          git push origin "v$VERSION"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ needs.version-bump.outputs.new_version_name }}
+          name: CalcHub v${{ needs.version-bump.outputs.new_version_name }} (Build ${{ needs.version-bump.outputs.new_version_code }})
+          body_path: release_notes.md
+          files: |
+            artifacts/bundle/release/*.aab
+            artifacts/mapping/release/mapping.txt
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
