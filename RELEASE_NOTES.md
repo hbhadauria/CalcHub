@@ -1,11 +1,15 @@
-🚀 **CalcHub v1.0 is here!**
+🚀 **CalcHub v2.1.0 - Open Source Edition!**
 
-The ultimate financial calculator with 30+ tools for Investment, Loans, Tax & Trading.
+We are thrilled to announce that CalcHub is now fully Open Source! 🔓✨
 
 ✨ **Highlights:**
-*   **NeoPOP Design:** Stunning glossy dark UI with smooth animations.
-*   **Smart Tools:** SIP, EMI, GST, Income Tax & more.
-*   **Visual Insights:** Interactive wealth charts.
-*   **Privacy First:** 100% Offline & Secure.
+*   **Open Source:** Explore the code, contribute, and build with us on GitHub.
+*   **MIT License:** Free to use and modify.
+*   **Secure & Transparent:** Fully audited codebase.
 
-Master your finances with style! ✨
+Plus all the features you love:
+*   **NeoPOP Design:** Stunning glossy dark UI.
+*   **30+ Financial Tools:** SIP, EMI, Tax & more.
+*   **100% Offline:** Your data stays on your device.
+
+Check out the code: https://github.com/hbhadauria/CalcHub

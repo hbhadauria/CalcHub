@@ -2,6 +2,13 @@
 
 All notable changes to CalcHub will be documented in this file.
 
+## [2.1.0] - 2025-12-08
+
+### Open Source
+- **Public Release**: CalcHub is now Open Source under the MIT License!
+- **Documentation**: Added comprehensive Build instructions and Contribution guidelines.
+- **Security**: Hardened repository configuration and validated absence of secrets.
+
 ## [2.0.0] - 2025-11-30
 
 ### Added
