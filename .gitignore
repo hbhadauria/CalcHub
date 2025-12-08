@@ -1,3 +1,4 @@
+# Android & IntelliJ
 *.iml
 .gradle
 /local.properties
@@ -8,9 +9,31 @@
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
 .DS_Store
+
+# Build directories
 /build
+/app/build
 /captures
 .externalNativeBuild
 .cxx
-local.properties
+
+# Security: Signing & keys
+*.jks
+*.keystore
+*.pem
+*.p12
+google-services.json
+google-services.plist
+service_account.json
+
+# Archives
+*.apk
+*.ap_
 *.aab
+
+# IDE configs
+.vscode/
+.idea/
+
+# Others
+local.properties

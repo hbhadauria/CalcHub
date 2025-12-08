@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       run_security_scan:
-        description: 'Run CodeQL security scan?'
+        description: 'Run CodeQL security scan? (Recommended for release)'
         required: true
         default: 'no'
         type: choice
@@ -12,7 +12,7 @@ on:
           - 'yes'
           - 'no'
       run_unit_tests:
-        description: 'Run unit tests?'
+        description: 'Run unit tests? (Prevents bad builds)'
         required: true
         default: 'yes'
         type: choice
@@ -20,7 +20,7 @@ on:
           - 'yes'
           - 'no'
       track:
-        description: 'The track to deploy to'
+        description: 'The track to deploy to (internal, alpha, beta, production)'
         required: true
         default: 'internal'
         type: choice
@@ -29,8 +29,16 @@ on:
           - beta
           - alpha
           - internal
+      bump_version_code:
+        description: 'Auto-increment Build Number? (Select "no" to keep current)'
+        required: true
+        default: 'yes'
+        type: choice
+        options:
+          - 'yes'
+          - 'no'
       version_name:
-        description: 'New Version Name (Optional)'
+        description: 'New Version Name (e.g. 1.2.0). Leave empty to keep current.'
         required: false
         type: string
 
@@ -62,8 +70,13 @@ jobs:
             exit 1
           fi
 
+
           # Increment Code
-          NEW_CODE=$((VERSION_CODE + 1))
+          if [ "${{ github.event.inputs.bump_version_code }}" == "yes" ]; then
+            NEW_CODE=$((VERSION_CODE + 1))
+          else
+            NEW_CODE=$VERSION_CODE
+          fi
           
           # Determine Name
           if [ -n "${{ github.event.inputs.version_name }}" ]; then
