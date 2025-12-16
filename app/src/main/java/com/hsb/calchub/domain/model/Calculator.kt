@@ -2,6 +2,11 @@ package com.hsb.calchub.domain.model
 
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.CompareArrows
+import androidx.compose.material.icons.automirrored.rounded.ReceiptLong
+import androidx.compose.material.icons.automirrored.rounded.TrendingDown
+import androidx.compose.material.icons.automirrored.rounded.TrendingUp
+import androidx.compose.material.icons.automirrored.rounded.ShowChart
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.rounded.*
 
@@ -25,7 +30,7 @@ data class Calculator(
 
 val allCalculators = listOf(
     // Investment
-    Calculator("SIP", "sip", CalculatorCategory.INVESTMENT, true, Icons.Rounded.TrendingUp),
+    Calculator("SIP", "sip", CalculatorCategory.INVESTMENT, true, Icons.AutoMirrored.Rounded.TrendingUp),
     Calculator("Lumpsum", "lumpsum", CalculatorCategory.INVESTMENT, false, Icons.Rounded.PieChart),
     Calculator("FD", "fd", CalculatorCategory.INVESTMENT, true, Icons.Rounded.Savings),
     Calculator("PPF", "ppf", CalculatorCategory.INVESTMENT, true, Icons.Rounded.AccountBalance),
@@ -34,17 +39,17 @@ val allCalculators = listOf(
     Calculator("EPF", "epf", CalculatorCategory.INVESTMENT, false, Icons.Rounded.Work),
     Calculator("NSC", "nsc", CalculatorCategory.INVESTMENT, false, Icons.Rounded.LocalPostOffice),
     Calculator("SWP", "swp", CalculatorCategory.INVESTMENT, false, Icons.Rounded.Output),
-    Calculator("MF Returns", "mf_returns", CalculatorCategory.INVESTMENT, false, Icons.Rounded.ShowChart),
+    Calculator("MF Returns", "mf_returns", CalculatorCategory.INVESTMENT, false, Icons.AutoMirrored.Rounded.ShowChart),
 
     // Loan
     Calculator("EMI", "emi", CalculatorCategory.LOAN, true, Icons.Rounded.Calculate),
     Calculator("Home Loan", "home_loan_emi", CalculatorCategory.LOAN, true, Icons.Rounded.Home),
     Calculator("Car Loan", "car_loan_emi", CalculatorCategory.LOAN, false, Icons.Rounded.DirectionsCar),
-    Calculator("Flat vs Reducing", "flat_vs_reducing", CalculatorCategory.LOAN, false, Icons.Rounded.CompareArrows),
+    Calculator("Flat vs Reducing", "flat_vs_reducing", CalculatorCategory.LOAN, false, Icons.AutoMirrored.Rounded.CompareArrows),
 
     // Tax
     Calculator("Income Tax", "income_tax", CalculatorCategory.TAX, true, Icons.Rounded.Description),
-    Calculator("GST", "gst", CalculatorCategory.TAX, true, Icons.Rounded.ReceiptLong),
+    Calculator("GST", "gst", CalculatorCategory.TAX, true, Icons.AutoMirrored.Rounded.ReceiptLong),
     Calculator("HRA", "hra", CalculatorCategory.TAX, false, Icons.Rounded.House),
     Calculator("TDS", "tds", CalculatorCategory.TAX, false, Icons.Rounded.ContentCut),
 
@@ -65,7 +70,7 @@ val allCalculators = listOf(
     Calculator("Simple Interest", "simple_interest", CalculatorCategory.OTHER, true, Icons.Rounded.Percent),
     Calculator("Compound Interest", "compound_interest", CalculatorCategory.OTHER, false, Icons.Rounded.Loop),
     Calculator("Salary", "salary", CalculatorCategory.OTHER, false, Icons.Rounded.AttachMoney),
-    Calculator("Inflation", "inflation", CalculatorCategory.OTHER, false, Icons.Rounded.TrendingDown),
+    Calculator("Inflation", "inflation", CalculatorCategory.OTHER, false, Icons.AutoMirrored.Rounded.TrendingDown),
     Calculator("Post Office MIS", "post_office_mis", CalculatorCategory.OTHER, false, Icons.Rounded.LocalPostOffice),
     Calculator("SCSS", "scss", CalculatorCategory.OTHER, false, Icons.Rounded.ElderlyWoman)
 )

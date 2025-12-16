@@ -20,7 +20,7 @@ fun ApyCalculatorScreen(onBackClick: () -> Unit) {
     var currentAge by remember { mutableDoubleStateOf(25.0) }
     var pensionAmount by remember { mutableDoubleStateOf(5000.0) }
     val results = CalculatorLogic.calculateAPY(currentAge, pensionAmount)
-    val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
+    val currencyFormat = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("en-IN"))
 
     CalculatorScaffold(
         title = "APY Calculator",

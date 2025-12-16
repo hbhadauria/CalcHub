@@ -20,7 +20,7 @@ fun ScssCalculatorScreen(onBackClick: () -> Unit) {
     var investment by remember { mutableDoubleStateOf(500000.0) }
     var interestRate by remember { mutableDoubleStateOf(8.2) }
     val results = CalculatorLogic.calculateSCSS(investment, interestRate)
-    val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
+    val currencyFormat = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("en-IN"))
 
     CalculatorScaffold(
         title = "SCSS Calculator",

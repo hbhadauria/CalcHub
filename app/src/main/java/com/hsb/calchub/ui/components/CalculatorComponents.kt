@@ -157,7 +157,7 @@ fun ResultCard(
     estimatedReturns: Double,
     totalValue: Double
 ) {
-    val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
+    val currencyFormat = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("en-IN"))
 
     NeonCard(
         modifier = Modifier

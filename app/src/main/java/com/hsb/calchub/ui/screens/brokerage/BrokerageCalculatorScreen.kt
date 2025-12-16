@@ -22,7 +22,7 @@ fun BrokerageCalculatorScreen(onBackClick: () -> Unit) {
     var brokerageRate by remember { mutableDoubleStateOf(0.03) }
     var isIntraday by remember { mutableStateOf(false) }
     val results = CalculatorLogic.calculateBrokerage(tradeValue, brokerageRate, isIntraday)
-    val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
+    val currencyFormat = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("en-IN"))
 
     CalculatorScaffold(
         title = "Brokerage Calculator",

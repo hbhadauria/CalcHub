@@ -32,6 +32,7 @@ import com.hsb.calchub.ui.components.DonutChartData
 import com.hsb.calchub.ui.components.ResultCard
 import com.hsb.calchub.ui.components.ResultRow
 import com.hsb.calchub.ui.components.NeonCard
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -114,7 +115,7 @@ fun ResultCardWithLabels(
     label2: String, value2: Double,
     label3: String, value3: Double
 ) {
-    val currencyFormat = java.text.NumberFormat.getCurrencyInstance(java.util.Locale("en", "IN"))
+    val currencyFormat = java.text.NumberFormat.getCurrencyInstance(Locale.forLanguageTag("en-IN"))
     
     NeonCard(
         modifier = Modifier

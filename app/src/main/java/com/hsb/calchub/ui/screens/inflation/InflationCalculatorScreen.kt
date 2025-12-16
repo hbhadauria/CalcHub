@@ -21,7 +21,7 @@ fun InflationCalculatorScreen(onBackClick: () -> Unit) {
     var inflationRate by remember { mutableDoubleStateOf(6.0) }
     var years by remember { mutableDoubleStateOf(10.0) }
     val results = CalculatorLogic.calculateInflation(currentPrice, inflationRate, years)
-    val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
+    val currencyFormat = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("en-IN"))
 
     CalculatorScaffold(
         title = "Inflation Calculator",

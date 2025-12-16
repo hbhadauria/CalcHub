@@ -20,7 +20,7 @@ fun GratuityCalculatorScreen(onBackClick: () -> Unit) {
     var lastSalary by remember { mutableDoubleStateOf(50000.0) }
     var yearsOfService by remember { mutableDoubleStateOf(10.0) }
     val results = CalculatorLogic.calculateGratuity(lastSalary, yearsOfService)
-    val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
+    val currencyFormat = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("en-IN"))
 
     CalculatorScaffold(
         title = "Gratuity Calculator",

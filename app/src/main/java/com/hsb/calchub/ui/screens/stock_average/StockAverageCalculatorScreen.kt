@@ -22,7 +22,7 @@ fun StockAverageCalculatorScreen(onBackClick: () -> Unit) {
     var secondQuantity by remember { mutableDoubleStateOf(50.0) }
     var secondPrice by remember { mutableDoubleStateOf(120.0) }
     val results = CalculatorLogic.calculateStockAverage(firstQuantity, firstPrice, secondQuantity, secondPrice)
-    val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
+    val currencyFormat = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("en-IN"))
 
     CalculatorScaffold(
         title = "Stock Average Calculator",

@@ -22,7 +22,7 @@ fun XirrCalculatorScreen(onBackClick: () -> Unit) {
     var investment3 by remember { mutableDoubleStateOf(10000.0) }
     var returns by remember { mutableDoubleStateOf(35000.0) }
     val results = CalculatorLogic.calculateXIRR(listOf(investment1, investment2, investment3), returns)
-    val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
+    val currencyFormat = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("en-IN"))
 
     CalculatorScaffold(
         title = "XIRR Calculator",

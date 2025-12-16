@@ -42,7 +42,7 @@ fun SwpCalculatorScreen(onBackClick: () -> Unit) {
     var timePeriodYears by remember { mutableDoubleStateOf(10.0) }
 
     val results = CalculatorLogic.calculateSWP(totalInvestment, withdrawalPerMonth, expectedReturnRate, timePeriodYears)
-    val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
+    val currencyFormat = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("en-IN"))
 
     CalculatorScaffold(
         title = "SWP Calculator",

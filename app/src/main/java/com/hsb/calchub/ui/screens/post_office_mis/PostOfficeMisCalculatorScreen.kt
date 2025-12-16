@@ -20,7 +20,7 @@ fun PostOfficeMisCalculatorScreen(onBackClick: () -> Unit) {
     var investment by remember { mutableDoubleStateOf(450000.0) }
     var interestRate by remember { mutableDoubleStateOf(7.4) }
     val results = CalculatorLogic.calculatePostOfficeMIS(investment, interestRate)
-    val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
+    val currencyFormat = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("en-IN"))
 
     CalculatorScaffold(
         title = "Post Office MIS",

@@ -20,7 +20,7 @@ fun TdsCalculatorScreen(onBackClick: () -> Unit) {
     var amount by remember { mutableDoubleStateOf(100000.0) }
     var tdsRate by remember { mutableDoubleStateOf(10.0) }
     val results = CalculatorLogic.calculateTDS(amount, tdsRate)
-    val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
+    val currencyFormat = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("en-IN"))
 
     CalculatorScaffold(
         title = "TDS Calculator",

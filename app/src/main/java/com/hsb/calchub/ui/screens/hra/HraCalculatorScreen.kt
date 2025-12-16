@@ -46,7 +46,7 @@ fun HraCalculatorScreen(onBackClick: () -> Unit) {
     var isMetroCity by remember { mutableStateOf(true) }
 
     val results = CalculatorLogic.calculateHRA(basicSalary, hraReceived, rentPaid, isMetroCity)
-    val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
+    val currencyFormat = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("en-IN"))
 
     CalculatorScaffold(
         title = "HRA Calculator",

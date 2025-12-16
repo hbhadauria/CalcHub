@@ -42,7 +42,7 @@ fun IncomeTaxCalculatorScreen(onBackClick: () -> Unit) {
     var deductions by remember { mutableDoubleStateOf(150000.0) }
 
     val results = CalculatorLogic.calculateIncomeTax(annualIncome, deductions)
-    val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
+    val currencyFormat = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("en-IN"))
 
     CalculatorScaffold(
         title = "Income Tax Calculator",

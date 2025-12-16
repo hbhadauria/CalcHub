@@ -21,7 +21,7 @@ fun FlatVsReducingCalculatorScreen(onBackClick: () -> Unit) {
     var flatRate by remember { mutableDoubleStateOf(10.0) }
     var tenureYears by remember { mutableDoubleStateOf(5.0) }
     val results = CalculatorLogic.calculateFlatVsReducing(loanAmount, flatRate, tenureYears)
-    val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
+    val currencyFormat = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("en-IN"))
 
     CalculatorScaffold(
         title = "Flat vs Reducing Rate",

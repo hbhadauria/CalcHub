@@ -21,7 +21,7 @@ fun MarginCalculatorScreen(onBackClick: () -> Unit) {
     var price by remember { mutableDoubleStateOf(500.0) }
     var leverage by remember { mutableDoubleStateOf(5.0) }
     val results = CalculatorLogic.calculateMargin(quantity, price, leverage)
-    val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
+    val currencyFormat = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("en-IN"))
 
     CalculatorScaffold(
         title = "Margin Calculator",

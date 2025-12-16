@@ -21,7 +21,7 @@ fun CagrCalculatorScreen(onBackClick: () -> Unit) {
     var finalValue by remember { mutableDoubleStateOf(200000.0) }
     var years by remember { mutableDoubleStateOf(5.0) }
     val results = CalculatorLogic.calculateCAGR(initialValue, finalValue, years)
-    val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
+    val currencyFormat = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("en-IN"))
 
     CalculatorScaffold(
         title = "CAGR Calculator",

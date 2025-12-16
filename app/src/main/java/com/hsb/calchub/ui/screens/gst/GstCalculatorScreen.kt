@@ -22,7 +22,7 @@ fun GstCalculatorScreen(onBackClick: () -> Unit) {
     var gstRate by remember { mutableDoubleStateOf(18.0) }
     var isInclusive by remember { mutableStateOf(false) }
     val results = CalculatorLogic.calculateGST(amount, gstRate, isInclusive)
-    val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
+    val currencyFormat = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("en-IN"))
 
     CalculatorScaffold(
         title = "GST Calculator",

@@ -22,7 +22,7 @@ fun SalaryCalculatorScreen(onBackClick: () -> Unit) {
     var otherAllowances by remember { mutableDoubleStateOf(5000.0) }
     var pf by remember { mutableDoubleStateOf(4800.0) }
     val results = CalculatorLogic.calculateSalary(basicSalary, hra, otherAllowances, pf)
-    val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
+    val currencyFormat = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("en-IN"))
 
     CalculatorScaffold(
         title = "Salary Calculator",

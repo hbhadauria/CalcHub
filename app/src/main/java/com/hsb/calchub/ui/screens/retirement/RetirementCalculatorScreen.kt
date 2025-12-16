@@ -43,7 +43,7 @@ fun RetirementCalculatorScreen(onBackClick: () -> Unit) {
     var expectedReturn by remember { mutableDoubleStateOf(12.0) }
 
     val results = CalculatorLogic.calculateRetirement(currentAge, retirementAge, monthlyExpenses, inflationRate, expectedReturn)
-    val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
+    val currencyFormat = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("en-IN"))
 
     CalculatorScaffold(
         title = "Retirement Calculator",
