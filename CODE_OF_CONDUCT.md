@@ -1,1 +1,0 @@
-This project follows the Contributor Covenant Code of Conduct. Be respectful, inclusive, and professional. Unacceptable behavior will not be tolerated. To report unacceptable behavior, contact the maintainers.

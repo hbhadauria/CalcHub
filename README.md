@@ -26,53 +26,15 @@ CalcHub is a comprehensive financial calculator application for Android. It prov
 - **Build**: Gradle KTS, Version Catalogs
 
 
-### Investment Calculators
-*   SIP - Systematic Investment Plan
-*   Lumpsum - One-time investment
-*   SWP - Systematic Withdrawal Plan
-*   MF Returns - Mutual Fund Returns
-*   Step Up SIP - SIP with yearly increase
-*   FD - Fixed Deposit
-*   RD - Recurring Deposit
-*   PPF - Public Provident Fund
-*   NSC - National Savings Certificate
-*   Compound Interest
+### Features
+CalcHub includes over 30+ financial calculators across various categories:
+- **Investment**: SIP, SWP, PPF, FD, RD, and more.
+- **Loan**: EMI, Home/Car Loan, Flat vs Reducing Rate.
+- **Retirement**: EPF, NPS, Retirement Planning.
+- **Tax & Salary**: Income Tax, HRA, Salary, Gratuity.
+- **Trading**: Brokerage, Margin, CAGR, XIRR.
+- **Government Schemes**: SSY, SCSS, Post Office MIS.
 
-### Loan Calculators
-*   EMI - Equated Monthly Installment
-*   Home Loan EMI
-*   Car Loan EMI
-*   Flat vs Reducing Rate
-
-### Retirement & Pension
-*   EPF - Employee Provident Fund
-*   NPS - National Pension System
-*   Retirement Calculator
-*   APY - Atal Pension Yojana
-
-### Tax & Salary
-*   Income Tax
-*   HRA - House Rent Allowance
-*   Gratuity
-*   TDS - Tax Deducted at Source
-*   Salary Calculator
-
-### Government Schemes
-*   SSY - Sukanya Samriddhi Yojana
-*   Post Office MIS
-*   SCSS - Senior Citizens Savings Scheme
-
-### Trading & Investment Analysis
-*   Brokerage Calculator
-*   Margin Calculator
-*   Stock Average Calculator
-*   CAGR - Compound Annual Growth Rate
-*   XIRR - Extended Internal Rate of Return
-
-### Others
-*   GST Calculator
-*   Inflation Calculator
-*   Simple Interest
 
 ## Privacy Policy
 CalcHub is an **offline-first** application.
@@ -83,16 +45,4 @@ CalcHub is an **offline-first** application.
 > [!WARNING]
 > **Security Note**: When submitting Issues or Pull Requests, please ensure you do not include any real API keys, passwords, or personal financial data.
 
-
-## Signing for Release
-To build a signed release APK/AAB locally, you need a `keystore.jks` file.
-1. Create a `version.properties` file in the root (if missing).
-2. Configure your keystore details in `local.properties` (never commit this file):
-   ```properties
-   storeFile=/path/to/keystore.jks
-   storePassword=your_store_password
-   keyAlias=your_key_alias
-   keyPassword=your_key_password
-   ```
-   *Note: The project uses GitHub Actions for automated signing in CI.*
 
