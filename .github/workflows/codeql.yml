@@ -36,7 +36,13 @@ jobs:
       uses: github/codeql-action/init@v4
       with:
         languages: ${{ matrix.language }}
-        build-mode: ${{ matrix.build-mode }}
+        build-mode: manual
+        tools: latest
+
+    # Temporary step: Downgrade Kotlin to 2.2.0 to avoid CodeQL "KotlinVersionTooRecentError"
+    # CodeQL currently supports Kotlin < 2.2.30.
+    - name: Downgrade Kotlin for CodeQL
+      run: sed -i 's/kotlin = "2.3.0"/kotlin = "2.2.0"/g' gradle/libs.versions.toml
 
     # Set up Java 21 environment as required by the project
     - name: Set up JDK 21
