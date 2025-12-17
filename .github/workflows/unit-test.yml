@@ -8,6 +8,10 @@ jobs:
   test:
     name: Run Unit Tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
     
     steps:
       - name: Checkout code
@@ -24,7 +28,7 @@ jobs:
         run: chmod +x gradlew
       
       - name: Run unit tests
-        run: ./gradlew test --stacktrace
+        run: ./gradlew jacocoTestReport --stacktrace
 
       - name: Publish Test Report
         uses: EnricoMi/publish-unit-test-result-action@v2
@@ -32,9 +36,15 @@ jobs:
         with:
           files: '**/build/test-results/test*/*.xml'
 
-      - name: Upload Full Test Report Artifact
+      - name: Publish Code Coverage
+        uses: Madrapps/jacoco-report@v1.6.1
         if: always()
-        uses: actions/upload-artifact@v4
         with:
-          name: full-test-report
-          path: app/build/reports/tests/
+          paths: app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          min-coverage-overall: 0
+          min-coverage-changed-files: 0
+          title: Code Coverage
+          update-comment: true
+
+
