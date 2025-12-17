@@ -179,7 +179,7 @@ jobs:
           git push origin "v$VERSION"
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ needs.version-bump.outputs.new_version_name }}
           name: CalcHub v${{ needs.version-bump.outputs.new_version_name }} (Build ${{ needs.version-bump.outputs.new_version_code }})

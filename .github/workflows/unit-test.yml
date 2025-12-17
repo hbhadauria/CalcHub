@@ -37,7 +37,7 @@ jobs:
           files: '**/build/test-results/test*/*.xml'
 
       - name: Publish Code Coverage
-        uses: Madrapps/jacoco-report@v1.6.1
+        uses: Madrapps/jacoco-report@v1.7.1
         if: always()
         with:
           paths: app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
