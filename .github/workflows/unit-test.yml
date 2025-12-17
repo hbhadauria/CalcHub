@@ -37,8 +37,8 @@ jobs:
           files: '**/build/test-results/test*/*.xml'
 
       - name: Publish Code Coverage
-        uses: Madrapps/jacoco-report@v1.7.1
-        if: always()
+        uses: Madrapps/jacoco-report@v1.7.2
+        if: always() && (github.event_name == 'pull_request' || github.event_name == 'push')
         with:
           paths: app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -46,5 +46,18 @@ jobs:
           min-coverage-changed-files: 0
           title: Code Coverage
           update-comment: true
+
+      - name: Publish Coverage Summary
+        uses: PavanMudigonda/jacoco-reporter@v5.0
+        if: always()
+        with:
+          coverage_results_path: app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
+          coverage_report_name: Coverage Summary
+          coverage_report_title: JaCoCo Coverage Summary
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          skip_check_run: false
+          minimum_coverage: 0
+          fail_below_threshold: false
+          publish_only_summary: false
 
 
