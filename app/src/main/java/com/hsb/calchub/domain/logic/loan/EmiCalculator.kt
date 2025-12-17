@@ -2,13 +2,21 @@ package com.hsb.calchub.domain.logic.loan
 
 import kotlin.math.pow
 
+/**
+ * Calculator logic for EMI (Equated Monthly Installment).
+ * Calculates the monthly loan repayment amount based on loan details.
+ */
 object EmiCalculator {
     /**
-     * Calculate EMI (Equated Monthly Installment)
-     * @param loanAmount: Total loan amount
-     * @param interestRate: Annual interest rate (in %)
-     * @param tenureYears: Loan tenure in years
-     * @return Triple(Monthly EMI, Total Interest, Total Amount Payable)
+     * Calculates EMI using the standard formula: E = P * r * (1 + r)^n / ((1 + r)^n - 1)
+     *
+     * @param loanAmount The principal loan amount.
+     * @param interestRate The annual interest rate in percent.
+     * @param tenureYears The loan tenure in years.
+     * @return A [Triple] containing:
+     *  - First: Monthly EMI Amount
+     *  - Second: Total Interest Payable
+     *  - Third: Total Amount Payable (Principal + Interest)
      */
     fun calculate(
         loanAmount: Double,

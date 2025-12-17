@@ -1,8 +1,10 @@
 name: Run Unit Tests
 
+# Trigger via manual dispatch or reusable workflow call
 on:
   workflow_call:
   workflow_dispatch:
+
 
 jobs:
   test:
@@ -27,8 +29,10 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       
+      # Run unit tests and generate JaCoCo coverage report
       - name: Run unit tests
         run: ./gradlew jacocoTestReport --stacktrace
+
 
       - name: Publish Test Report
         uses: EnricoMi/publish-unit-test-result-action@v2
@@ -36,6 +40,7 @@ jobs:
         with:
           files: '**/build/test-results/test*/*.xml'
 
+      # Publish Code Coverage Report as a check run
       - name: Publish Code Coverage
         uses: Madrapps/jacoco-report@v1.7.2
         if: always() && (github.event_name == 'pull_request' || github.event_name == 'push')
@@ -46,6 +51,7 @@ jobs:
           min-coverage-changed-files: 0
           title: Code Coverage
           update-comment: true
+
 
       - name: Publish Coverage Summary
         uses: PavanMudigonda/jacoco-reporter@v5.0
@@ -58,6 +64,6 @@ jobs:
           skip_check_run: false
           minimum_coverage: 0
           fail_below_threshold: false
-          publish_only_summary: false
+          publish_only_summary: true
 
 

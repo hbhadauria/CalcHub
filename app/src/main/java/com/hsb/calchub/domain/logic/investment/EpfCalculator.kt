@@ -2,7 +2,22 @@ package com.hsb.calchub.domain.logic.investment
 
 import kotlin.math.pow
 
+/**
+ * Calculator logic for Employee Provident Fund (EPF).
+ * EPF is a retirement savings scheme for salaried employees in India.
+ */
 object EpfCalculator {
+    /**
+     * Calculates the estimated returns and total value for EPF investment.
+     *
+     * @param monthlyContribution The amount contributed monthly by the employee/employer.
+     * @param interestRate The annual interest rate in percent (default is 8.25%).
+     * @param timePeriodYears The duration of the investment in years.
+     * @return A [Triple] containing:
+     *  - First: Total Invested Amount
+     *  - Second: Estimated Returns (Interest Earned)
+     *  - Third: Total Value (Maturity Amount)
+     */
     fun calculate(
         monthlyContribution: Double,
         interestRate: Double = 8.25,

@@ -1,24 +1,26 @@
 package com.hsb.calchub.ui.components
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import com.hsb.calchub.data.repository.FavoritesRepository
 import com.hsb.calchub.ui.theme.NeonBackground
-import com.hsb.calchub.ui.theme.NeonGreen
-import com.hsb.calchub.ui.theme.NeonPink
-import com.hsb.calchub.ui.theme.NeonText
 
 @OptIn(ExperimentalMaterial3Api::class)
+/**
+ * A standardized Scaffold for Calculator screens.
+ * Includes a [NeonHeader] with back navigation and favorite toggle.
+ *
+ * @param title The title of the calculator screen.
+ * @param onBackClick Callback for the back button.
+ * @param calculatorId The unique ID of the calculator (for favorites).
+ * @param content The content of the screen.
+ */
 @Composable
 fun CalculatorScaffold(
     title: String,

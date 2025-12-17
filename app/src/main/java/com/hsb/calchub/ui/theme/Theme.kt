@@ -7,10 +7,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
@@ -35,6 +33,14 @@ private val DarkColorScheme = darkColorScheme(
 // or a high-contrast version. For now, let's enforce the dark aesthetic.
 private val LightColorScheme = DarkColorScheme
 
+/**
+ * Custom Theme for CalcHub application.
+ * Wraps [MaterialTheme] with specific colors and typography.
+ *
+ * @param darkTheme Whether to use dark theme (default: system setting).
+ * @param dynamicColor Whether to use dynamic color (Android 12+) (default: false to enforce NeoPop).
+ * @param content The content to display inside the theme.
+ */
 @Composable
 fun CalcHubTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),

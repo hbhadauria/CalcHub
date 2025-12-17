@@ -46,6 +46,16 @@ import com.hsb.calchub.ui.theme.NeonText
 import java.text.NumberFormat
 import java.util.Locale
 
+/**
+ * A reusable input field for calculators with label, numeric validation, and a slider.
+ *
+ * @param label The label text to display above the input.
+ * @param value The current value of the input.
+ * @param onValueChange Callback triggered when the value changes.
+ * @param range The valid range for the input value (used for the slider).
+ * @param symbol The currency or unit symbol to display (e.g., "₹", "%").
+ * @param modifier Modifier for styling the component.
+ */
 @Composable
 fun CalculatorInput(
     label: String,
@@ -151,6 +161,14 @@ fun CalculatorInput(
     }
 }
 
+/**
+ * A card displaying the summary of calculator results.
+ * Shows Invested Amount, Estimated Returns, and Total Value.
+ *
+ * @param investedAmount The total amount invested.
+ * @param estimatedReturns The estimated returns generated.
+ * @param totalValue The final maturity value.
+ */
 @Composable
 fun ResultCard(
     investedAmount: Double,
@@ -261,6 +279,13 @@ fun ResultCard(
     }
 }
 
+/**
+ * A single row within a result display, showing a label and a value.
+ *
+ * @param label The description of the value.
+ * @param value The value to display.
+ * @param isTotal True if this row represents the total (applies bold styling).
+ */
 @Composable
 fun ResultRow(label: String, value: String, isTotal: Boolean = false) {
     Row(

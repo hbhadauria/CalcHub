@@ -1,52 +1,49 @@
 package com.hsb.calchub.ui.navigation
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.hsb.calchub.ui.screens.HomeScreen
-import com.hsb.calchub.ui.screens.sip.SipCalculatorScreen
-import com.hsb.calchub.ui.screens.emi.EmiCalculatorScreen
-import com.hsb.calchub.ui.screens.fd.FdCalculatorScreen
-import com.hsb.calchub.ui.screens.ppf.PpfCalculatorScreen
-import com.hsb.calchub.ui.screens.lumpsum.LumpsumCalculatorScreen
-import com.hsb.calchub.ui.screens.swp.SwpCalculatorScreen
-import com.hsb.calchub.ui.screens.rd.RdCalculatorScreen
-import com.hsb.calchub.ui.screens.nsc.NscCalculatorScreen
-import com.hsb.calchub.ui.screens.epf.EpfCalculatorScreen
-import com.hsb.calchub.ui.screens.ssy.SsyCalculatorScreen
-import com.hsb.calchub.ui.screens.nps.NpsCalculatorScreen
-import com.hsb.calchub.ui.screens.retirement.RetirementCalculatorScreen
-import com.hsb.calchub.ui.screens.income_tax.IncomeTaxCalculatorScreen
-import com.hsb.calchub.ui.screens.hra.HraCalculatorScreen
-import com.hsb.calchub.ui.screens.gratuity.GratuityCalculatorScreen
-import com.hsb.calchub.ui.screens.apy.ApyCalculatorScreen
-import com.hsb.calchub.ui.screens.cagr.CagrCalculatorScreen
-import com.hsb.calchub.ui.screens.gst.GstCalculatorScreen
-import com.hsb.calchub.ui.screens.tds.TdsCalculatorScreen
-import com.hsb.calchub.ui.screens.salary.SalaryCalculatorScreen
-import com.hsb.calchub.ui.screens.inflation.InflationCalculatorScreen
-import com.hsb.calchub.ui.screens.post_office_mis.PostOfficeMisCalculatorScreen
-import com.hsb.calchub.ui.screens.scss.ScssCalculatorScreen
-import com.hsb.calchub.ui.screens.stock_average.StockAverageCalculatorScreen
-import com.hsb.calchub.ui.screens.xirr.XirrCalculatorScreen
-import com.hsb.calchub.ui.screens.brokerage.BrokerageCalculatorScreen
-import com.hsb.calchub.ui.screens.margin.MarginCalculatorScreen
-import com.hsb.calchub.ui.screens.flat_vs_reducing.FlatVsReducingCalculatorScreen
-import com.hsb.calchub.ui.screens.home_loan_emi.HomeLoanEmiCalculatorScreen
-import com.hsb.calchub.ui.screens.car_loan_emi.CarLoanEmiCalculatorScreen
-import com.hsb.calchub.ui.screens.mf_returns.MfReturnsCalculatorScreen
-import com.hsb.calchub.ui.screens.simple_interest.SimpleInterestCalculatorScreen
-import com.hsb.calchub.ui.screens.compound_interest.CompoundInterestCalculatorScreen
-import com.hsb.calchub.ui.screens.step_up_sip.StepUpSipCalculatorScreen
-
 import com.hsb.calchub.ui.screens.MainScreen
+import com.hsb.calchub.ui.screens.apy.ApyCalculatorScreen
+import com.hsb.calchub.ui.screens.brokerage.BrokerageCalculatorScreen
+import com.hsb.calchub.ui.screens.cagr.CagrCalculatorScreen
+import com.hsb.calchub.ui.screens.car_loan_emi.CarLoanEmiCalculatorScreen
+import com.hsb.calchub.ui.screens.compound_interest.CompoundInterestCalculatorScreen
+import com.hsb.calchub.ui.screens.emi.EmiCalculatorScreen
+import com.hsb.calchub.ui.screens.epf.EpfCalculatorScreen
+import com.hsb.calchub.ui.screens.fd.FdCalculatorScreen
+import com.hsb.calchub.ui.screens.flat_vs_reducing.FlatVsReducingCalculatorScreen
+import com.hsb.calchub.ui.screens.gratuity.GratuityCalculatorScreen
+import com.hsb.calchub.ui.screens.gst.GstCalculatorScreen
+import com.hsb.calchub.ui.screens.home_loan_emi.HomeLoanEmiCalculatorScreen
+import com.hsb.calchub.ui.screens.hra.HraCalculatorScreen
+import com.hsb.calchub.ui.screens.income_tax.IncomeTaxCalculatorScreen
+import com.hsb.calchub.ui.screens.inflation.InflationCalculatorScreen
+import com.hsb.calchub.ui.screens.lumpsum.LumpsumCalculatorScreen
+import com.hsb.calchub.ui.screens.margin.MarginCalculatorScreen
+import com.hsb.calchub.ui.screens.mf_returns.MfReturnsCalculatorScreen
+import com.hsb.calchub.ui.screens.nps.NpsCalculatorScreen
+import com.hsb.calchub.ui.screens.nsc.NscCalculatorScreen
+import com.hsb.calchub.ui.screens.post_office_mis.PostOfficeMisCalculatorScreen
+import com.hsb.calchub.ui.screens.ppf.PpfCalculatorScreen
+import com.hsb.calchub.ui.screens.rd.RdCalculatorScreen
+import com.hsb.calchub.ui.screens.retirement.RetirementCalculatorScreen
+import com.hsb.calchub.ui.screens.salary.SalaryCalculatorScreen
+import com.hsb.calchub.ui.screens.scss.ScssCalculatorScreen
+import com.hsb.calchub.ui.screens.simple_interest.SimpleInterestCalculatorScreen
+import com.hsb.calchub.ui.screens.sip.SipCalculatorScreen
+import com.hsb.calchub.ui.screens.ssy.SsyCalculatorScreen
+import com.hsb.calchub.ui.screens.step_up_sip.StepUpSipCalculatorScreen
+import com.hsb.calchub.ui.screens.stock_average.StockAverageCalculatorScreen
+import com.hsb.calchub.ui.screens.swp.SwpCalculatorScreen
+import com.hsb.calchub.ui.screens.tds.TdsCalculatorScreen
+import com.hsb.calchub.ui.screens.xirr.XirrCalculatorScreen
 
+/**
+ * Main Navigation Host for the application.
+ * Defines the navigation graph and routes for all screens.
+ */
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()

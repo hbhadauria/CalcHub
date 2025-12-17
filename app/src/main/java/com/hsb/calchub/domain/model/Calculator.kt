@@ -1,15 +1,41 @@
 package com.hsb.calchub.domain.model
 
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.CompareArrows
 import androidx.compose.material.icons.automirrored.rounded.ReceiptLong
+import androidx.compose.material.icons.automirrored.rounded.ShowChart
 import androidx.compose.material.icons.automirrored.rounded.TrendingDown
 import androidx.compose.material.icons.automirrored.rounded.TrendingUp
-import androidx.compose.material.icons.automirrored.rounded.ShowChart
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.rounded.*
+import androidx.compose.material.icons.rounded.AccountBalance
+import androidx.compose.material.icons.rounded.AttachMoney
+import androidx.compose.material.icons.rounded.AutoGraph
+import androidx.compose.material.icons.rounded.BeachAccess
+import androidx.compose.material.icons.rounded.Calculate
+import androidx.compose.material.icons.rounded.CardGiftcard
+import androidx.compose.material.icons.rounded.ChildCare
+import androidx.compose.material.icons.rounded.ContentCut
+import androidx.compose.material.icons.rounded.Description
+import androidx.compose.material.icons.rounded.DirectionsCar
+import androidx.compose.material.icons.rounded.Elderly
+import androidx.compose.material.icons.rounded.ElderlyWoman
+import androidx.compose.material.icons.rounded.Functions
+import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.House
+import androidx.compose.material.icons.rounded.LocalPostOffice
+import androidx.compose.material.icons.rounded.Loop
+import androidx.compose.material.icons.rounded.Output
+import androidx.compose.material.icons.rounded.Percent
+import androidx.compose.material.icons.rounded.PieChart
+import androidx.compose.material.icons.rounded.Restore
+import androidx.compose.material.icons.rounded.Savings
+import androidx.compose.material.icons.rounded.Security
+import androidx.compose.material.icons.rounded.Timeline
+import androidx.compose.material.icons.rounded.Work
+import androidx.compose.ui.graphics.vector.ImageVector
 
+/**
+ * Enum representing categories of calculators.
+ */
 enum class CalculatorCategory {
     POPULAR,
     INVESTMENT,
@@ -20,6 +46,15 @@ enum class CalculatorCategory {
     OTHER
 }
 
+/**
+ * Data model for a Calculator item in the app.
+ *
+ * @property name The display name of the calculator.
+ * @property route The navigation route for the calculator screen.
+ * @property category The [CalculatorCategory] this calculator belongs to.
+ * @property isPopular Whether this calculator should be highlighted as popular.
+ * @property icon The icon [ImageVector] to display.
+ */
 data class Calculator(
     val name: String,
     val route: String,

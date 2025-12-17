@@ -18,6 +18,12 @@ import androidx.compose.ui.unit.dp
 import com.hsb.calchub.ui.components.NeonNavBar
 import com.hsb.calchub.ui.theme.NeonBackground
 
+/**
+ * The main container screen of the app.
+ * Handles navigation between Home, Favorites, and Tools tabs using a bottom navigation bar.
+ *
+ * @param onCalculatorClick Callback triggered when a calculator is selected.
+ */
 @Composable
 fun MainScreen(onCalculatorClick: (String) -> Unit) {
     var selectedTab by remember { mutableIntStateOf(0) }

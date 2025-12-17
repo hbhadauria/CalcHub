@@ -9,14 +9,11 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
@@ -30,13 +27,24 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hsb.calchub.ui.theme.NeoBlack
 import com.hsb.calchub.ui.theme.NeoWhite
 
+/**
+ * A specialized button implementing the NeoPop design style (Neo-Brutalism + Pop).
+ * Features a clickable 3D effect with shadow and border.
+ *
+ * @param onClick Callback triggered when the button is clicked.
+ * @param modifier Modifier for styling.
+ * @param text The text to display on the button.
+ * @param containerColor Background color of the button face.
+ * @param contentColor Color of the text.
+ * @param shadowColor Color of the 3D shadow.
+ * @param borderColor Color of the border.
+ * @param enabled Whether the button is enabled.
+ */
 @Composable
 fun NeoPopButton(
     onClick: () -> Unit,
@@ -101,6 +109,16 @@ fun NeoPopButton(
     }
 }
 
+/**
+ * A specialized card component in NeoPop style.
+ * Features a static 3D shadow effect.
+ *
+ * @param modifier Modifier for styling.
+ * @param backgroundColor Background color of the card content.
+ * @param borderColor Color of the border.
+ * @param shadowColor Color of the shadow.
+ * @param content The content composable to display inside the card.
+ */
 @Composable
 fun NeoPopCard(
     modifier: Modifier = Modifier,

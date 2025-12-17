@@ -2,13 +2,21 @@ package com.hsb.calchub.domain.logic.investment
 
 import kotlin.math.pow
 
+/**
+ * Calculator logic for Systematic Investment Plan (SIP).
+ * SIP is an investment route offered by Mutual Funds wherein one can invest a fixed amount in a Mutual Fund scheme at regular intervals.
+ */
 object SipCalculator {
     /**
-     * Calculate SIP (Systematic Investment Plan) Returns
-     * @param monthlyInvestment: Amount invested per month
-     * @param expectedReturnRate: Annual expected return rate (in %)
-     * @param timePeriodYears: Time period in years
-     * @return Triple(Invested Amount, Estimated Returns, Total Value)
+     * Calculates SIP Returns.
+     *
+     * @param monthlyInvestment Amount invested per month.
+     * @param expectedReturnRate Annual expected return rate (in percentage).
+     * @param timePeriodYears Time period of investment in years.
+     * @return A [Triple] containing:
+     *  - First: Total Invested Amount
+     *  - Second: Estimated Returns (Profit)
+     *  - Third: Total Value (Maturity Amount)
      */
     fun calculate(
         monthlyInvestment: Double,

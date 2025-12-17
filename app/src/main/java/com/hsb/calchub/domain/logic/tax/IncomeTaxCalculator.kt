@@ -1,5 +1,19 @@
 package com.hsb.calchub.domain.logic.tax
+/**
+ * Calculator logic for Income Tax (Old Regime Simplified).
+ * Estimates income tax based on slab rates.
+ */
 object IncomeTaxCalculator {
+    /**
+     * Calculates Income Tax.
+     *
+     * @param annualIncome Total annual income.
+     * @param deductions Total deductions (e.g., 80C, 80D).
+     * @return A [Triple] containing:
+     *  - First: Annual Income
+     *  - Second: Estimated Tax
+     *  - Third: Net Income (Post Tax)
+     */
     fun calculate(annualIncome: Double, deductions: Double = 0.0): Triple<Double, Double, Double> {
         val taxableIncome = (annualIncome - deductions).coerceAtLeast(0.0)
         var tax = 0.0

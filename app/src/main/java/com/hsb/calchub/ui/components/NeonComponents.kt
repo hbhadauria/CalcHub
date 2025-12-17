@@ -25,7 +25,6 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Search
@@ -51,8 +50,6 @@ import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hsb.calchub.ui.theme.NeonGreen
@@ -60,6 +57,15 @@ import com.hsb.calchub.ui.theme.NeonPink
 import com.hsb.calchub.ui.theme.NeonSurface
 import com.hsb.calchub.ui.theme.NeonText
 
+/**
+ * A specialized card with a neon glow effect.
+ *
+ * @param modifier Modifier for styling.
+ * @param onClick Optional callback for click events.
+ * @param borderColor The color of the border and glow (e.g., NeonGreen, NeonPink).
+ * @param useGradientBorder If true, applies a vertical gradient to the border.
+ * @param content The content composable.
+ */
 @Composable
 fun NeonCard(modifier: Modifier = Modifier,
              onClick: (() -> Unit)? = null,
@@ -153,6 +159,16 @@ fun Modifier.coloredGlow(color: Color, shape: androidx.compose.ui.graphics.Shape
     }
 }
 
+/**
+ * A text input field styled with Neon aesthetics.
+ *
+ * @param value Current text value.
+ * @param onValueChange Callback for text changes.
+ * @param label Label to display above input.
+ * @param placeholder Placeholder text when empty.
+ * @param keyboardOptions Keyboard configuration.
+ * @param modifier Modifier for styling.
+ */
 @Composable
 fun NeonInput(
     value: String,
@@ -291,6 +307,16 @@ fun NeonNavBar(
     }
 }
 
+/**
+ * The standard header for the application, featuring the "CalcHub" text.
+ * Provides Back and Favorite actions.
+ *
+ * @param title The main title (CalcHub).
+ * @param subtitle The subtitle (Screen Name).
+ * @param isFavorite Whether the current screen is marked as favorite.
+ * @param onBackClick Callback for back button.
+ * @param onFavoriteClick Callback for favorite toggle.
+ */
 @Composable
 fun NeonHeader(
     title: String,

@@ -11,6 +11,10 @@ import androidx.compose.ui.Modifier
 import com.hsb.calchub.ui.navigation.AppNavigation
 import com.hsb.calchub.ui.theme.CalcHubTheme
 
+/**
+ * Main Entry point of the CalculateHub Application.
+ * Sets up the [CalcHubTheme] and [AppNavigation].
+ */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

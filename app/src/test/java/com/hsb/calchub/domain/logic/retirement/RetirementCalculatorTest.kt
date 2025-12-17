@@ -1,6 +1,5 @@
 package com.hsb.calchub.domain.logic.retirement
 
-import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class RetirementCalculatorTest {

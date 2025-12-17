@@ -46,6 +46,12 @@ import com.hsb.calchub.ui.theme.NeonGreen
 import com.hsb.calchub.ui.theme.NeonPink
 import com.hsb.calchub.ui.theme.NeonText
 
+/**
+ * The home screen of the application.
+ * Displays a grid of all available calculators, searchable by name.
+ *
+ * @param onCalculatorClick Callback triggered when a calculator is selected.
+ */
 @Composable
 fun HomeScreen(onCalculatorClick: (String) -> Unit) {
     var searchQuery by remember { mutableStateOf("") }
@@ -187,6 +193,12 @@ fun HomeScreen(onCalculatorClick: (String) -> Unit) {
     }
 }
 
+/**
+ * A card representing a single calculator in the grid.
+ *
+ * @param calculator The calculator data model.
+ * @param onClick Callback triggered when the card is clicked.
+ */
 @Composable
 fun CalculatorCard(calculator: Calculator, onClick: (String) -> Unit) {
     NeonCard(

@@ -7,16 +7,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
@@ -29,11 +21,16 @@ import com.hsb.calchub.ui.components.CalculatorInput
 import com.hsb.calchub.ui.components.CalculatorScaffold
 import com.hsb.calchub.ui.components.DonutChart
 import com.hsb.calchub.ui.components.DonutChartData
-import com.hsb.calchub.ui.components.ResultCard
-import com.hsb.calchub.ui.components.ResultRow
 import com.hsb.calchub.ui.components.NeonCard
+import com.hsb.calchub.ui.components.ResultRow
 import java.util.Locale
 
+/**
+ * Screen for calculating Equated Monthly Installment (EMI) for loans.
+ * Displays principal and interest breakdown in a Donut Chart.
+ *
+ * @param onBackClick Callback triggered when the back button is clicked.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EmiCalculatorScreen(onBackClick: () -> Unit) {
@@ -109,6 +106,16 @@ fun EmiCalculatorScreen(onBackClick: () -> Unit) {
     }
 }
 
+/**
+ * A custom result card allowing custom labels for rows.
+ *
+ * @param label1 Label for the first row.
+ * @param value1 Value for the first row.
+ * @param label2 Label for the second row.
+ * @param value2 Value for the second row.
+ * @param label3 Label for the total row.
+ * @param value3 Value for the total row.
+ */
 @Composable
 fun ResultCardWithLabels(
     label1: String, value1: Double,

@@ -2,13 +2,21 @@ package com.hsb.calchub.domain.logic.investment
 
 import kotlin.math.pow
 
+/**
+ * Calculator logic for Lumpsum Mutual Fund Investment.
+ * Calculates the future value of a one-time investment based on an expected annual return rate.
+ */
 object LumpsumCalculator {
     /**
-     * Calculate Lumpsum Investment Returns
-     * @param totalInvestment: Total amount invested
-     * @param expectedReturnRate: Annual expected return rate (in %)
-     * @param timePeriodYears: Time period in years
-     * @return Triple(Invested Amount, Estimated Returns, Total Value)
+     * Calculates Lumpsum Investment Returns using the compound interest formula.
+     *
+     * @param totalInvestment Total amount invested as a lumpsum.
+     * @param expectedReturnRate Annual expected return rate (CAGR) in percent.
+     * @param timePeriodYears Time period of investment in years.
+     * @return A [Triple] containing:
+     *  - First: Total Invested Amount
+     *  - Second: Estimated Returns (Profit)
+     *  - Third: Total Value (Maturity Amount)
      */
     fun calculate(
         totalInvestment: Double,

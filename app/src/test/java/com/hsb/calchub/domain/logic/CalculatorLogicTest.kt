@@ -1,7 +1,8 @@
 package com.hsb.calchub.domain.logic
 
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.jupiter.api.Test
-import org.junit.Assert.*
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
