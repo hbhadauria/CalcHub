@@ -1,0 +1,77 @@
+# For most projects, this workflow file will not need changing; you simply need
+# to commit it to your repository.
+#
+# You may wish to alter this file to override the set of languages analyzed,
+# or to provide custom queries or build logic.
+#
+# ******** NOTE ********
+# We have attempted to detect the languages in your repository. Please check
+# the `language` matrix defined below to confirm you have the correct set of
+# supported CodeQL languages.
+#
+name: "CodeQL Analysis"
+
+on:
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: '24 14 * * 2' # Run weekly on Tuesday at 14:24
+  workflow_dispatch: # Allow manual trigger
+  workflow_call: # Allow call from other workflows
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: 'ubuntu-latest'
+    permissions:
+      security-events: write # Required to upload CodeQL results
+      packages: read # Required if using private packages
+      actions: read # Required for internal actions
+      contents: read # Required to checkout the repo
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - language: java-kotlin
+          build-mode: manual # Manual build is required for Android/Kotlin projects with specific Gradle setups
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # Initialize CodeQL tools for scanning
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v4
+      with:
+        languages: ${{ matrix.language }}
+        build-mode: manual
+        tools: latest
+
+    # Temporary step: Downgrade Kotlin to 2.2.0 to avoid CodeQL "KotlinVersionTooRecentError"
+    # CodeQL currently supports Kotlin < 2.2.30.
+    - name: Downgrade Kotlin for CodeQL
+      run: sed -i 's/kotlin = "2.3.0"/kotlin = "2.2.0"/g' gradle/libs.versions.toml
+
+    # Set up Java 21 environment as required by the project
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '21'
+        cache: 'gradle'
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    # Manual Build step for Android/Kotlin
+    # We use ./gradlew assembleDebug to ensure the project builds correctly before analysis.
+    # This prevents the 'autobuild' failure common with complex Android projects.
+    - name: Build with Gradle
+      run: ./gradlew assembleDebug
+
+    # Run the actual analysis and upload results to GitHub Security tab
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v4
+      with:
+        category: "/language:${{matrix.language}}"
