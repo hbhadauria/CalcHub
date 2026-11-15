@@ -48,17 +48,25 @@ jobs:
         build-mode: manual
         tools: latest
 
-    # Temporary step: Downgrade Kotlin to 2.2.0 to avoid CodeQL "KotlinVersionTooRecentError"
-    # CodeQL currently supports Kotlin < 2.2.30.
-    - name: Downgrade Kotlin for CodeQL
-      run: sed -i 's/kotlin = "2.3.0"/kotlin = "2.2.0"/g' gradle/libs.versions.toml
+    # CodeQL's Kotlin extractor currently requires Kotlin < 2.2.30.
+    # Keep compiler and bytecode targets aligned for this analysis-only build.
+    - name: Use CodeQL-supported Kotlin version and bytecode target
+      run: |
+        sed -i \
+          -e 's/kotlin = "2.4.21"/kotlin = "2.2.10"/' \
+          -e 's/JavaVersion.VERSION_25/JavaVersion.VERSION_21/g' \
+          -e 's/JvmTarget.JVM_25/JvmTarget.JVM_21/g' \
+          gradle/libs.versions.toml app/build.gradle.kts
+        grep -Fq 'kotlin = "2.2.10"' gradle/libs.versions.toml
+        ! grep -Fq 'VERSION_25' app/build.gradle.kts
+        ! grep -Fq 'JVM_25' app/build.gradle.kts
 
-    # Set up Java 21 environment as required by the project
-    - name: Set up JDK 21
+    # Set up the project's Temurin 25 toolchain
+    - name: Set up Temurin JDK 25
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
-        java-version: '21'
+        java-version: '25'
         cache: 'gradle'
 
     - name: Grant execute permission for gradlew
