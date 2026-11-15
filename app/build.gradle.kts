@@ -1,16 +1,18 @@
 import java.io.FileInputStream
 import java.util.Properties
+import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.jvm.toolchain.JvmVendorSpec
 
 plugins {
     alias(libs.plugins.androidApplication)
-    alias(libs.plugins.jetbrainsKotlinAndroid)
+    alias(libs.plugins.kotlinAndroid)
     alias(libs.plugins.compose.compiler)
     id("jacoco")
 }
 
 android {
     namespace = "com.hsb.calchub"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         val versionPropsFile = file("../version.properties")
@@ -43,6 +45,10 @@ android {
             )
         }
     }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_25
+        targetCompatibility = JavaVersion.VERSION_25
+    }
     buildFeatures {
         viewBinding = true
         compose = true
@@ -55,7 +61,13 @@ android {
 }
 
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain {
+        languageVersion.set(JavaLanguageVersion.of(25))
+        vendor.set(JvmVendorSpec.ADOPTIUM)
+    }
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_25)
+    }
 }
 
 dependencies {
@@ -89,4 +101,42 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 }
 
-apply(from = "jacoco.gradle.kts")
+// JaCoCo Configuration for Code Coverage
+tasks.register<JacocoReport>("jacocoTestReport") {
+    dependsOn("testDebugUnitTest")
+
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+        csv.required.set(false)
+    }
+
+    val fileFilter = listOf(
+        "**/R.class",
+        "**/R\$*.class",
+        "**/BuildConfig.*",
+        "**/Manifest*.*",
+        "**/*Test*.*",
+        "android/**/*.*",
+        "**/databinding/*",
+        // Exclude Compose UI (not unit testable)
+        "**/ui/components/*",
+        "**/ui/screens/*",
+        "**/ui/navigation/*",
+        "**/ui/theme/*"
+    )
+
+    val debugTree = fileTree(
+        layout.buildDirectory.dir("tmp/kotlin-classes/debug")
+    ) {
+        exclude(fileFilter)
+    }
+
+    val mainSrc = "$projectDir/src/main/java"
+
+    sourceDirectories.setFrom(files(mainSrc))
+    classDirectories.setFrom(files(debugTree))
+    executionData.setFrom(fileTree(layout.buildDirectory) {
+        include("jacoco/testDebugUnitTest.exec")
+    })
+}
