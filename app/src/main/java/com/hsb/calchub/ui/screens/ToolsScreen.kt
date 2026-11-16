@@ -220,13 +220,14 @@ private fun ToolsUtilitiesSection() {
                     symbol = "%"
                 )
                 Spacer(modifier = Modifier.height(8.dp))
+                val formatYears = { years: Double -> String.format(Locale.US, "%.1f yrs", years) }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    RuleStatTile("2× Money", String.format(Locale.US, "%.1f yrs", years2x), Modifier.weight(1f))
-                    RuleStatTile("3× Money", String.format(Locale.US, "%.1f yrs", years3x), Modifier.weight(1f))
-                    RuleStatTile("4× Money", String.format(Locale.US, "%.1f yrs", years4x), Modifier.weight(1f))
+                    RuleStatTile("2× Money", formatYears(years2x), Modifier.weight(1f))
+                    RuleStatTile("3× Money", formatYears(years3x), Modifier.weight(1f))
+                    RuleStatTile("4× Money", formatYears(years4x), Modifier.weight(1f))
                 }
                 Spacer(modifier = Modifier.height(12.dp))
                 CalculatorInput(

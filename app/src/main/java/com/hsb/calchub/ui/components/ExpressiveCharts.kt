@@ -77,49 +77,20 @@ fun WealthGrowthSplineChart(
     val safePoints = remember(points) {
         if (points.size >= 2) points else listOf(0.0 to 0.0, 1.0 to 1.0)
     }
-    val formatter = remember {
-        NumberFormat.getCurrencyInstance(Locale.forLanguageTag("en-IN")).apply {
-            maximumFractionDigits = 0
-        }
+    val formatter = rememberInrFormatter()
+    val pillLabel = if (scrubbedIndex in safePoints.indices) {
+        val pt = safePoints[scrubbedIndex]
+        "Yr $scrubbedIndex · ${formatCompactINR(pt.second, formatter)}"
+    } else {
+        "Drag curve to scrub"
     }
 
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(tokens.cardCornerRadius),
-        color = tokens.surfaceLowest,
-        border = androidx.compose.foundation.BorderStroke(1.dp, tokens.cardBorder)
+    ChartHeaderSurfaceCard(
+        title = title,
+        badgeLabel = pillLabel,
+        badgeHighlighted = scrubbedIndex >= 0,
+        modifier = modifier
     ) {
-        Column(modifier = Modifier.padding(14.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleSmall,
-                    color = tokens.inkPrimary
-                )
-                val pillLabel = if (scrubbedIndex in safePoints.indices) {
-                    val pt = safePoints[scrubbedIndex]
-                    "Yr $scrubbedIndex · ${formatCompactINR(pt.second, formatter)}"
-                } else {
-                    "Drag curve to scrub"
-                }
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(tokens.pillCornerRadius))
-                        .background(if (scrubbedIndex >= 0) tokens.accentPrimary else tokens.surfaceContainer)
-                        .padding(horizontal = 9.dp, vertical = 3.dp)
-                ) {
-                    Text(
-                        text = pillLabel,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = if (scrubbedIndex >= 0) tokens.onAccent else tokens.inkSecondary
-                    )
-                }
-            }
-
             Spacer(modifier = Modifier.height(10.dp))
 
             val pathMeasure = remember { PathMeasure() }
@@ -264,7 +235,6 @@ fun WealthGrowthSplineChart(
                 Text("Yr $maxYr", style = MaterialTheme.typography.labelMedium, color = tokens.inkMuted)
             }
         }
-    }
 }
 
 /**
@@ -278,45 +248,19 @@ fun LoanAmortizationChart(
 ) {
     val tokens = LocalCalcHubTokens.current
     var selectedYearIdx by remember(yearlyBreakdown) { mutableIntStateOf(-1) }
-    val formatter = remember {
-        NumberFormat.getCurrencyInstance(Locale.forLanguageTag("en-IN")).apply {
-            maximumFractionDigits = 0
-        }
+    val formatter = rememberInrFormatter()
+    val label = if (selectedYearIdx in yearlyBreakdown.indices) {
+        val (p, i) = yearlyBreakdown[selectedYearIdx]
+        "Yr ${selectedYearIdx + 1}: P ${formatCompactINR(p, formatter)} · I ${formatCompactINR(i, formatter)}"
+    } else {
+        "Crossover Yr $crossoverYear"
     }
 
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(tokens.cardCornerRadius),
-        color = tokens.surfaceLowest,
-        border = androidx.compose.foundation.BorderStroke(1.dp, tokens.cardBorder)
+    ChartHeaderSurfaceCard(
+        title = "Yearly Principal vs Interest",
+        badgeLabel = label,
+        modifier = modifier
     ) {
-        Column(modifier = Modifier.padding(14.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Yearly Principal vs Interest",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = tokens.inkPrimary
-                )
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(tokens.pillCornerRadius))
-                        .background(tokens.surfaceContainer)
-                        .padding(horizontal = 9.dp, vertical = 3.dp)
-                ) {
-                    val label = if (selectedYearIdx in yearlyBreakdown.indices) {
-                        val (p, i) = yearlyBreakdown[selectedYearIdx]
-                        "Yr ${selectedYearIdx + 1}: P ${formatCompactINR(p, formatter)} · I ${formatCompactINR(i, formatter)}"
-                    } else {
-                        "Crossover Yr $crossoverYear"
-                    }
-                    Text(label, style = MaterialTheme.typography.labelMedium, color = tokens.inkSecondary)
-                }
-            }
-
             Spacer(modifier = Modifier.height(10.dp))
 
             val bars = yearlyBreakdown.ifEmpty { listOf(1.0 to 1.0) }
@@ -384,7 +328,6 @@ fun LoanAmortizationChart(
                 )
             }
         }
-    }
 }
 
 /**
@@ -402,33 +345,11 @@ fun FireTimelineChart(
     val curPct = ((currentAge - 18) / 67f).coerceIn(0.02f, 0.7f)
     val retPct = ((retireAge - 18) / 67f).coerceIn(curPct + 0.08f, 0.96f)
 
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(tokens.cardCornerRadius),
-        color = tokens.surfaceLowest,
-        border = androidx.compose.foundation.BorderStroke(1.dp, tokens.cardBorder)
+    ChartHeaderSurfaceCard(
+        title = "Life Timeline (Age 18–85)",
+        badgeLabel = "Save ${saveYears}y · Retire ${retireYears}y",
+        modifier = modifier
     ) {
-        Column(modifier = Modifier.padding(14.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Life Timeline (Age 18–85)", style = MaterialTheme.typography.titleSmall, color = tokens.inkPrimary)
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(tokens.pillCornerRadius))
-                        .background(tokens.surfaceContainer)
-                        .padding(horizontal = 9.dp, vertical = 3.dp)
-                ) {
-                    Text(
-                        "Save ${saveYears}y · Retire ${retireYears}y",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = tokens.inkSecondary
-                    )
-                }
-            }
-
             Spacer(modifier = Modifier.height(10.dp))
 
             Canvas(
@@ -467,7 +388,6 @@ fun FireTimelineChart(
                 Text("Age 85", style = MaterialTheme.typography.labelMedium, color = tokens.inkMuted)
             }
         }
-    }
 }
 
 /**
@@ -541,5 +461,56 @@ internal fun formatCompactINR(amount: Double, fullFormatter: NumberFormat): Stri
         absVal >= 10_000_000.0 -> String.format(Locale.US, "%s₹%.2f Cr", sign, absVal / 10_000_000.0)
         absVal >= 100_000.0 -> String.format(Locale.US, "%s₹%.2f L", sign, absVal / 100_000.0)
         else -> fullFormatter.format(amount)
+    }
+}
+
+@Composable
+private fun rememberInrFormatter(): NumberFormat = remember {
+    NumberFormat.getCurrencyInstance(Locale.forLanguageTag("en-IN")).apply {
+        maximumFractionDigits = 0
+    }
+}
+
+@Composable
+private fun ChartHeaderSurfaceCard(
+    title: String,
+    badgeLabel: String,
+    modifier: Modifier = Modifier,
+    badgeHighlighted: Boolean = false,
+    content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit
+) {
+    val tokens = LocalCalcHubTokens.current
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(tokens.cardCornerRadius),
+        color = tokens.surfaceLowest,
+        border = androidx.compose.foundation.BorderStroke(1.dp, tokens.cardBorder)
+    ) {
+        Column(modifier = Modifier.padding(14.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = tokens.inkPrimary
+                )
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(tokens.pillCornerRadius))
+                        .background(if (badgeHighlighted) tokens.accentPrimary else tokens.surfaceContainer)
+                        .padding(horizontal = 9.dp, vertical = 3.dp)
+                ) {
+                    Text(
+                        text = badgeLabel,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = if (badgeHighlighted) tokens.onAccent else tokens.inkSecondary
+                    )
+                }
+            }
+            content()
+        }
     }
 }

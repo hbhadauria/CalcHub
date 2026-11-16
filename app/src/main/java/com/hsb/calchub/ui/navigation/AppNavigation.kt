@@ -172,7 +172,6 @@ fun AppNavigation() {
                         onCalculatorClick = ::openCalculator,
                         selectedTab = selectedMainTab,
                         onTabSelected = { selectedMainTab = it },
-                        isExpandedLayout = true,
                         activeDetailRoute = activeRoute
                     )
                 }
@@ -199,7 +198,6 @@ fun AppNavigation() {
                         onCalculatorClick = ::openCalculator,
                         selectedTab = selectedMainTab,
                         onTabSelected = { selectedMainTab = it },
-                        isExpandedLayout = false,
                         activeDetailRoute = null
                     )
                 },
@@ -275,46 +273,48 @@ private fun NavDisplay(
     }
 }
 
+private val CALCULATOR_SCREEN_MAP: Map<String, @Composable (() -> Unit) -> Unit> = mapOf(
+    "sip" to { onBack -> SipCalculatorScreen(onBack) },
+    "emi" to { onBack -> EmiCalculatorScreen(onBack) },
+    "fd" to { onBack -> FdCalculatorScreen(onBack) },
+    "ppf" to { onBack -> PpfCalculatorScreen(onBack) },
+    "lumpsum" to { onBack -> LumpsumCalculatorScreen(onBack) },
+    "swp" to { onBack -> SwpCalculatorScreen(onBack) },
+    "rd" to { onBack -> RdCalculatorScreen(onBack) },
+    "nsc" to { onBack -> NscCalculatorScreen(onBack) },
+    "epf" to { onBack -> EpfCalculatorScreen(onBack) },
+    "ssy" to { onBack -> SsyCalculatorScreen(onBack) },
+    "nps" to { onBack -> NpsCalculatorScreen(onBack) },
+    "mf_returns" to { onBack -> MfReturnsCalculatorScreen(onBack) },
+    "compound_interest" to { onBack -> CompoundInterestCalculatorScreen(onBack) },
+    "simple_interest" to { onBack -> SimpleInterestCalculatorScreen(onBack) },
+    "step_up_sip" to { onBack -> StepUpSipCalculatorScreen(onBack) },
+    "retirement" to { onBack -> RetirementCalculatorScreen(onBack) },
+    "income_tax" to { onBack -> IncomeTaxCalculatorScreen(onBack) },
+    "hra" to { onBack -> HraCalculatorScreen(onBack) },
+    "gratuity" to { onBack -> GratuityCalculatorScreen(onBack) },
+    "apy" to { onBack -> ApyCalculatorScreen(onBack) },
+    "cagr" to { onBack -> CagrCalculatorScreen(onBack) },
+    "gst" to { onBack -> GstCalculatorScreen(onBack) },
+    "tds" to { onBack -> TdsCalculatorScreen(onBack) },
+    "salary" to { onBack -> SalaryCalculatorScreen(onBack) },
+    "inflation" to { onBack -> InflationCalculatorScreen(onBack) },
+    "post_office_mis" to { onBack -> PostOfficeMisCalculatorScreen(onBack) },
+    "scss" to { onBack -> ScssCalculatorScreen(onBack) },
+    "stock_average" to { onBack -> StockAverageCalculatorScreen(onBack) },
+    "xirr" to { onBack -> XirrCalculatorScreen(onBack) },
+    "brokerage" to { onBack -> BrokerageCalculatorScreen(onBack) },
+    "margin" to { onBack -> MarginCalculatorScreen(onBack) },
+    "flat_vs_reducing" to { onBack -> FlatVsReducingCalculatorScreen(onBack) },
+    "home_loan_emi" to { onBack -> HomeLoanEmiCalculatorScreen(onBack) },
+    "car_loan_emi" to { onBack -> CarLoanEmiCalculatorScreen(onBack) }
+)
+
 @Composable
 private fun CalculatorRouteContent(
     route: String,
     onBackClick: () -> Unit
 ) {
-    when (route) {
-        "sip" -> SipCalculatorScreen(onBackClick)
-        "emi" -> EmiCalculatorScreen(onBackClick)
-        "fd" -> FdCalculatorScreen(onBackClick)
-        "ppf" -> PpfCalculatorScreen(onBackClick)
-        "lumpsum" -> LumpsumCalculatorScreen(onBackClick)
-        "swp" -> SwpCalculatorScreen(onBackClick)
-        "rd" -> RdCalculatorScreen(onBackClick)
-        "nsc" -> NscCalculatorScreen(onBackClick)
-        "epf" -> EpfCalculatorScreen(onBackClick)
-        "ssy" -> SsyCalculatorScreen(onBackClick)
-        "nps" -> NpsCalculatorScreen(onBackClick)
-        "mf_returns" -> MfReturnsCalculatorScreen(onBackClick)
-        "compound_interest" -> CompoundInterestCalculatorScreen(onBackClick)
-        "simple_interest" -> SimpleInterestCalculatorScreen(onBackClick)
-        "step_up_sip" -> StepUpSipCalculatorScreen(onBackClick)
-        "retirement" -> RetirementCalculatorScreen(onBackClick)
-        "income_tax" -> IncomeTaxCalculatorScreen(onBackClick)
-        "hra" -> HraCalculatorScreen(onBackClick)
-        "gratuity" -> GratuityCalculatorScreen(onBackClick)
-        "apy" -> ApyCalculatorScreen(onBackClick)
-        "cagr" -> CagrCalculatorScreen(onBackClick)
-        "gst" -> GstCalculatorScreen(onBackClick)
-        "tds" -> TdsCalculatorScreen(onBackClick)
-        "salary" -> SalaryCalculatorScreen(onBackClick)
-        "inflation" -> InflationCalculatorScreen(onBackClick)
-        "post_office_mis" -> PostOfficeMisCalculatorScreen(onBackClick)
-        "scss" -> ScssCalculatorScreen(onBackClick)
-        "stock_average" -> StockAverageCalculatorScreen(onBackClick)
-        "xirr" -> XirrCalculatorScreen(onBackClick)
-        "brokerage" -> BrokerageCalculatorScreen(onBackClick)
-        "margin" -> MarginCalculatorScreen(onBackClick)
-        "flat_vs_reducing" -> FlatVsReducingCalculatorScreen(onBackClick)
-        "home_loan_emi" -> HomeLoanEmiCalculatorScreen(onBackClick)
-        "car_loan_emi" -> CarLoanEmiCalculatorScreen(onBackClick)
-        else -> SipCalculatorScreen(onBackClick)
-    }
+    val screen = CALCULATOR_SCREEN_MAP[route] ?: CALCULATOR_SCREEN_MAP.getValue("sip")
+    screen(onBackClick)
 }

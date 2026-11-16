@@ -34,14 +34,13 @@ import com.hsb.calchub.data.repository.RecentCalculation
 import com.hsb.calchub.data.repository.SavedScenario
 import com.hsb.calchub.di.LocalAppContainer
 import com.hsb.calchub.domain.logic.CalculatorLogic
-import com.hsb.calchub.ui.components.CalculatorInput
 import com.hsb.calchub.ui.components.CalculatorScaffold
-import com.hsb.calchub.ui.components.DonutChart
-import com.hsb.calchub.ui.components.DonutChartData
 import com.hsb.calchub.ui.components.LoanAmortizationChart
 import com.hsb.calchub.ui.components.NeonCard
 import com.hsb.calchub.ui.components.SegmentedPillGroup
 import com.hsb.calchub.ui.components.formatCompactINR
+import com.hsb.calchub.ui.screens.emi.LoanDonutCard
+import com.hsb.calchub.ui.screens.emi.LoanInputsCard
 import com.hsb.calchub.ui.screens.emi.ResultCardWithLabels
 import com.hsb.calchub.ui.theme.LocalCalcHubTokens
 import kotlinx.coroutines.launch
@@ -256,46 +255,24 @@ fun HomeLoanEmiCalculatorScreen(onBackClick: () -> Unit) {
                 crossoverYear = activeSchedule.crossoverYear
             )
 
-            NeonCard {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    DonutChart(
-                        data = listOf(
-                            DonutChartData(loanAmount, tokens.gainInk, "Principal"),
-                            DonutChartData(displayedInterest, tokens.lossInk, "Interest")
-                        ),
-                        centerLabelText = "Interest Share"
-                    )
-                }
-            }
+            LoanDonutCard(
+                principal = loanAmount,
+                interest = displayedInterest
+            )
 
-            NeonCard {
-                CalculatorInput(
-                    label = "Home Loan Amount",
-                    value = loanAmount,
-                    onValueChange = { loanAmount = it },
-                    range = 500_000.0..50_000_000.0,
-                    symbol = "₹"
-                )
-                Spacer(modifier = Modifier.height(14.dp))
-                CalculatorInput(
-                    label = "Interest Rate (p.a)",
-                    value = interestRate,
-                    onValueChange = { interestRate = it },
-                    range = 6.0..15.0,
-                    symbol = "%"
-                )
-                Spacer(modifier = Modifier.height(14.dp))
-                CalculatorInput(
-                    label = "Tenure",
-                    value = tenureYears,
-                    onValueChange = { tenureYears = it },
-                    range = 5.0..30.0,
-                    symbol = "Yr"
-                )
-            }
+            LoanInputsCard(
+                loanAmount = loanAmount,
+                onLoanAmountChange = { loanAmount = it },
+                interestRate = interestRate,
+                onInterestRateChange = { interestRate = it },
+                tenureYears = tenureYears,
+                onTenureYearsChange = { tenureYears = it },
+                loanLabel = "Home Loan Amount",
+                loanRange = 500_000.0..50_000_000.0,
+                rateRange = 6.0..15.0,
+                tenureLabel = "Tenure",
+                tenureRange = 5.0..30.0
+            )
 
             SnackbarHost(hostState = snackbarHostState)
             Spacer(modifier = Modifier.height(24.dp))

@@ -13,9 +13,9 @@ import org.json.JSONObject
 data class RecentCalculation(
     val route: String = "sip",
     val calculatorName: String = "SIP",
-    val paramsSummary: String = "₹10,000/mo · 15 yrs · 12%",
-    val formattedValue: String = "₹50.46 L",
-    val secondarySummary: String = "+₹32.46 L est. wealth gain"
+    val paramsSummary: String = UserDataRepository.DEFAULT_LAST_PARAMS,
+    val formattedValue: String = UserDataRepository.DEFAULT_LAST_VALUE,
+    val secondarySummary: String = UserDataRepository.DEFAULT_LAST_SUB
 )
 
 @Immutable
@@ -55,11 +55,11 @@ class UserDataRepository(context: Context) {
         return RecentCalculation(
             route = route,
             calculatorName = prefs.getString(KEY_LAST_NAME, "SIP") ?: "SIP",
-            paramsSummary = prefs.getString(KEY_LAST_PARAMS, "₹10,000/mo · 15 yrs · 12%")
-                ?: "₹10,000/mo · 15 yrs · 12%",
-            formattedValue = prefs.getString(KEY_LAST_VALUE, "₹50.46 L") ?: "₹50.46 L",
-            secondarySummary = prefs.getString(KEY_LAST_SUB, "+₹32.46 L est. wealth gain")
-                ?: "+₹32.46 L est. wealth gain"
+            paramsSummary = prefs.getString(KEY_LAST_PARAMS, DEFAULT_LAST_PARAMS)
+                ?: DEFAULT_LAST_PARAMS,
+            formattedValue = prefs.getString(KEY_LAST_VALUE, DEFAULT_LAST_VALUE) ?: DEFAULT_LAST_VALUE,
+            secondarySummary = prefs.getString(KEY_LAST_SUB, DEFAULT_LAST_SUB)
+                ?: DEFAULT_LAST_SUB
         )
     }
 
@@ -137,6 +137,9 @@ class UserDataRepository(context: Context) {
         private const val KEY_LAST_SUB = "last_sub"
         private const val KEY_VAULT = "saved_scenarios_json"
         private const val KEY_TOOLS_TAB = "selected_tools_tab"
+        const val DEFAULT_LAST_PARAMS = "₹10,000/mo · 15 yrs · 12%"
+        const val DEFAULT_LAST_VALUE = "₹50.46 L"
+        const val DEFAULT_LAST_SUB = "+₹32.46 L est. wealth gain"
 
         val DEFAULT_SCENARIOS = listOf(
             SavedScenario(
@@ -144,7 +147,7 @@ class UserDataRepository(context: Context) {
                 route = "sip",
                 title = "Wealth SIP Plan",
                 summary = "₹10,000/mo · 15 yrs @ 12%",
-                resultFormatted = "₹50.46 L"
+                resultFormatted = DEFAULT_LAST_VALUE
             ),
             SavedScenario(
                 id = "preset_home_loan",

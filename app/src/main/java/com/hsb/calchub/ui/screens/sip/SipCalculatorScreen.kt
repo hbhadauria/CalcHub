@@ -144,48 +144,83 @@ fun SipCalculatorScreen(onBackClick: () -> Unit) {
             )
 
             NeonCard {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    DonutChart(
-                        data = listOf(
-                            DonutChartData(investedAmount, tokens.chartStart, "Invested"),
-                            DonutChartData(estimatedReturns, tokens.chartEnd, "Returns")
-                        ),
-                        centerLabelText = "Gains Share"
-                    )
-                }
+                SipGainsDonut(
+                    invested = investedAmount,
+                    returns = estimatedReturns
+                )
             }
 
-            NeonCard {
-                CalculatorInput(
-                    label = "Monthly Investment",
-                    value = monthlyInvestment,
-                    onValueChange = { monthlyInvestment = it },
-                    range = 500.0..100_000.0,
-                    symbol = "₹"
-                )
-                Spacer(modifier = Modifier.height(14.dp))
-                CalculatorInput(
-                    label = "Expected Return Rate (p.a)",
-                    value = expectedReturnRate,
-                    onValueChange = { expectedReturnRate = it },
-                    range = 1.0..30.0,
-                    symbol = "%"
-                )
-                Spacer(modifier = Modifier.height(14.dp))
-                CalculatorInput(
-                    label = "Time Period",
-                    value = timePeriodYears,
-                    onValueChange = { timePeriodYears = it },
-                    range = 1.0..40.0,
-                    symbol = "Yr"
-                )
-            }
+            SipCoreInputsSection(
+                monthlyInvestment = monthlyInvestment,
+                onMonthlyInvestmentChange = { monthlyInvestment = it },
+                expectedReturnRate = expectedReturnRate,
+                onExpectedReturnRateChange = { expectedReturnRate = it },
+                timePeriodYears = timePeriodYears,
+                onTimePeriodYearsChange = { timePeriodYears = it }
+            )
 
             SnackbarHost(hostState = snackbarHostState)
             Spacer(modifier = Modifier.height(24.dp))
         }
+    }
+}
+
+@Composable
+internal fun SipGainsDonut(invested: Double, returns: Double) {
+    val tokens = com.hsb.calchub.ui.theme.LocalCalcHubTokens.current
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        DonutChart(
+            data = listOf(
+                DonutChartData(invested, tokens.chartStart, "Invested"),
+                DonutChartData(returns, tokens.chartEnd, "Returns")
+            ),
+            centerLabelText = "Gains Share"
+        )
+    }
+}
+
+@Composable
+internal fun SipCoreInputsSection(
+    monthlyInvestment: Double,
+    onMonthlyInvestmentChange: (Double) -> Unit,
+    expectedReturnRate: Double,
+    onExpectedReturnRateChange: (Double) -> Unit,
+    timePeriodYears: Double,
+    onTimePeriodYearsChange: (Double) -> Unit,
+    monthlyLabel: String = "Monthly Investment",
+    returnLabel: String = "Expected Return Rate (p.a)",
+    afterMonthlyContent: (@Composable () -> Unit)? = null
+) {
+    NeonCard {
+        CalculatorInput(
+            label = monthlyLabel,
+            value = monthlyInvestment,
+            onValueChange = onMonthlyInvestmentChange,
+            range = 500.0..100_000.0,
+            symbol = "₹"
+        )
+        if (afterMonthlyContent != null) {
+            Spacer(modifier = Modifier.height(14.dp))
+            afterMonthlyContent()
+        }
+        Spacer(modifier = Modifier.height(14.dp))
+        CalculatorInput(
+            label = returnLabel,
+            value = expectedReturnRate,
+            onValueChange = onExpectedReturnRateChange,
+            range = 1.0..30.0,
+            symbol = "%"
+        )
+        Spacer(modifier = Modifier.height(14.dp))
+        CalculatorInput(
+            label = "Time Period",
+            value = timePeriodYears,
+            onValueChange = onTimePeriodYearsChange,
+            range = 1.0..40.0,
+            symbol = "Yr"
+        )
     }
 }

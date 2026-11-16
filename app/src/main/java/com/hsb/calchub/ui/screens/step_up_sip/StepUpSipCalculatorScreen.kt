@@ -36,13 +36,13 @@ import com.hsb.calchub.di.LocalAppContainer
 import com.hsb.calchub.domain.logic.CalculatorLogic
 import com.hsb.calchub.ui.components.CalculatorInput
 import com.hsb.calchub.ui.components.CalculatorScaffold
-import com.hsb.calchub.ui.components.DonutChart
-import com.hsb.calchub.ui.components.DonutChartData
 import com.hsb.calchub.ui.components.NeonCard
 import com.hsb.calchub.ui.components.ResultCard
 import com.hsb.calchub.ui.components.ResultRow
 import com.hsb.calchub.ui.components.SegmentedPillGroup
 import com.hsb.calchub.ui.components.WealthGrowthSplineChart
+import com.hsb.calchub.ui.screens.sip.SipCoreInputsSection
+import com.hsb.calchub.ui.screens.sip.SipGainsDonut
 import com.hsb.calchub.ui.components.formatCompactINR
 import com.hsb.calchub.ui.theme.LocalCalcHubTokens
 import kotlinx.coroutines.launch
@@ -253,51 +253,28 @@ fun StepUpSipCalculatorScreen(onBackClick: () -> Unit) {
                 ResultRow("Flat Regular SIP Maturity", formatCompactINR(regTotal, inrFormat))
                 ResultRow("Step-Up SIP Maturity", formatCompactINR(stepUpProj.totalValue, inrFormat), isTotal = true)
                 Spacer(modifier = Modifier.height(10.dp))
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    DonutChart(
-                        data = listOf(
-                            DonutChartData(shownInvested, tokens.chartStart, "Invested"),
-                            DonutChartData(shownReturns, tokens.chartEnd, "Returns")
-                        ),
-                        centerLabelText = "Gains Share"
-                    )
-                }
+                SipGainsDonut(
+                    invested = shownInvested,
+                    returns = shownReturns
+                )
             }
 
-            NeonCard {
-                CalculatorInput(
-                    label = "Starting Monthly SIP",
-                    value = monthlyInvestment,
-                    onValueChange = { monthlyInvestment = it },
-                    range = 500.0..100_000.0,
-                    symbol = "₹"
-                )
-                Spacer(modifier = Modifier.height(14.dp))
+            SipCoreInputsSection(
+                monthlyInvestment = monthlyInvestment,
+                onMonthlyInvestmentChange = { monthlyInvestment = it },
+                expectedReturnRate = expectedReturnRate,
+                onExpectedReturnRateChange = { expectedReturnRate = it },
+                timePeriodYears = timePeriodYears,
+                onTimePeriodYearsChange = { timePeriodYears = it },
+                monthlyLabel = "Starting Monthly SIP",
+                returnLabel = "Expected Return (p.a)"
+            ) {
                 CalculatorInput(
                     label = "Annual Step-Up",
                     value = annualStepUpPct,
                     onValueChange = { annualStepUpPct = it },
                     range = 0.0..30.0,
                     symbol = "%"
-                )
-                Spacer(modifier = Modifier.height(14.dp))
-                CalculatorInput(
-                    label = "Expected Return (p.a)",
-                    value = expectedReturnRate,
-                    onValueChange = { expectedReturnRate = it },
-                    range = 1.0..30.0,
-                    symbol = "%"
-                )
-                Spacer(modifier = Modifier.height(14.dp))
-                CalculatorInput(
-                    label = "Time Period",
-                    value = timePeriodYears,
-                    onValueChange = { timePeriodYears = it },
-                    range = 1.0..40.0,
-                    symbol = "Yr"
                 )
             }
 

@@ -168,50 +168,83 @@ fun EmiCalculatorScreen(onBackClick: () -> Unit) {
                 crossoverYear = amortization.crossoverYear
             )
 
-            NeonCard {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    DonutChart(
-                        data = listOf(
-                            DonutChartData(loanAmount, tokens.gainInk, "Principal"),
-                            DonutChartData(totalInterest, tokens.lossInk, "Interest")
-                        ),
-                        centerLabelText = "Interest Share"
-                    )
-                }
-            }
+            LoanDonutCard(
+                principal = loanAmount,
+                interest = totalInterest
+            )
 
-            NeonCard {
-                CalculatorInput(
-                    label = "Loan Amount",
-                    value = loanAmount,
-                    onValueChange = { loanAmount = it },
-                    range = 50_000.0..10_000_000.0,
-                    symbol = "₹"
-                )
-                Spacer(modifier = Modifier.height(14.dp))
-                CalculatorInput(
-                    label = "Interest Rate (p.a)",
-                    value = interestRate,
-                    onValueChange = { interestRate = it },
-                    range = 5.0..20.0,
-                    symbol = "%"
-                )
-                Spacer(modifier = Modifier.height(14.dp))
-                CalculatorInput(
-                    label = "Loan Tenure",
-                    value = tenureYears,
-                    onValueChange = { tenureYears = it },
-                    range = 1.0..30.0,
-                    symbol = "Yr"
-                )
-            }
+            LoanInputsCard(
+                loanAmount = loanAmount,
+                onLoanAmountChange = { loanAmount = it },
+                interestRate = interestRate,
+                onInterestRateChange = { interestRate = it },
+                tenureYears = tenureYears,
+                onTenureYearsChange = { tenureYears = it }
+            )
 
             SnackbarHost(hostState = snackbarHostState)
             Spacer(modifier = Modifier.height(24.dp))
         }
+    }
+}
+
+@Composable
+internal fun LoanDonutCard(principal: Double, interest: Double) {
+    val tokens = com.hsb.calchub.ui.theme.LocalCalcHubTokens.current
+    NeonCard {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            DonutChart(
+                data = listOf(
+                    DonutChartData(principal, tokens.gainInk, "Principal"),
+                    DonutChartData(interest, tokens.lossInk, "Interest")
+                ),
+                centerLabelText = "Interest Share"
+            )
+        }
+    }
+}
+
+@Composable
+internal fun LoanInputsCard(
+    loanAmount: Double,
+    onLoanAmountChange: (Double) -> Unit,
+    interestRate: Double,
+    onInterestRateChange: (Double) -> Unit,
+    tenureYears: Double,
+    onTenureYearsChange: (Double) -> Unit,
+    loanLabel: String = "Loan Amount",
+    loanRange: ClosedFloatingPointRange<Double> = 50_000.0..10_000_000.0,
+    rateRange: ClosedFloatingPointRange<Double> = 5.0..20.0,
+    tenureLabel: String = "Loan Tenure",
+    tenureRange: ClosedFloatingPointRange<Double> = 1.0..30.0
+) {
+    NeonCard {
+        CalculatorInput(
+            label = loanLabel,
+            value = loanAmount,
+            onValueChange = onLoanAmountChange,
+            range = loanRange,
+            symbol = "₹"
+        )
+        Spacer(modifier = Modifier.height(14.dp))
+        CalculatorInput(
+            label = "Interest Rate (p.a)",
+            value = interestRate,
+            onValueChange = onInterestRateChange,
+            range = rateRange,
+            symbol = "%"
+        )
+        Spacer(modifier = Modifier.height(14.dp))
+        CalculatorInput(
+            label = tenureLabel,
+            value = tenureYears,
+            onValueChange = onTenureYearsChange,
+            range = tenureRange,
+            symbol = "Yr"
+        )
     }
 }
 

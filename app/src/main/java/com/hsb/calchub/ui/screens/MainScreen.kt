@@ -54,7 +54,6 @@ fun MainScreen(
     onCalculatorClick: (String) -> Unit,
     selectedTab: Int? = null,
     onTabSelected: ((Int) -> Unit)? = null,
-    isExpandedLayout: Boolean = false,
     activeDetailRoute: String? = null
 ) {
     val appContainer = LocalAppContainer.current

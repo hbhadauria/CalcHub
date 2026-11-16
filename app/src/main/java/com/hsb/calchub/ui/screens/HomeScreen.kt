@@ -435,73 +435,30 @@ private fun AuroraCalculatorGridTile(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(
-                            Brush.linearGradient(
-                                listOf(catPalette.badgeGradStart, catPalette.badgeGradEnd)
-                            )
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = calculator.icon,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(21.dp)
-                    )
-                }
-
-                IconButton(
-                    onClick = onToggleFavorite,
-                    modifier = Modifier.size(34.dp)
-                ) {
-                    Icon(
-                        imageVector = if (isFavorite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
-                        contentDescription = if (isFavorite) "Remove ${calculator.name} from favorites" else "Save ${calculator.name} to favorites",
-                        tint = if (isFavorite) catPalette.gradEnd else tokens.inkMuted,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-            }
-
-            Column {
-                Text(
-                    text = calculator.name,
-                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                    color = tokens.inkPrimary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                CalculatorBadgeIcon(
+                    calculator = calculator,
+                    gradStart = catPalette.badgeGradStart,
+                    gradEnd = catPalette.badgeGradEnd,
+                    cornerRadius = 12.dp,
+                    iconSize = 21.dp
                 )
-                Text(
-                    text = calculator.subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = tokens.inkSecondary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+
+                CalculatorFavoriteButton(
+                    calculatorName = calculator.name,
+                    isFavorite = isFavorite,
+                    activeTint = catPalette.gradEnd,
+                    buttonSize = 34.dp,
+                    onToggleFavorite = onToggleFavorite
                 )
             }
 
-            if (calculator.sampleValue.isNotBlank()) {
-                Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = tokens.surfaceLow
-                ) {
-                    Text(
-                        text = calculator.sampleValue,
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            fontWeight = FontWeight.SemiBold,
-                            fontFeatureSettings = "tnum"
-                        ),
-                        color = tokens.inkSecondary,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                    )
-                }
-            }
+            CalculatorTitleSubtitle(calculator = calculator)
+
+            CalculatorSamplePill(
+                sampleValue = calculator.sampleValue,
+                fontWeight = FontWeight.SemiBold,
+                textColor = tokens.inkSecondary
+            )
         }
     }
 }
@@ -536,70 +493,132 @@ private fun DenseCalculatorRowCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(
-                        Brush.linearGradient(
-                            listOf(catPalette.badgeGradStart, catPalette.badgeGradEnd)
-                        )
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = calculator.icon,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
+            CalculatorBadgeIcon(
+                calculator = calculator,
+                gradStart = catPalette.badgeGradStart,
+                gradEnd = catPalette.badgeGradEnd,
+                cornerRadius = 10.dp,
+                iconSize = 20.dp
+            )
 
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = calculator.name,
-                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                    color = tokens.inkPrimary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = calculator.subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = tokens.inkSecondary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
+            CalculatorTitleSubtitle(
+                calculator = calculator,
+                modifier = Modifier.weight(1f)
+            )
 
-            if (calculator.sampleValue.isNotBlank()) {
-                Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = tokens.surfaceLow
-                ) {
-                    Text(
-                        text = calculator.sampleValue,
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            fontWeight = FontWeight.Bold,
-                            fontFeatureSettings = "tnum"
-                        ),
-                        color = tokens.inkPrimary,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                    )
-                }
-            }
+            CalculatorSamplePill(
+                sampleValue = calculator.sampleValue,
+                fontWeight = FontWeight.Bold,
+                textColor = tokens.inkPrimary
+            )
 
-            IconButton(
-                onClick = onToggleFavorite,
-                modifier = Modifier.size(36.dp)
-            ) {
-                Icon(
-                    imageVector = if (isFavorite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
-                    contentDescription = if (isFavorite) "Remove ${calculator.name}" else "Save ${calculator.name}",
-                    tint = if (isFavorite) tokens.accentPrimary else tokens.inkMuted,
-                    modifier = Modifier.size(18.dp)
-                )
-            }
+            CalculatorFavoriteButton(
+                calculatorName = calculator.name,
+                isFavorite = isFavorite,
+                activeTint = tokens.accentPrimary,
+                buttonSize = 36.dp,
+                onToggleFavorite = onToggleFavorite
+            )
         }
+    }
+}
+
+@Composable
+private fun CalculatorBadgeIcon(
+    calculator: Calculator,
+    gradStart: Color,
+    gradEnd: Color,
+    cornerRadius: androidx.compose.ui.unit.Dp,
+    iconSize: androidx.compose.ui.unit.Dp
+) {
+    Box(
+        modifier = Modifier
+            .size(40.dp)
+            .clip(RoundedCornerShape(cornerRadius))
+            .background(
+                Brush.linearGradient(
+                    listOf(gradStart, gradEnd)
+                )
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = calculator.icon,
+            contentDescription = null,
+            tint = Color.White,
+            modifier = Modifier.size(iconSize)
+        )
+    }
+}
+
+@Composable
+private fun CalculatorTitleSubtitle(
+    calculator: Calculator,
+    modifier: Modifier = Modifier
+) {
+    val tokens = LocalCalcHubTokens.current
+    Column(modifier = modifier) {
+        Text(
+            text = calculator.name,
+            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+            color = tokens.inkPrimary,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+        Text(
+            text = calculator.subtitle,
+            style = MaterialTheme.typography.bodySmall,
+            color = tokens.inkSecondary,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
+private fun CalculatorSamplePill(
+    sampleValue: String,
+    fontWeight: FontWeight,
+    textColor: Color
+) {
+    if (sampleValue.isBlank()) return
+    val tokens = LocalCalcHubTokens.current
+    Surface(
+        shape = RoundedCornerShape(8.dp),
+        color = tokens.surfaceLow
+    ) {
+        Text(
+            text = sampleValue,
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontWeight = fontWeight,
+                fontFeatureSettings = "tnum"
+            ),
+            color = textColor,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+        )
+    }
+}
+
+@Composable
+private fun CalculatorFavoriteButton(
+    calculatorName: String,
+    isFavorite: Boolean,
+    activeTint: Color,
+    buttonSize: androidx.compose.ui.unit.Dp,
+    onToggleFavorite: () -> Unit
+) {
+    val tokens = LocalCalcHubTokens.current
+    IconButton(
+        onClick = onToggleFavorite,
+        modifier = Modifier.size(buttonSize)
+    ) {
+        Icon(
+            imageVector = if (isFavorite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
+            contentDescription = if (isFavorite) "Remove $calculatorName from favorites" else "Save $calculatorName to favorites",
+            tint = if (isFavorite) activeTint else tokens.inkMuted,
+            modifier = Modifier.size(18.dp)
+        )
     }
 }
