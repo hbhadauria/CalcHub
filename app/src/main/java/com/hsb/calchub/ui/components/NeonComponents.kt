@@ -1,173 +1,133 @@
 package com.hsb.calchub.ui.components
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.outlined.Build
-import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Construction
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.FavoriteBorder
+import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.drawOutline
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.hsb.calchub.ui.theme.CalcHubSkin
+import com.hsb.calchub.ui.theme.LocalCalcHubTokens
 import com.hsb.calchub.ui.theme.NeonGreen
-import com.hsb.calchub.ui.theme.NeonPink
-import com.hsb.calchub.ui.theme.NeonSurface
-import com.hsb.calchub.ui.theme.NeonText
 
 /**
- * A specialized card with a neon glow effect.
- *
- * @param modifier Modifier for styling.
- * @param onClick Optional callback for click events.
- * @param borderColor The color of the border and glow (e.g., NeonGreen, NeonPink).
- * @param useGradientBorder If true, applies a vertical gradient to the border.
- * @param content The content composable.
+ * Multi-theme surface card preserving the [NeonCard] signature used across all 34 calculators.
+ * Adapts automatically across Aurora, Ledger Paper, and Matrix skins without blur or glassmorphism.
  */
 @Composable
-fun NeonCard(modifier: Modifier = Modifier,
-             onClick: (() -> Unit)? = null,
-             borderColor: Color = NeonGreen,
-             useGradientBorder: Boolean = false,
-             content: @Composable ColumnScope.() -> Unit
+fun NeonCard(
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
+    borderColor: Color = Color.Unspecified,
+    useGradientBorder: Boolean = false,
+    content: @Composable ColumnScope.() -> Unit
 ) {
-    val shape = RoundedCornerShape(16.dp)
+    val tokens = LocalCalcHubTokens.current
+    val shape = RoundedCornerShape(tokens.cardCornerRadius)
+
+    val effectiveBorderColor = when {
+        borderColor != Color.Unspecified -> borderColor
+        useGradientBorder -> tokens.accentPrimary.copy(alpha = if (tokens.isDark) 0.50f else 0.40f)
+        else -> tokens.cardBorder
+    }
+
     val borderBrush = if (useGradientBorder) {
-        Brush.verticalGradient(
-            colors = listOf(borderColor.copy(alpha = 0.8f), borderColor.copy(alpha = 0.1f)),
-            startY = 0f,
-            endY = 300f
+        Brush.linearGradient(
+            colors = listOf(
+                effectiveBorderColor,
+                tokens.cardBorder
+            )
         )
     } else {
-        SolidColor(borderColor.copy(alpha = 0.5f))
+        SolidColor(effectiveBorderColor)
     }
 
-    // The main container that defines the card's shape, border, and behavior.
-    Box(
-        modifier = modifier
-            // *** THE FINAL FIX ***
-            // Replace the failing .shadow() with our new, correct .coloredGlow()
-            .coloredGlow(
-                color = borderColor,
-                shape = shape,
-                blurRadius = 30f // Adjust blur amount as you like
-            )
-            .background(Color.Transparent, shape) // Background remains transparent
-            .border(BorderStroke(1.5.dp, borderBrush), shape)
-            .clip(shape) // Clip everything inside to the card's shape
-            .then(
-                if (onClick != null) {
-                    Modifier.clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = androidx.compose.foundation.LocalIndication.current,
-                        onClick = onClick
-                    )
-                } else Modifier
-            ),
-        contentAlignment = Alignment.Center // Center content by default
-    ) {
-        // Inner Glow (Top) - drawn first, so it's in the background
-        Canvas(modifier = Modifier.matchParentSize()) { // Fills the Box
-            drawRect(
-                brush = Brush.verticalGradient(
-                    colors = listOf(borderColor.copy(alpha = 0.05f), Color.Transparent),
-                    startY = 0f,
-                    endY = size.height / 2 // Confine glow to top half
-                )
-            )
-        }
+    val borderWidth = if (tokens.skin == CalcHubSkin.MATRIX) 1.25.dp else 1.dp
 
-        // The content Column is now the second child, drawn on top of the glow.
-        Column(
-            modifier = Modifier
-                .fillMaxSize() // Make the column fill the Box
-                .padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+    if (onClick != null) {
+        Surface(
+            modifier = modifier.clip(shape),
+            shape = shape,
+            color = tokens.surfaceLowest,
+            border = BorderStroke(borderWidth, borderBrush),
+            onClick = onClick
         ) {
-            content() // Invoke the passed-in content lambda
+            Column(
+                modifier = Modifier.padding(16.dp),
+                content = content
+            )
         }
-    }
-}
-
-fun Modifier.coloredGlow(color: Color, shape: androidx.compose.ui.graphics.Shape, blurRadius: Float = 30f, strokeWidth: Float = 6f) = this.drawBehind {
-    // This drawIntoCanvas is the key. It gives us a native canvas.
-    drawIntoCanvas { canvas ->
-        val paint = androidx.compose.ui.graphics.Paint().apply {
-            this.color = color
+    } else {
+        Surface(
+            modifier = modifier,
+            shape = shape,
+            color = tokens.surfaceLowest,
+            border = BorderStroke(borderWidth, borderBrush)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                content = content
+            )
         }
-        val frameworkPaint = paint.asFrameworkPaint() // This is the native paint object
-
-        // Set the blur effect on the native paint object.
-        if (blurRadius > 0) {
-            frameworkPaint.maskFilter = (android.graphics.BlurMaskFilter(blurRadius, android.graphics.BlurMaskFilter.Blur.NORMAL))
-        }
-
-        // *** THE CRUCIAL FIX IS HERE ***
-        // By setting the style to STROKE, we only draw the outline, which creates a hollow glow.
-        frameworkPaint.style = android.graphics.Paint.Style.STROKE
-        frameworkPaint.strokeWidth = strokeWidth
-
-
-        // Draw the shape outline with the blurred paint.
-        canvas.drawOutline(
-            outline = shape.createOutline(size, layoutDirection, this),
-            paint = paint
-        )
     }
 }
 
 /**
- * A text input field styled with Neon aesthetics.
- *
- * @param value Current text value.
- * @param onValueChange Callback for text changes.
- * @param label Label to display above input.
- * @param placeholder Placeholder text when empty.
- * @param keyboardOptions Keyboard configuration.
- * @param modifier Modifier for styling.
+ * Themed numeric or text input field replacing the legacy neon-bordered field.
  */
 @Composable
 fun NeonInput(
@@ -178,144 +138,211 @@ fun NeonInput(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier) {
+    val tokens = LocalCalcHubTokens.current
+    val shape = RoundedCornerShape(if (tokens.skin == CalcHubSkin.MATRIX) 10.dp else 16.dp)
+
+    Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium,
-            color = NeonText.copy(alpha = 0.7f),
-            modifier = Modifier.padding(bottom = 8.dp)
+            color = tokens.inkSecondary,
+            modifier = Modifier.padding(bottom = 6.dp)
         )
-        
-        BasicTextField(
+        OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            textStyle = TextStyle(
-                color = NeonText,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Medium
-            ),
-            keyboardOptions = keyboardOptions,
-            cursorBrush = SolidColor(NeonGreen),
-            decorationBox = { innerTextField ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(NeonSurface, RoundedCornerShape(12.dp))
-                        .border(1.dp, NeonGreen.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
-                        .padding(16.dp)
-                ) {
-                    if (value.isEmpty() && placeholder.isNotEmpty()) {
-                        Text(
-                            text = placeholder,
-                            color = NeonText.copy(alpha = 0.3f),
-                            fontSize = 18.sp
-                        )
-                    }
-                    innerTextField()
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = {
+                if (placeholder.isNotEmpty()) {
+                    Text(
+                        text = placeholder,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = tokens.inkMuted
+                    )
                 }
-            }
+            },
+            keyboardOptions = keyboardOptions,
+            singleLine = true,
+            textStyle = MaterialTheme.typography.bodyLarge.copy(
+                fontFeatureSettings = "tnum",
+                color = tokens.inkPrimary
+            ),
+            shape = shape,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = tokens.surfaceLow,
+                unfocusedContainerColor = tokens.surfaceLow,
+                focusedBorderColor = tokens.accentPrimary,
+                unfocusedBorderColor = tokens.cardBorder,
+                cursorColor = tokens.accentPrimary,
+                focusedTextColor = tokens.inkPrimary,
+                unfocusedTextColor = tokens.inkPrimary
+            )
         )
     }
 }
 
+/**
+ * Clean tonal search bar with leading magnifier, 48dp accessible clear action, and instant filtering.
+ */
 @Composable
 fun NeonSearch(
     query: String,
     onQueryChange: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    placeholder: String = "Search 30+ calculators (SIP, Tax, EMI...)"
 ) {
-    BasicTextField(
+    val tokens = LocalCalcHubTokens.current
+    val shape = RoundedCornerShape(if (tokens.skin == CalcHubSkin.MATRIX) 10.dp else tokens.pillCornerRadius)
+
+    OutlinedTextField(
         value = query,
         onValueChange = onQueryChange,
-        textStyle = TextStyle(color = NeonText, fontSize = 16.sp),
-        cursorBrush = SolidColor(NeonPink),
-        decorationBox = { innerTextField ->
-            Row(
-                modifier = modifier
-                    .fillMaxWidth()
-                    .background(NeonSurface.copy(alpha = 0.3f), RoundedCornerShape(16.dp)) // More transparent, less rounded
-                    .border(1.dp, NeonText.copy(alpha = 0.2f), RoundedCornerShape(16.dp)) // Subtle border
-                    .padding(horizontal = 16.dp, vertical = 16.dp), // More vertical padding
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Search",
-                    tint = NeonText.copy(alpha = 0.5f),
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Box {
-                    if (query.isEmpty()) {
-                        Text("Search Calculators", color = NeonText.copy(alpha = 0.5f), fontSize = 16.sp)
-                    }
-                    innerTextField()
+        modifier = modifier.fillMaxWidth(),
+        placeholder = {
+            Text(
+                text = placeholder,
+                style = MaterialTheme.typography.bodyMedium,
+                color = tokens.inkMuted,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        },
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Rounded.Search,
+                contentDescription = "Search",
+                tint = tokens.accentPrimary
+            )
+        },
+        trailingIcon = {
+            if (query.isNotEmpty()) {
+                IconButton(onClick = { onQueryChange("") }) {
+                    Icon(
+                        imageVector = Icons.Rounded.Close,
+                        contentDescription = "Clear search",
+                        tint = tokens.inkSecondary
+                    )
                 }
             }
-        }
+        },
+        singleLine = true,
+        textStyle = MaterialTheme.typography.bodyMedium.copy(
+            color = tokens.inkPrimary
+        ),
+        shape = shape,
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = tokens.surfaceLowest,
+            unfocusedContainerColor = tokens.surfaceLowest,
+            focusedBorderColor = tokens.accentPrimary,
+            unfocusedBorderColor = tokens.cardBorder,
+            cursorColor = tokens.accentPrimary,
+            focusedTextColor = tokens.inkPrimary,
+            unfocusedTextColor = tokens.inkPrimary
+        )
     )
 }
 
+/**
+ * Bottom navigation pill toolbar shared by [MainScreen] and legacy [NeonNavBar] callers.
+ */
 @Composable
 fun NeonNavBar(
     selectedItem: Int,
-    onItemSelected: (Int) -> Unit
+    onItemSelected: (Int) -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    NavigationBar(
-        containerColor = NeonSurface.copy(alpha = 0.9f),
-        // *** THE DEFINITIVE FIX ***
-        // Apply the aesthetic modifiers AND explicitly clear default inset handling.
-        modifier = Modifier
+    val tokens = LocalCalcHubTokens.current
+    val haptic = LocalHapticFeedback.current
+    val outerCorner = if (tokens.skin == CalcHubSkin.MATRIX) 12.dp else 28.dp
+    val itemCorner = if (tokens.skin == CalcHubSkin.MATRIX) 8.dp else 22.dp
+
+    val items: List<Pair<String, ImageVector>> = remember {
+        listOf(
+            "Home" to Icons.Rounded.Home,
+            "Saved" to Icons.Rounded.Favorite,
+            "Tools" to Icons.Rounded.Construction
+        )
+    }
+
+    Box(
+        modifier = modifier
             .fillMaxWidth()
-            .windowInsetsPadding(WindowInsets(0, 0, 0, 0)) // 1. PREVENT DOUBLE PADDING
-            .clip(RoundedCornerShape(32.dp))
-            .border(1.dp, NeonText.copy(alpha = 0.1f), RoundedCornerShape(32.dp))
+            .navigationBarsPadding()
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        contentAlignment = Alignment.Center
     ) {
-        // ... (The rest of the function remains the same) ...
-        val navItems = listOf("Home", "Favorites", "Tools")
-        val navIcons = listOf(Icons.Outlined.Home, Icons.Outlined.FavoriteBorder, Icons.Outlined.Build)
-        val navColors = listOf(NeonGreen, NeonPink, NeonGreen)
-
-        navItems.forEachIndexed { index, title ->
-            val isSelected = selectedItem == index
-
-            NavigationBarItem(
-                selected = isSelected,
-                onClick = { onItemSelected(index) },
-                icon = {
-                    Icon(
-                        imageVector = navIcons[index],
-                        contentDescription = title
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(outerCorner),
+            color = tokens.surfaceToolbar,
+            border = BorderStroke(1.dp, tokens.cardBorder),
+            tonalElevation = 0.dp
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 6.dp, vertical = 6.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                items.forEachIndexed { index, (title, icon) ->
+                    val isSelected = selectedItem == index
+                    val bg by animateColorAsState(
+                        targetValue = if (isSelected) tokens.accentContainer else Color.Transparent,
+                        animationSpec = tween(180),
+                        label = "navPillBg"
                     )
-                },
-                label = {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.labelSmall
+                    val fg by animateColorAsState(
+                        targetValue = if (isSelected) tokens.onAccentContainer else tokens.inkSecondary,
+                        animationSpec = tween(180),
+                        label = "navPillFg"
                     )
-                },
-                alwaysShowLabel = true,
-                colors = NavigationBarItemDefaults.colors(
-                    indicatorColor = navColors[index].copy(alpha = 0.15f),
-                    selectedIconColor = navColors[index],
-                    selectedTextColor = navColors[index],
-                    unselectedIconColor = NeonText.copy(alpha = 0.7f),
-                    unselectedTextColor = NeonText.copy(alpha = 0.7f)
-                )
-            )
+
+                    Surface(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(48.dp)
+                            .clip(RoundedCornerShape(itemCorner))
+                            .semantics { this.selected = isSelected }
+                            .clickable(role = Role.Tab) {
+                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                onItemSelected(index)
+                            },
+                        shape = RoundedCornerShape(itemCorner),
+                        color = bg
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = null,
+                                tint = fg,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = title,
+                                style = MaterialTheme.typography.labelLarge.copy(
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                                ),
+                                color = fg,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
 
 /**
- * The standard header for the application, featuring the "CalcHub" text.
- * Provides Back and Favorite actions.
- *
- * @param title The main title (CalcHub).
- * @param subtitle The subtitle (Screen Name).
- * @param isFavorite Whether the current screen is marked as favorite.
- * @param onBackClick Callback for back button.
- * @param onFavoriteClick Callback for favorite toggle.
+ * Calculator screen header with safe status bar insets, back button, category-accent badge,
+ * optional trailing actions, and expressive favorite toggle.
  */
 @Composable
 fun NeonHeader(
@@ -323,89 +350,112 @@ fun NeonHeader(
     subtitle: String,
     isFavorite: Boolean,
     onBackClick: () -> Unit,
-    onFavoriteClick: () -> Unit
+    onFavoriteClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    extraActions: @Composable (RowScope.() -> Unit)? = null
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .statusBarsPadding() // Fix status bar overlap
-            .padding(horizontal = 16.dp, vertical = 16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Left: Menu/Back Button
-        Box(
-            modifier = Modifier
-                .size(48.dp)
-                .coloredGlow(NeonGreen, RoundedCornerShape(12.dp), blurRadius = 15f)
-                .background(NeonSurface.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
-                .border(1.dp, NeonGreen.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = androidx.compose.foundation.LocalIndication.current,
-                    onClick = onBackClick
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
-                tint = NeonGreen
-            )
-        }
+    val tokens = LocalCalcHubTokens.current
+    val haptic = LocalHapticFeedback.current
+    val favScale by animateFloatAsState(
+        targetValue = if (isFavorite) 1.12f else 1f,
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMedium),
+        label = "favPulse"
+    )
 
-        // Center: Title and Subtitle
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = "Calc",
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = NeonGreen,
-                        shadow = androidx.compose.ui.graphics.Shadow(
-                            color = NeonGreen,
-                            blurRadius = 20f
-                        )
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(Color.Transparent)
+            .statusBarsPadding()
+            .padding(horizontal = 16.dp, vertical = 10.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Surface(
+                modifier = Modifier.size(44.dp),
+                shape = CircleShape,
+                color = tokens.surfaceLowest,
+                border = BorderStroke(1.dp, tokens.cardBorder),
+                onClick = onBackClick
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                        contentDescription = "Back",
+                        tint = tokens.inkPrimary,
+                        modifier = Modifier.size(20.dp)
                     )
+                }
+            }
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    color = tokens.inkPrimary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
-                Text(
-                    text = "Hub",
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = NeonPink,
-                        shadow = androidx.compose.ui.graphics.Shadow(
-                            color = NeonPink,
-                            blurRadius = 20f
+                if (subtitle.isNotBlank()) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(6.dp)
+                                .clip(CircleShape)
+                                .background(tokens.chartEnd)
                         )
-                    )
+                        Text(
+                            text = subtitle,
+                            style = MaterialTheme.typography.labelMedium,
+                            color = tokens.inkSecondary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+            }
+
+            if (extraActions != null) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    content = extraActions
                 )
             }
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = NeonText.copy(alpha = 0.7f)
-            )
-        }
 
-        // Right: Favorite Button
-        Box(
-            modifier = Modifier
-                .size(48.dp)
-                .coloredGlow(if (isFavorite) NeonPink else NeonGreen, RoundedCornerShape(12.dp), blurRadius = 15f)
-                .background(NeonSurface.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
-                .border(1.dp, if (isFavorite) NeonPink.copy(alpha = 0.5f) else NeonGreen.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = androidx.compose.foundation.LocalIndication.current,
-                    onClick = onFavoriteClick
+            Surface(
+                modifier = Modifier
+                    .size(44.dp)
+                    .scale(favScale),
+                shape = CircleShape,
+                color = if (isFavorite) tokens.accentContainer else tokens.surfaceLowest,
+                border = BorderStroke(
+                    width = 1.dp,
+                    color = if (isFavorite) tokens.accentPrimary else tokens.cardBorder
                 ),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                contentDescription = "Favorite",
-                tint = if (isFavorite) NeonPink else NeonGreen
-            )
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onFavoriteClick()
+                }
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = if (isFavorite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
+                        contentDescription = if (isFavorite) "Remove from Saved" else "Add to Saved",
+                        tint = if (isFavorite) tokens.accentPrimary else tokens.inkSecondary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
         }
     }
 }
+
+@Suppress("unused")
+internal val UnusedNeonGreenReference: Color = NeonGreen

@@ -21,6 +21,14 @@ on:
         options:
           - 'yes'
           - 'no'
+      run_instrumentation_tests:
+        description: 'Run Espresso instrumentation tests on Android Emulator?'
+        required: true
+        default: 'no'
+        type: choice
+        options:
+          - 'yes'
+          - 'no'
       track:
         description: 'The track to deploy to (internal, alpha, beta, production)'
         required: true
@@ -55,7 +63,7 @@ jobs:
       new_version_name: ${{ steps.bump.outputs.version_name }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       
@@ -126,10 +134,16 @@ jobs:
       pull-requests: write
     uses: ./.github/workflows/unit-test.yml
 
+  instrumentation-test:
+    if: ${{ github.event.inputs.run_instrumentation_tests == 'yes' }}
+    permissions:
+      contents: read
+    uses: ./.github/workflows/instrumentation-test.yml
+
   build:
-    needs: [test, version-bump]
-    # Run build if version-bump succeeded AND (tests succeeded OR tests were skipped)
-    if: ${{ always() && needs.version-bump.result == 'success' && (needs.test.result == 'success' || needs.test.result == 'skipped') }}
+    needs: [test, instrumentation-test, version-bump]
+    # Run build if version-bump succeeded AND (tests succeeded OR tests were skipped) AND (instrumentation succeeded OR skipped)
+    if: ${{ always() && needs.version-bump.result == 'success' && (needs.test.result == 'success' || needs.test.result == 'skipped') && (needs.instrumentation-test.result == 'success' || needs.instrumentation-test.result == 'skipped') }}
     uses: ./.github/workflows/build-bundle.yml # Call reusable workflow
     secrets: inherit
 
@@ -148,7 +162,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: main
           fetch-depth: 0

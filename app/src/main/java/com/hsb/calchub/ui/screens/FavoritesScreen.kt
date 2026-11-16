@@ -1,6 +1,6 @@
 package com.hsb.calchub.ui.screens
 
-import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,231 +10,292 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.FavoriteBorder
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shadow
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.hsb.calchub.data.repository.FavoritesRepository
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.hsb.calchub.di.LocalAppContainer
 import com.hsb.calchub.domain.model.allCalculators
 import com.hsb.calchub.ui.components.NeonCard
 import com.hsb.calchub.ui.components.NeonSearch
-import com.hsb.calchub.ui.theme.NeonGreen
-import com.hsb.calchub.ui.theme.NeonPink
-import com.hsb.calchub.ui.theme.NeonText
+import com.hsb.calchub.ui.components.label
+import com.hsb.calchub.ui.theme.CategoryPalettes
+import com.hsb.calchub.ui.theme.LocalCalcHubTokens
 
 /**
- * The screen displaying the user's favorite calculators.
- * Allows filtering favorites by search query.
- *
- * @param onCalculatorClick Callback triggered when a calculator is selected.
+ * Saved / Pinned calculators tab with search filtering and one-tap starter preset pinning.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FavoritesScreen(onCalculatorClick: (String) -> Unit) {
-    val context = LocalContext.current
-    val favoritesRepository = remember { FavoritesRepository.getInstance(context) }
-    val favorites by favoritesRepository.favorites.collectAsState()
-    var searchQuery by remember { mutableStateOf("") }
+fun FavoritesScreen(
+    onCalculatorClick: (String) -> Unit,
+    activeDetailRoute: String? = null
+) {
+    val appContainer = LocalAppContainer.current
+    val favoritesRepository = appContainer.favoritesRepository
 
-    val favoriteCalculators = allCalculators.filter { favorites.contains(it.route) }
-    
-    // Filter favorite calculators based on search
-    val filteredCalculators = if (searchQuery.isEmpty()) {
-        favoriteCalculators
-    } else {
-        favoriteCalculators.filter { it.name.contains(searchQuery, ignoreCase = true) }
+    val tokens = LocalCalcHubTokens.current
+    val favoriteIds by favoritesRepository.favorites.collectAsStateWithLifecycle()
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+
+    val favoriteCalculators = remember(favoriteIds, searchQuery) {
+        allCalculators.filter { calc ->
+            calc.route in favoriteIds && (
+                searchQuery.isBlank() ||
+                    calc.name.contains(searchQuery.trim(), ignoreCase = true) ||
+                    calc.subtitle.contains(searchQuery.trim(), ignoreCase = true)
+                )
+        }
     }
 
-    // Background with gradient
-    Box(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF050505),
-                        Color(0xFF120024),
-                        Color(0xFF050505)
-                    )
-                )
-            )
+            .imePadding(),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 6.dp, bottom = 18.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Subtle background glow effects
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val width = size.width
-            val height = size.height
-            
-            drawCircle(
-                brush = Brush.radialGradient(
-                    colors = listOf(NeonPink.copy(alpha = 0.15f), Color.Transparent),
-                    center = Offset(width / 2, height * 0.1f),
-                    radius = width * 0.8f
-                )
-            )
-            
-            drawCircle(
-                brush = Brush.radialGradient(
-                    colors = listOf(NeonGreen.copy(alpha = 0.1f), Color.Transparent),
-                    center = Offset(0f, height),
-                    radius = width * 0.6f
-                )
-            )
-            drawCircle(
-                brush = Brush.radialGradient(
-                    colors = listOf(NeonGreen.copy(alpha = 0.1f), Color.Transparent),
-                    center = Offset(width, height),
-                    radius = width * 0.6f
-                )
-            )
-        }
-
-        // Main Content (List)
-        if (favoriteCalculators.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = 230.dp),
-                contentAlignment = Alignment.Center
+        item(key = "fav_header") {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "No favorite calculators yet.",
-                    color = NeonText.copy(alpha = 0.5f),
-                    style = MaterialTheme.typography.bodyLarge
-                )
-            }
-        } else {
-            LazyColumn(
-                contentPadding = PaddingValues(
-                    top = 230.dp,
-                    bottom = 120.dp,
-                    start = 16.dp,
-                    end = 16.dp
-                ),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                if (filteredCalculators.isEmpty()) {
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 32.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "No calculators match your search.",
-                                color = NeonText.copy(alpha = 0.5f),
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                        }
-                    }
-                } else {
-                    items(filteredCalculators) { calculator ->
-                        NeonCard(
-                            onClick = { onCalculatorClick(calculator.route) }
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                calculator.icon.let { icon ->
-                                    Icon(
-                                        imageVector = icon,
-                                        contentDescription = null,
-                                        tint = NeonPink,
-                                        modifier = Modifier.size(32.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(16.dp))
-                                }
-                                Text(
-                                    text = calculator.name,
-                                    style = MaterialTheme.typography.titleMedium.copy(
-                                        fontWeight = FontWeight.Bold,
-                                        color = NeonText
-                                    )
-                                )
-                            }
-                        }
-                    }
+                Column {
+                    Text(
+                        text = "Saved Calculators",
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                        color = tokens.inkPrimary
+                    )
+                    Text(
+                        text = "Pinned locally on device for instant access",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = tokens.inkSecondary
+                    )
+                }
+                Surface(
+                    shape = RoundedCornerShape(999.dp),
+                    color = tokens.surfaceContainer
+                ) {
+                    Text(
+                        text = "${favoriteIds.size} pinned",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            fontFeatureSettings = "tnum"
+                        ),
+                        color = tokens.inkPrimary,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                    )
                 }
             }
         }
 
-        // Floating Header & Search
-        Column(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .fillMaxWidth()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            Color(0xFF050505).copy(alpha = 0.95f),
-                            Color(0xFF050505).copy(alpha = 0.8f),
-                            Color.Transparent
-                        )
-                    )
-                )
-                .padding(horizontal = 16.dp)
-                .statusBarsPadding()
-                .padding(top = 16.dp, bottom = 24.dp)
-        ) {
-            // Header
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp)
-            ) {
-                Text(
-                    text = "Favorites",
-                    style = MaterialTheme.typography.headlineLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = NeonPink,
-                        shadow = Shadow(
-                            color = NeonPink,
-                            blurRadius = 20f
-                        )
-                    )
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Icon(
-                    imageVector = Icons.Default.Favorite,
-                    contentDescription = null,
-                    tint = NeonText,
-                    modifier = Modifier.size(32.dp)
+        if (favoriteIds.isNotEmpty()) {
+            item(key = "fav_search") {
+                NeonSearch(
+                    query = searchQuery,
+                    onQueryChange = { searchQuery = it },
+                    placeholder = "Search saved calculators..."
                 )
             }
+        }
 
-            // Search Bar
-            NeonSearch(
-                query = searchQuery,
-                onQueryChange = { searchQuery = it },
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
+        if (favoriteIds.isEmpty()) {
+            item(key = "fav_empty") {
+                NeonCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 18.dp, horizontal = 8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Surface(
+                            modifier = Modifier.size(56.dp),
+                            shape = CircleShape,
+                            color = tokens.accentContainer
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Rounded.FavoriteBorder,
+                                    contentDescription = null,
+                                    tint = tokens.accentPrimary,
+                                    modifier = Modifier.size(28.dp)
+                                )
+                            }
+                        }
+                        Text(
+                            text = "No favorites pinned yet",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            color = tokens.inkPrimary
+                        )
+                        Text(
+                            text = "Tap the heart on any calculator card or pin the top 4 daily essentials right away.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = tokens.inkSecondary,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Button(
+                            onClick = {
+                                listOf("sip", "emi", "income_tax", "ppf").forEach { route ->
+                                    if (!favoritesRepository.isFavorite(route)) {
+                                        favoritesRepository.toggleFavorite(route)
+                                    }
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = tokens.accentPrimary,
+                                contentColor = tokens.onAccent
+                            ),
+                            shape = RoundedCornerShape(tokens.pillCornerRadius)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.AutoAwesome,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.size(6.dp))
+                            Text(
+                                text = "Pin Essentials (SIP, EMI, Tax, PPF)",
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                        }
+                    }
+                }
+            }
+        } else if (favoriteCalculators.isEmpty()) {
+            item(key = "fav_no_match") {
+                NeonCard(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = "No pinned calculator matches \"$searchQuery\".",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = tokens.inkSecondary
+                    )
+                }
+            }
+        } else {
+            items(
+                items = favoriteCalculators,
+                key = { it.route }
+            ) { calc ->
+                val catPalette = remember(calc.category) { CategoryPalettes.forCategory(calc.category) }
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(tokens.cardCornerRadius)),
+                    shape = RoundedCornerShape(tokens.cardCornerRadius),
+                    color = tokens.surfaceLowest,
+                    border = BorderStroke(
+                        width = if (calc.route == activeDetailRoute) 2.dp else 1.dp,
+                        color = if (calc.route == activeDetailRoute) tokens.accentPrimary else tokens.cardBorder
+                    ),
+                    onClick = { onCalculatorClick(calc.route) }
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(42.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(
+                                    Brush.linearGradient(
+                                        listOf(catPalette.badgeGradStart, catPalette.badgeGradEnd)
+                                    )
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = calc.icon,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = calc.name,
+                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                                color = tokens.inkPrimary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Text(
+                                text = "${calc.category.label()} · ${calc.subtitle}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = tokens.inkSecondary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+
+                        if (calc.sampleValue.isNotBlank()) {
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = tokens.surfaceLow
+                            ) {
+                                Text(
+                                    text = calc.sampleValue,
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        fontFeatureSettings = "tnum"
+                                    ),
+                                    color = tokens.inkPrimary,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                )
+                            }
+                        }
+
+                        IconButton(
+                            onClick = { favoritesRepository.toggleFavorite(calc.route) },
+                            modifier = Modifier.size(38.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Favorite,
+                                contentDescription = "Unpin ${calc.name}",
+                                tint = catPalette.gradEnd,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }

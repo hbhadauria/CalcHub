@@ -2,6 +2,30 @@
 
 All notable changes to CalcHub will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- **Multi-Theme System**: Choose between Aurora, Ledger Paper, and Dot Matrix themes with System, Light, and Dark modes
+- **Background Gradients**: Added 6 customizable background gradient options (By Screen, Aurora, Sunset, Emerald, Ocean, and Solid Off)
+- **Continue Hero Banner**: Resume your most recent calculation directly from the Home screen with a live growth sparkline
+- **4-Tab Tools Lab**: Added Utilities (INR words/units converter, Rule of 72/114/144, real return check), Compare (SIP vs. Home Loan Prepayment), local Vault for saved scenarios, and a searchable 30+ Formulas directory
+- **Interactive Wealth & Loan Charts**: Added scrubbable SIP/Step-Up compounding curves, Home Loan `+1 Extra EMI / yr` prepayment simulator with yearly principal-vs-interest bars, and FY26 vs. Old Income Tax regime comparison
+- **Adaptive Tablet & Foldable Layout**: Added side-by-side list-detail view on wider screens while keeping single-pane navigation on phones
+
+### Changed
+- **Complete UI Redesign**: Replaced the dark neon/glassmorphism interface with the clean, high-contrast Expressive Aurora design and morphing category orbs
+- **App Icon**: Updated launcher, monochrome, and store icons to the Aurora Rupee + Growth Sparkline design
+- **Calculator Discovery**: Updated Home, Search, and Tools Lab labels to `30+` calculators with a dedicated Offline privacy dialog
+- **Home Grid**: Streamlined calculator cards with clean Heart-only favorite toggles and category-matched accents
+
+### Technical
+- Migrated navigation to Jetpack Navigation 3 (`NavDisplay` and `CalcNavKey`) with predictive back gesture support
+- Added pure-Kotlin `AppContainer` dependency injection along with `ThemeRepository` and `UserDataRepository` offline SharedPreferences persistence
+- Built custom Jetpack Compose `Canvas` and `PathMeasure` chart components with zero external charting libraries
+- Added end-to-end Compose + Espresso instrumentation tests (`CalcHubEspressoAndComposeTest`), Robolectric JVM UI tests (`CalcHubRobolectricUiTest`), and CI workflow integration (`unit-test.yml`, `instrumentation-test.yml`, `release.yml`)
+
+---
+
 ## [2.1.0] - 2025-12-08
 
 ### Open Source

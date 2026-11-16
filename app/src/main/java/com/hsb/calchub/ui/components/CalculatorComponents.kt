@@ -1,7 +1,7 @@
 package com.hsb.calchub.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,49 +12,87 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.TrendingUp
-import androidx.compose.material.icons.outlined.AccountBalanceWallet
-import androidx.compose.material.icons.outlined.AttachMoney
+import androidx.compose.material.icons.rounded.BookmarkAdd
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.hsb.calchub.ui.theme.NeonGreen
-import com.hsb.calchub.ui.theme.NeonPink
-import com.hsb.calchub.ui.theme.NeonSurface
-import com.hsb.calchub.ui.theme.NeonText
+import com.hsb.calchub.ui.theme.CalcHubSkin
+import com.hsb.calchub.ui.theme.LocalCalcHubTokens
 import java.text.NumberFormat
 import java.util.Locale
+import kotlin.math.abs
+import kotlin.math.roundToLong
+
+private fun formatInputNumber(value: Double): String {
+    if (!value.isFinite()) return "0"
+    val rounded = value.roundToLong().toDouble()
+    return if (abs(value - rounded) < 0.005) {
+        rounded.toLong().toString()
+    } else {
+        String.format(Locale.US, "%.2f", value).trimEnd('0').trimEnd('.')
+    }
+}
+
+private fun formatBoundLabel(value: Double, symbol: String): String {
+    val compact = formatCompactNumber(value)
+    return when {
+        symbol == "₹" -> "₹$compact"
+        symbol.isEmpty() -> compact
+        else -> "$compact$symbol"
+    }
+}
+
+private fun formatCompactNumber(value: Double): String {
+    val absVal = abs(value)
+    return when {
+        absVal >= 1_00_00_000 -> String.format(Locale.US, "%.1fCr", value / 1_00_00_000).replace(".0", "")
+        absVal >= 1_00_000 -> String.format(Locale.US, "%.1fL", value / 1_00_000).replace(".0", "")
+        absVal >= 1_000 -> String.format(Locale.US, "%.1fK", value / 1_000).replace(".0", "")
+        else -> formatInputNumber(value)
+    }
+}
 
 /**
- * A reusable input field for calculators with label, numeric validation, and a slider.
- *
- * @param label The label text to display above the input.
- * @param value The current value of the input.
- * @param onValueChange Callback triggered when the value changes.
- * @param range The valid range for the input value (used for the slider).
- * @param symbol The currency or unit symbol to display (e.g., "₹", "%").
- * @param modifier Modifier for styling the component.
+ * Tactile calculator parameter control with:
+ * - Decimal-safe manual text entry (preserves intermediate states like "12." while typing)
+ * - Focus-loss range clamping and explicit validation helper
+ * - Subtle haptic feedback on slider steps
+ * - Tabular numerals and semantic labels across all themes
  */
 @Composable
 fun CalculatorInput(
@@ -65,214 +103,392 @@ fun CalculatorInput(
     symbol: String,
     modifier: Modifier = Modifier
 ) {
-    // We keep the internal state for the text field to allow free typing
-    var textValue by remember(value) { mutableStateOf(value.toInt().toString()) }
+    val tokens = LocalCalcHubTokens.current
+    val focusManager = LocalFocusManager.current
+    val haptic = LocalHapticFeedback.current
 
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp)
-    ) {
-        // Label
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = NeonText.copy(alpha = 0.7f),
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
+    var textValue by remember { mutableStateOf(formatInputNumber(value)) }
+    var isFocused by remember { mutableStateOf(false) }
+    var lastHapticBucket by remember { mutableStateOf(formatInputNumber(value)) }
 
-        // NeonInput-styled TextField
-        BasicTextField(
-            value = textValue,
-            onValueChange = { newText ->
-                textValue = newText
-                newText.toDoubleOrNull()?.let { newValue ->
-                    if (newValue in range) {
-                        onValueChange(newValue)
-                    }
-                }
-            },
-            textStyle = TextStyle(
-                color = NeonText,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Medium
-            ),
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Number,
-                imeAction = ImeAction.Done
-            ),
-            cursorBrush = SolidColor(NeonGreen),
-            decorationBox = { innerTextField ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(NeonSurface, RoundedCornerShape(12.dp))
-                        .border(1.dp, NeonGreen.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
-                        .padding(16.dp)
+    LaunchedEffect(value) {
+        if (!isFocused) {
+            textValue = formatInputNumber(value)
+        }
+    }
+
+    val parsedWhileEditing = textValue.toDoubleOrNull()
+    val isOutOfRange = isFocused && parsedWhileEditing != null && parsedWhileEditing !in range
+    val isInvalidSyntax = isFocused && textValue.isNotEmpty() && parsedWhileEditing == null
+
+    val inputBoxShape = RoundedCornerShape(if (tokens.skin == CalcHubSkin.MATRIX) 8.dp else 12.dp)
+    val boxBorderColor = when {
+        isOutOfRange || isInvalidSyntax -> tokens.lossInk
+        isFocused -> tokens.accentPrimary
+        else -> tokens.cardBorder
+    }
+
+    Column(modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
+                    color = tokens.inkPrimary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = "${formatBoundLabel(range.start, symbol)} – ${formatBoundLabel(range.endInclusive, symbol)}",
+                    style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"),
+                    color = tokens.inkMuted
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Surface(
+                shape = inputBoxShape,
+                color = tokens.surfaceLow,
+                border = BorderStroke(1.dp, boxBorderColor)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(modifier = Modifier.weight(1f)) {
-                            if (textValue.isEmpty()) {
-                                Text(
-                                    text = "0",
-                                    color = NeonText.copy(alpha = 0.3f),
-                                    fontSize = 18.sp
-                                )
-                            }
-                            innerTextField()
-                        }
-                        if (symbol.isNotEmpty()) {
-                            Text(
-                                text = symbol,
-                                color = NeonGreen,
-                                fontSize = 18.sp,
+                    if (symbol == "₹") {
+                        Text(
+                            text = "₹",
+                            style = MaterialTheme.typography.titleSmall.copy(
                                 fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(start = 8.dp)
-                            )
-                        }
+                                fontFeatureSettings = "tnum"
+                            ),
+                            color = tokens.accentPrimary,
+                            modifier = Modifier.padding(end = 4.dp)
+                        )
+                    }
+                    BasicTextField(
+                        value = textValue,
+                        onValueChange = { next ->
+                            val sanitized = next.filter { it.isDigit() || it == '.' }
+                            if (sanitized.count { it == '.' } <= 1) {
+                                textValue = sanitized
+                                val parsed = sanitized.toDoubleOrNull()
+                                if (parsed != null && parsed in range) {
+                                    onValueChange(parsed)
+                                }
+                            }
+                        },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Decimal,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = { focusManager.clearFocus() }
+                        ),
+                        textStyle = MaterialTheme.typography.titleSmall.copy(
+                            color = tokens.inkPrimary,
+                            fontWeight = FontWeight.Bold,
+                            fontFeatureSettings = "tnum",
+                            textAlign = TextAlign.End
+                        ),
+                        cursorBrush = SolidColor(tokens.accentPrimary),
+                        modifier = Modifier
+                            .widthIn(min = 52.dp, max = 104.dp)
+                            .semantics {
+                                contentDescription = "$label value input"
+                            }
+                            .onFocusChanged { focusState ->
+                                val nowFocused = focusState.isFocused
+                                if (isFocused && !nowFocused) {
+                                    val parsed = textValue.toDoubleOrNull()
+                                    val finalVal = (parsed ?: value).coerceIn(range.start, range.endInclusive)
+                                    onValueChange(finalVal)
+                                    textValue = formatInputNumber(finalVal)
+                                }
+                                isFocused = nowFocused
+                            }
+                    )
+                    if (symbol != "₹" && symbol.isNotEmpty()) {
+                        Text(
+                            text = symbol,
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                fontWeight = FontWeight.SemiBold,
+                                fontFeatureSettings = "tnum"
+                            ),
+                            color = tokens.accentPrimary,
+                            modifier = Modifier.padding(start = 4.dp)
+                        )
                     }
                 }
             }
-        )
+        }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        if (isOutOfRange) {
+            Text(
+                text = "Will adjust to range ${formatInputNumber(range.start)}–${formatInputNumber(range.endInclusive)}",
+                style = MaterialTheme.typography.labelSmall,
+                color = tokens.lossInk,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+        }
 
-        // Custom Slider
+        Spacer(modifier = Modifier.height(6.dp))
+
+        val sliderVal = value.toFloat().coerceIn(range.start.toFloat(), range.endInclusive.toFloat())
         Slider(
-            value = value.toFloat(),
-            onValueChange = {
-                onValueChange(it.toDouble())
-                textValue = it.toInt().toString()
+            value = sliderVal,
+            onValueChange = { raw ->
+                val rawDouble = raw.toDouble().coerceIn(range.start, range.endInclusive)
+                val formatted = formatInputNumber(rawDouble)
+                if (formatted != lastHapticBucket) {
+                    lastHapticBucket = formatted
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                }
+                textValue = formatted
+                onValueChange(rawDouble)
             },
             valueRange = range.start.toFloat()..range.endInclusive.toFloat(),
-            modifier = Modifier.fillMaxWidth(),
             colors = SliderDefaults.colors(
-                thumbColor = NeonGreen,
-                activeTrackColor = NeonPink,
-                inactiveTrackColor = NeonSurface,
-                activeTickColor = NeonPink,
-                inactiveTickColor = NeonSurface
-            )
+                thumbColor = tokens.accentPrimary,
+                activeTrackColor = tokens.accentPrimary,
+                inactiveTrackColor = tokens.trackBg
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .semantics {
+                    contentDescription = "$label slider"
+                }
         )
     }
 }
 
 /**
- * A card displaying the summary of calculator results.
- * Shows Invested Amount, Estimated Returns, and Total Value.
- *
- * @param investedAmount The total amount invested.
- * @param estimatedReturns The estimated returns generated.
- * @param totalValue The final maturity value.
+ * Top-ready hero summary verdict card used by calculators across the app.
+ * Features TalkBack live-region announcements, compact wealth multiple badge, and theme-adaptive hero display.
  */
 @Composable
 fun ResultCard(
     investedAmount: Double,
     estimatedReturns: Double,
-    totalValue: Double
+    totalValue: Double,
+    primaryLabel: String = "Total Value",
+    investedLabel: String = "Invested",
+    returnsLabel: String = "Est. Returns",
+    onSaveScenario: (() -> Unit)? = null,
+    modifier: Modifier = Modifier
 ) {
-    val currencyFormat = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("en-IN"))
+    val tokens = LocalCalcHubTokens.current
+    val currencyFormat = remember {
+        NumberFormat.getCurrencyInstance(Locale.Builder().setLanguage("en").setRegion("IN").build()).apply {
+            maximumFractionDigits = 0
+        }
+    }
+
+    val safeInvested = if (investedAmount.isFinite()) investedAmount else 0.0
+    val safeReturns = if (estimatedReturns.isFinite()) estimatedReturns else 0.0
+    val safeTotal = if (totalValue.isFinite()) totalValue else 0.0
+
+    val totalText = currencyFormat.format(safeTotal)
+    val compactBadge = formatCompactINR(safeTotal, currencyFormat)
+    val multiplier = if (safeInvested > 0.0 && safeTotal > 0.0) safeTotal / safeInvested else null
 
     NeonCard(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 24.dp),
-        borderColor = NeonGreen.copy(alpha = 0.5f)
+            .semantics {
+                liveRegion = LiveRegionMode.Polite
+                contentDescription = "$primaryLabel $totalText. $investedLabel ${currencyFormat.format(safeInvested)}. $returnsLabel ${currencyFormat.format(safeReturns)}"
+            },
+        useGradientBorder = true
     ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            // Invested Row
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Outlined.AttachMoney, // Using AttachMoney as generic currency/investment icon
-                        contentDescription = null,
-                        tint = NeonPink,
-                        modifier = Modifier.size(24.dp).background(NeonPink.copy(alpha = 0.1f), RoundedCornerShape(50)).padding(4.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Invested",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = NeonText.copy(alpha = 0.8f)
-                    )
-                }
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .clip(CircleShape)
+                        .background(tokens.accentPrimary)
+                )
                 Text(
-                    text = currencyFormat.format(investedAmount),
-                    style = MaterialTheme.typography.titleLarge,
-                    color = NeonPink,
-                    fontWeight = FontWeight.Bold
+                    text = primaryLabel.uppercase(),
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                    color = tokens.accentPrimary
                 )
             }
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            HorizontalDivider(color = NeonGreen.copy(alpha = 0.1f))
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            // Returns Row
+
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Outlined.TrendingUp,
-                        contentDescription = null,
-                        tint = NeonGreen,
-                        modifier = Modifier.size(24.dp).background(NeonGreen.copy(alpha = 0.1f), RoundedCornerShape(50)).padding(4.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
+                if (multiplier != null && multiplier >= 1.05) {
+                    Surface(
+                        shape = RoundedCornerShape(999.dp),
+                        color = tokens.gainBg,
+                        border = BorderStroke(1.dp, tokens.gainInk.copy(alpha = 0.35f))
+                    ) {
+                        Text(
+                            text = String.format(Locale.US, "%.2fx", multiplier),
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                fontFeatureSettings = "tnum"
+                            ),
+                            color = tokens.gainInk,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                        )
+                    }
+                }
+                if (onSaveScenario != null) {
+                    Surface(
+                        shape = RoundedCornerShape(999.dp),
+                        color = tokens.surfaceLow,
+                        border = BorderStroke(1.dp, tokens.cardBorder),
+                        onClick = onSaveScenario
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.BookmarkAdd,
+                                contentDescription = "Save scenario to Vault",
+                                tint = tokens.accentPrimary,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Text(
+                                text = "Save",
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+                                color = tokens.inkPrimary
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.Bottom,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            OdometerText(
+                text = if (tokens.skin == CalcHubSkin.MATRIX) compactBadge else totalText,
+                style = MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.Bold),
+                color = tokens.inkPrimary,
+                highlightLedger = true,
+                useDotMatrixInMatrixSkin = true,
+                modifier = Modifier.weight(1f)
+            )
+            if (tokens.skin == CalcHubSkin.MATRIX) {
+                Text(
+                    text = totalText,
+                    style = MaterialTheme.typography.labelMedium.copy(fontFeatureSettings = "tnum"),
+                    color = tokens.inkSecondary
+                )
+            } else {
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = tokens.surfaceContainer
+                ) {
                     Text(
-                        text = "Returns",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = NeonText.copy(alpha = 0.8f)
+                        text = compactBadge,
+                        style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"),
+                        color = tokens.inkSecondary,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                     )
                 }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(14.dp))
+        HorizontalDivider(color = tokens.cardBorder)
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .clip(CircleShape)
+                            .background(tokens.chartStart)
+                    )
+                    Text(
+                        text = investedLabel,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = tokens.inkSecondary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = currencyFormat.format(estimatedReturns),
-                    style = MaterialTheme.typography.titleLarge,
-                    color = NeonGreen,
-                    fontWeight = FontWeight.Bold
+                    text = currencyFormat.format(safeInvested),
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        fontFeatureSettings = "tnum"
+                    ),
+                    color = tokens.inkPrimary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            HorizontalDivider(color = NeonGreen.copy(alpha = 0.1f))
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            // Total Row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Column(
+                modifier = Modifier.weight(1f),
+                horizontalAlignment = Alignment.End
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Outlined.AccountBalanceWallet,
-                        contentDescription = null,
-                        tint = NeonText,
-                        modifier = Modifier.size(24.dp).background(NeonText.copy(alpha = 0.1f), RoundedCornerShape(50)).padding(4.dp)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .clip(CircleShape)
+                            .background(tokens.chartEnd)
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Total Value",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = NeonText
+                        text = returnsLabel,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = tokens.inkSecondary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = currencyFormat.format(totalValue),
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = NeonText,
-                    fontWeight = FontWeight.Bold
+                    text = currencyFormat.format(safeReturns),
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontFeatureSettings = "tnum"
+                    ),
+                    color = tokens.gainInk,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }
@@ -280,31 +496,39 @@ fun ResultCard(
 }
 
 /**
- * A single row within a result display, showing a label and a value.
- *
- * @param label The description of the value.
- * @param value The value to display.
- * @param isTotal True if this row represents the total (applies bold styling).
+ * Formatted key-value breakdown row used inside result summary cards.
  */
 @Composable
-fun ResultRow(label: String, value: String, isTotal: Boolean = false) {
+fun ResultRow(
+    label: String,
+    value: String,
+    isTotal: Boolean = false
+) {
+    val tokens = LocalCalcHubTokens.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(vertical = 3.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = label,
-            style = if (isTotal) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodyLarge,
-            color = if (isTotal) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+            style = if (isTotal) MaterialTheme.typography.titleSmall else MaterialTheme.typography.bodyMedium,
+            color = if (isTotal) tokens.inkPrimary else tokens.inkSecondary,
+            fontWeight = if (isTotal) FontWeight.Bold else FontWeight.Normal,
+            modifier = Modifier.weight(1f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
+        Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = value,
-            style = if (isTotal) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleMedium,
-            fontWeight = if (isTotal) FontWeight.Black else FontWeight.Bold,
-            color = if (isTotal) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+            style = (if (isTotal) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleSmall).copy(
+                fontWeight = if (isTotal) FontWeight.Bold else FontWeight.SemiBold,
+                fontFeatureSettings = "tnum"
+            ),
+            color = if (isTotal) tokens.accentPrimary else tokens.inkPrimary
         )
     }
 }
