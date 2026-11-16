@@ -112,7 +112,7 @@ jobs:
       - name: Commit & Push
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "ci: bump version to ${{ steps.bump.outputs.version_name }} ($((VERSION_CODE + 1))) [skip ci]"
+          commit_message: "ci: bump version to ${{ steps.bump.outputs.version_name }} (${{ steps.bump.outputs.version_code }}) [skip ci]"
           file_pattern: version.properties
 
 
@@ -122,8 +122,9 @@ jobs:
     permissions:
       actions: read
       contents: read
+      packages: read
       security-events: write
-    uses: ./.github/workflows/codeql-analysis.yml # Call reusable workflow
+    uses: ./.github/workflows/codeql.yml # Call reusable workflow
 
 
   test:

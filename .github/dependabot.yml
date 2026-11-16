@@ -4,3 +4,12 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    ignore:
+      # AGP / Gradle buildscript transitive dependencies submitted by Automatic Dependency Submission (not shipped in APK/AAB)
+      - dependency-name: "io.netty:*"
+      - dependency-name: "org.bouncycastle:*"
+      - dependency-name: "com.google.guava:guava"
+      - dependency-name: "org.apache.commons:commons-lang3"
+      - dependency-name: "org.apache.httpcomponents:httpclient"
+      - dependency-name: "org.bitbucket.b_c:jose4j"
+      - dependency-name: "org.jdom:jdom2"
