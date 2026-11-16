@@ -1,0 +1,36 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:pivotX="54"
+        android:pivotY="54"
+        android:scaleX="0.90"
+        android:scaleY="0.90">
+        <!-- Frosted housing outline -->
+        <path
+            android:fillColor="#00000000"
+            android:pathData="M38,20 H70 A18,18 0 0 1 88,38 V70 A18,18 0 0 1 70,88 H38 A18,18 0 0 1 20,70 V38 A18,18 0 0 1 38,20 Z"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="3.2" />
+
+        <!-- Rising compounding sparkline + arrowhead -->
+        <path
+            android:fillColor="#00000000"
+            android:pathData="M28,72 L44,65 L57,63 L77,39 M69,39 L77,39 L77,47"
+            android:strokeColor="#B3FFFFFF"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:strokeWidth="3.8" />
+
+        <!-- Geometric Rupee monogram -->
+        <path
+            android:fillColor="#00000000"
+            android:pathData="M35,31 H57 M35,40 H57 M45,31 C53,31 54,40 46,45.5 C41,48 37,48 35,48 L52,63.5"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:strokeWidth="5.0" />
+    </group>
+</vector>

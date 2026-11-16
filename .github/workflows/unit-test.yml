@@ -29,9 +29,9 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       
-      # Run unit tests and generate JaCoCo coverage report
-      - name: Run unit tests
-        run: ./gradlew jacocoTestReport --stacktrace
+      # Run unit + Robolectric Compose/Espresso tests, JaCoCo report, and compile-check androidTest
+      - name: Run unit tests and compile instrumentation tests
+        run: ./gradlew jacocoTestReport assembleDebugAndroidTest --stacktrace
 
 
       - name: Publish Test Report
