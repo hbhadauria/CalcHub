@@ -174,25 +174,22 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - name: Download Build Artifacts
-        uses: actions/download-artifact@v8
-        with:
-          name: release-artifacts
-          path: artifacts/
-
-      # Parse CHANGELOG.md to find sections for the current version
+      # Parse CHANGELOG.md to find sections for the current version (falling back to Unreleased)
       - name: Extract Release Notes from CHANGELOG
-
         id: extract_notes
         run: |
           VERSION="${{ needs.version-bump.outputs.new_version_name }}"
           
           # Extract content between version header and next version or separator
-          # Stop at next ## [ or --- line using flag-based awk
           NOTES=$(awk "/## \\[$VERSION\\]/{flag=1; next} /^## \\[/{flag=0} /^---$/{flag=0} flag" CHANGELOG.md)
           
-          # If no notes found, create basic release notes
-          if [ -z "$NOTES" ]; then
+          # Fall back to [Unreleased] if versioned header isn't in CHANGELOG.md yet
+          if [ -z "$(echo "$NOTES" | tr -d '[:space:]')" ]; then
+            NOTES=$(awk "/## \\[Unreleased\\]/{flag=1; next} /^## \\[/{flag=0} /^---$/{flag=0} flag" CHANGELOG.md)
+          fi
+
+          # If still empty, create basic release notes
+          if [ -z "$(echo "$NOTES" | tr -d '[:space:]')" ]; then
             NOTES="Release version $VERSION (Build ${{ needs.version-bump.outputs.new_version_code }})"
           fi
           
@@ -218,10 +215,20 @@ jobs:
           tag_name: v${{ needs.version-bump.outputs.new_version_name }}
           name: CalcHub v${{ needs.version-bump.outputs.new_version_name }} (Build ${{ needs.version-bump.outputs.new_version_code }})
           body_path: release_notes.md
-          files: |
-            artifacts/bundle/release/*.aab
-            artifacts/mapping/release/mapping.txt
           draft: false
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify GitHub Release Notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="v${{ needs.version-bump.outputs.new_version_name }}"
+          BODY=$(gh release view "$TAG" --json body --jq .body)
+          echo "Release body length: ${#BODY}"
+
+          if [ -z "$(echo "$BODY" | tr -d '[:space:]')" ] || echo "$BODY" | grep -q "^Release version "; then
+            echo "::error::Release notes fell back to empty or 1-line placeholder for $TAG"
+            exit 1
+          fi

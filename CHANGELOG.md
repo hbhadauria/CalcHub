@@ -4,6 +4,8 @@ All notable changes to CalcHub will be documented in this file.
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-11-17
+
 ### Added
 - **Multi-Theme System**: Choose between Aurora, Ledger Paper, and Dot Matrix themes with System, Light, and Dark modes
 - **Background Gradients**: Added 6 customizable background gradient options (By Screen, Aurora, Sunset, Emerald, Ocean, and Solid Off)
