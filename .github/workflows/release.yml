@@ -110,7 +110,7 @@ jobs:
 
       # Commit the updated version properties file back to the repo
       - name: Commit & Push
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: "ci: bump version to ${{ steps.bump.outputs.version_name }} (${{ steps.bump.outputs.version_code }}) [skip ci]"
           file_pattern: version.properties
@@ -145,12 +145,17 @@ jobs:
     needs: [test, instrumentation-test, version-bump]
     # Run build if version-bump succeeded AND (tests succeeded OR tests were skipped) AND (instrumentation succeeded OR skipped)
     if: ${{ always() && needs.version-bump.result == 'success' && (needs.test.result == 'success' || needs.test.result == 'skipped') && (needs.instrumentation-test.result == 'success' || needs.instrumentation-test.result == 'skipped') }}
+    permissions:
+      contents: read
     uses: ./.github/workflows/build-bundle.yml # Call reusable workflow
     secrets: inherit
 
 
   deploy:
     needs: build
+    if: ${{ always() && !cancelled() && needs.build.result == 'success' }}
+    permissions:
+      contents: read
     uses: ./.github/workflows/deploy-playstore.yml
     with:
       track: ${{ github.event.inputs.track }}
@@ -158,6 +163,7 @@ jobs:
 
   create-github-release:
     needs: [version-bump, build]
+    if: ${{ always() && !cancelled() && needs.version-bump.result == 'success' && needs.build.result == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -169,7 +175,7 @@ jobs:
           fetch-depth: 0
 
       - name: Download Build Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: release-artifacts
           path: artifacts/
