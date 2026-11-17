@@ -38,6 +38,11 @@ android {
             // Enables resource shrinking
             isShrinkResources = true
 
+            // Package native debug symbol tables in the AAB for Play Console crash symbolication
+            ndk {
+                debugSymbolLevel = "SYMBOL_TABLE"
+            }
+
             // Specifies the ProGuard rules files.
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
