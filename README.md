@@ -4,9 +4,9 @@
 [![Platform](https://img.shields.io/badge/Platform-Android-brightgreen.svg)](https://www.android.com)
 [![Unit Tests](https://github.com/hbhadauria/CalcHub/actions/workflows/unit-test.yml/badge.svg)](https://github.com/hbhadauria/CalcHub/actions/workflows/unit-test.yml)
 [![Build Bundle](https://github.com/hbhadauria/CalcHub/actions/workflows/build-bundle.yml/badge.svg)](https://github.com/hbhadauria/CalcHub/actions/workflows/build-bundle.yml)
-[![CodeQL](https://github.com/hbhadauria/CalcHub/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/hbhadauria/CalcHub/actions/workflows/codeql-analysis.yml)
+[![CodeQL](https://github.com/hbhadauria/CalcHub/actions/workflows/codeql.yml/badge.svg)](https://github.com/hbhadauria/CalcHub/actions/workflows/codeql.yml)
 [![codecov](https://codecov.io/gh/hbhadauria/CalcHub/branch/main/graph/badge.svg)](https://codecov.io/gh/hbhadauria/CalcHub)
-[![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)](https://github.com/hbhadauria/CalcHub)
+[![Version](https://img.shields.io/badge/version-3.0.0-blue.svg)](https://github.com/hbhadauria/CalcHub)
 
 CalcHub is a comprehensive financial calculator application for Android. It provides a wide range of calculators to help you with your financial planning.
 
