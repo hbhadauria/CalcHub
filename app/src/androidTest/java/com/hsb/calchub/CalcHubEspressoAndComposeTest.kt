@@ -33,7 +33,7 @@ class CalcHubEspressoAndComposeTest {
         composeRule.waitForIdle()
 
         composeRule.onNodeWithText("CalcHub").assertIsDisplayed()
-        composeRule.onNodeWithText("30+ Financial Calculators").assertIsDisplayed()
+        composeRule.onNodeWithText("40+ Financial Calculators").assertIsDisplayed()
         composeRule.onNodeWithText("Aurora", substring = true).assertDoesNotExist()
 
         composeRule.onNodeWithContentDescription("Offline privacy status").performClick()
@@ -106,21 +106,27 @@ class CalcHubEspressoAndComposeTest {
         composeRule.onNodeWithText("Home").performClick()
         composeRule.waitForIdle()
 
-        composeRule.onNodeWithContentDescription("Popular").assertDoesNotExist()
+        composeRule.onNodeWithContentDescription("Popular,", substring = true).assertIsDisplayed().performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Monthly wealth builder").assertIsDisplayed()
+        composeRule.onNodeWithText("Senior citizen 8.2%").assertDoesNotExist()
+        composeRule.onNodeWithContentDescription("Popular,", substring = true).performClick()
+        composeRule.waitForIdle()
 
-        composeRule.onNodeWithText("Search 30+ calculators (SIP, Tax, EMI...)").performTextInput("Car Loan")
+        composeRule.onNodeWithText("Search 40+ calculators (SIP, Tax, EMI...)").performTextInput("Car Loan")
         composeRule.waitForIdle()
 
         composeRule.onNodeWithText("Auto EMI & interest").performClick()
         composeRule.waitForIdle()
 
         composeRule.onNodeWithText("EMI Calculator").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Share calculation summary").assertIsDisplayed()
 
         Espresso.pressBack()
         composeRule.waitForIdle()
 
         composeRule.onNodeWithContentDescription("Clear search").performClick()
         composeRule.waitForIdle()
-        composeRule.onNodeWithText("30+ Financial Calculators").assertIsDisplayed()
+        composeRule.onNodeWithText("40+ Financial Calculators").assertIsDisplayed()
     }
 }

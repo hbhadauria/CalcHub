@@ -37,19 +37,26 @@ import androidx.compose.ui.unit.dp
 import com.hsb.calchub.ui.screens.MainScreen
 import com.hsb.calchub.ui.screens.apy.ApyCalculatorScreen
 import com.hsb.calchub.ui.screens.brokerage.BrokerageCalculatorScreen
+import com.hsb.calchub.ui.screens.buy_vs_rent.BuyVsRentCalculatorScreen
 import com.hsb.calchub.ui.screens.cagr.CagrCalculatorScreen
+import com.hsb.calchub.ui.screens.capital_gains.CapitalGainsCalculatorScreen
 import com.hsb.calchub.ui.screens.car_loan_emi.CarLoanEmiCalculatorScreen
 import com.hsb.calchub.ui.screens.compound_interest.CompoundInterestCalculatorScreen
+import com.hsb.calchub.ui.screens.credit_card_emi.CreditCardEmiCalculatorScreen
 import com.hsb.calchub.ui.screens.emi.EmiCalculatorScreen
 import com.hsb.calchub.ui.screens.epf.EpfCalculatorScreen
 import com.hsb.calchub.ui.screens.fd.FdCalculatorScreen
+import com.hsb.calchub.ui.screens.fire.FireCalculatorScreen
 import com.hsb.calchub.ui.screens.flat_vs_reducing.FlatVsReducingCalculatorScreen
+import com.hsb.calchub.ui.screens.freelance_tax.FreelanceTaxCalculatorScreen
+import com.hsb.calchub.ui.screens.goal_sip.GoalSipCalculatorScreen
 import com.hsb.calchub.ui.screens.gratuity.GratuityCalculatorScreen
 import com.hsb.calchub.ui.screens.gst.GstCalculatorScreen
 import com.hsb.calchub.ui.screens.home_loan_emi.HomeLoanEmiCalculatorScreen
 import com.hsb.calchub.ui.screens.hra.HraCalculatorScreen
 import com.hsb.calchub.ui.screens.income_tax.IncomeTaxCalculatorScreen
 import com.hsb.calchub.ui.screens.inflation.InflationCalculatorScreen
+import com.hsb.calchub.ui.screens.loan_prepayment.LoanPrepaymentCalculatorScreen
 import com.hsb.calchub.ui.screens.lumpsum.LumpsumCalculatorScreen
 import com.hsb.calchub.ui.screens.margin.MarginCalculatorScreen
 import com.hsb.calchub.ui.screens.mf_returns.MfReturnsCalculatorScreen
@@ -63,6 +70,7 @@ import com.hsb.calchub.ui.screens.salary.SalaryCalculatorScreen
 import com.hsb.calchub.ui.screens.scss.ScssCalculatorScreen
 import com.hsb.calchub.ui.screens.simple_interest.SimpleInterestCalculatorScreen
 import com.hsb.calchub.ui.screens.sip.SipCalculatorScreen
+import com.hsb.calchub.ui.screens.spend_vs_invest.SpendVsInvestCalculatorScreen
 import com.hsb.calchub.ui.screens.ssy.SsyCalculatorScreen
 import com.hsb.calchub.ui.screens.step_up_sip.StepUpSipCalculatorScreen
 import com.hsb.calchub.ui.screens.stock_average.StockAverageCalculatorScreen
@@ -307,7 +315,15 @@ private val CALCULATOR_SCREEN_MAP: Map<String, @Composable (() -> Unit) -> Unit>
     "margin" to { onBack -> MarginCalculatorScreen(onBack) },
     "flat_vs_reducing" to { onBack -> FlatVsReducingCalculatorScreen(onBack) },
     "home_loan_emi" to { onBack -> HomeLoanEmiCalculatorScreen(onBack) },
-    "car_loan_emi" to { onBack -> CarLoanEmiCalculatorScreen(onBack) }
+    "car_loan_emi" to { onBack -> CarLoanEmiCalculatorScreen(onBack) },
+    "capital_gains" to { onBack -> CapitalGainsCalculatorScreen(onBack) },
+    "goal_sip" to { onBack -> GoalSipCalculatorScreen(onBack) },
+    "loan_prepayment" to { onBack -> LoanPrepaymentCalculatorScreen(onBack) },
+    "credit_card_emi" to { onBack -> CreditCardEmiCalculatorScreen(onBack) },
+    "fire" to { onBack -> FireCalculatorScreen(onBack) },
+    "buy_vs_rent" to { onBack -> BuyVsRentCalculatorScreen(onBack) },
+    "spend_vs_invest" to { onBack -> SpendVsInvestCalculatorScreen(onBack) },
+    "freelance_tax" to { onBack -> FreelanceTaxCalculatorScreen(onBack) }
 )
 
 @Composable

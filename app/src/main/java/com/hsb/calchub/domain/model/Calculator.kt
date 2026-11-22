@@ -8,6 +8,7 @@ import androidx.compose.material.icons.automirrored.rounded.TrendingDown
 import androidx.compose.material.icons.automirrored.rounded.TrendingUp
 import androidx.compose.material.icons.rounded.AccountBalance
 import androidx.compose.material.icons.rounded.AccountBalanceWallet
+import androidx.compose.material.icons.rounded.Assessment
 import androidx.compose.material.icons.rounded.AutoGraph
 import androidx.compose.material.icons.rounded.Balance
 import androidx.compose.material.icons.rounded.BarChart
@@ -16,11 +17,14 @@ import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.Calculate
 import androidx.compose.material.icons.rounded.ContentCut
 import androidx.compose.material.icons.rounded.CreditCard
+import androidx.compose.material.icons.rounded.CreditScore
 import androidx.compose.material.icons.rounded.Description
 import androidx.compose.material.icons.rounded.DirectionsCar
 import androidx.compose.material.icons.rounded.Elderly
 import androidx.compose.material.icons.rounded.EmojiEvents
+import androidx.compose.material.icons.rounded.FastForward
 import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.Flag
 import androidx.compose.material.icons.rounded.Functions
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Key
@@ -38,6 +42,7 @@ import androidx.compose.material.icons.rounded.Shield
 import androidx.compose.material.icons.rounded.ShoppingBasket
 import androidx.compose.material.icons.rounded.SwapVert
 import androidx.compose.material.icons.rounded.Timeline
+import androidx.compose.material.icons.rounded.Whatshot
 import androidx.compose.material.icons.rounded.Work
 import androidx.compose.material.icons.rounded.WorkspacePremium
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -54,7 +59,7 @@ enum class CalculatorCategory {
 
 /**
  * Unified Calculator Registry entry driving Home discovery, Navigation 3 routing,
- * screen-scoped category accents, and Formulas Lab across all 34 calculators.
+ * screen-scoped category accents, and Formulas Lab across all 42 calculators.
  */
 data class Calculator(
     val name: String,
@@ -68,7 +73,7 @@ data class Calculator(
 )
 
 val allCalculators: List<Calculator> = listOf(
-    // Investment (11)
+    // Investment (12)
     Calculator(
         name = "SIP",
         route = "sip",
@@ -179,8 +184,28 @@ val allCalculators: List<Calculator> = listOf(
         sampleValue = "+14.8%",
         formula = "Total return & annualized CAGR"
     ),
+    Calculator(
+        name = "Goal SIP",
+        route = "goal_sip",
+        category = CalculatorCategory.INVESTMENT,
+        isPopular = true,
+        icon = Icons.Rounded.Flag,
+        subtitle = "Target corpus planner",
+        sampleValue = "₹20k/mo",
+        formula = "SIP = Goal / (((1+i)^n − 1)/i × (1+i))"
+    ),
+    Calculator(
+        name = "Spend vs. Invest",
+        route = "spend_vs_invest",
+        category = CalculatorCategory.INVESTMENT,
+        isPopular = true,
+        icon = Icons.Rounded.ShoppingBasket,
+        subtitle = "Daily spend opportunity cost",
+        sampleValue = "₹14.9 L",
+        formula = "Future SIP value of recurring monthly spend"
+    ),
 
-    // Loan (4)
+    // Loan (7)
     Calculator(
         name = "EMI",
         route = "emi",
@@ -221,8 +246,38 @@ val allCalculators: List<Calculator> = listOf(
         sampleValue = "Save ₹64k",
         formula = "True effective reducing interest rate"
     ),
+    Calculator(
+        name = "Loan Prepayment",
+        route = "loan_prepayment",
+        category = CalculatorCategory.LOAN,
+        isPopular = false,
+        icon = Icons.Rounded.FastForward,
+        subtitle = "Extra EMI & lump-sum savings",
+        sampleValue = "Save ₹8.4 L",
+        formula = "Prepay principal to cut tenure & interest"
+    ),
+    Calculator(
+        name = "Credit Card EMI",
+        route = "credit_card_emi",
+        category = CalculatorCategory.LOAN,
+        isPopular = false,
+        icon = Icons.Rounded.CreditScore,
+        subtitle = "Fixed vs 5% min-due trap",
+        sampleValue = "12 mo",
+        formula = "Monthly APR interest vs min-due payoff"
+    ),
+    Calculator(
+        name = "Buy vs. Rent",
+        route = "buy_vs_rent",
+        category = CalculatorCategory.LOAN,
+        isPopular = true,
+        icon = Icons.Rounded.Balance,
+        subtitle = "Home equity vs rent SIP",
+        sampleValue = "20-yr split",
+        formula = "Home equity vs Down payment + surplus SIP"
+    ),
 
-    // Tax (4)
+    // Tax (6)
     Calculator(
         name = "Income Tax",
         route = "income_tax",
@@ -263,8 +318,28 @@ val allCalculators: List<Calculator> = listOf(
         sampleValue = "10% Sec",
         formula = "TDS = Gross Payment × Rate %"
     ),
+    Calculator(
+        name = "Capital Gains",
+        route = "capital_gains",
+        category = CalculatorCategory.TAX,
+        isPopular = false,
+        icon = Icons.Rounded.Assessment,
+        subtitle = "FY26 LTCG & STCG tax",
+        sampleValue = "12.5% LTCG",
+        formula = "LTCG (₹1.25L exempt) / STCG + 4% cess"
+    ),
+    Calculator(
+        name = "Freelance Tax",
+        route = "freelance_tax",
+        category = CalculatorCategory.TAX,
+        isPopular = false,
+        icon = Icons.Rounded.Work,
+        subtitle = "Sec 44ADA & hourly rate",
+        sampleValue = "50% Profit",
+        formula = "Taxable = 50% Receipts (Sec 44ADA)"
+    ),
 
-    // Retirement (4)
+    // Retirement (5)
     Calculator(
         name = "NPS",
         route = "nps",
@@ -304,6 +379,16 @@ val allCalculators: List<Calculator> = listOf(
         subtitle = "Atal Pension Yojana",
         sampleValue = "₹5,000/mo",
         formula = "Guaranteed pension from age 60"
+    ),
+    Calculator(
+        name = "FIRE / Coast-FIRE",
+        route = "fire",
+        category = CalculatorCategory.RETIREMENT,
+        isPopular = true,
+        icon = Icons.Rounded.Whatshot,
+        subtitle = "Independence & Coast age",
+        sampleValue = "25× Exp",
+        formula = "FIRE = (12×Expense)/SWR; Coast = FIRE/(1+r)^t"
     ),
 
     // Trading (5)
@@ -363,7 +448,7 @@ val allCalculators: List<Calculator> = listOf(
         name = "Simple Interest",
         route = "simple_interest",
         category = CalculatorCategory.OTHER,
-        isPopular = true,
+        isPopular = false,
         icon = Icons.Rounded.Percent,
         subtitle = "Linear principal gain",
         sampleValue = "₹1.30 L",
@@ -383,7 +468,7 @@ val allCalculators: List<Calculator> = listOf(
         name = "Salary",
         route = "salary",
         category = CalculatorCategory.OTHER,
-        isPopular = false,
+        isPopular = true,
         icon = Icons.Rounded.AccountBalanceWallet,
         subtitle = "CTC to monthly in-hand",
         sampleValue = "₹1.14 L",

@@ -53,8 +53,21 @@ object IncomeTaxCalculator {
             return Triple(0.0, 0.0, 0.0)
         }
         val taxable = (annualIncome - NEW_REGIME_STD_DEDUCTION).coerceAtLeast(0.0)
+        val totalTax = calculateFy26NewRegimeBusiness(taxable)
+        return Triple(annualIncome, totalTax, (annualIncome - totalTax).coerceAtLeast(0.0))
+    }
+
+    /**
+     * Calculates FY 2025-26 New Tax Regime tax directly from taxable income without the salaried
+     * ₹75,000 standard deduction (used for non-salaried / Section 44ADA presumptive income).
+     */
+    fun calculateFy26NewRegimeBusiness(taxableIncome: Double): Double {
+        if (!taxableIncome.isFinite() || taxableIncome <= 0.0) {
+            return 0.0
+        }
+        val taxable = taxableIncome.coerceAtLeast(0.0)
         if (taxable <= NEW_REGIME_87A_LIMIT) {
-            return Triple(annualIncome, 0.0, annualIncome)
+            return 0.0
         }
 
         var slabTax = 0.0
@@ -79,7 +92,6 @@ object IncomeTaxCalculator {
 
         val marginalCap = (taxable - NEW_REGIME_87A_LIMIT).coerceAtLeast(0.0)
         val taxAfterRelief = if (taxable <= NEW_REGIME_RELIEF_CUTOFF) minOf(slabTax, marginalCap) else slabTax
-        val totalTax = taxAfterRelief * HEALTH_EDUCATION_CESS
-        return Triple(annualIncome, totalTax, (annualIncome - totalTax).coerceAtLeast(0.0))
+        return taxAfterRelief * HEALTH_EDUCATION_CESS
     }
 }

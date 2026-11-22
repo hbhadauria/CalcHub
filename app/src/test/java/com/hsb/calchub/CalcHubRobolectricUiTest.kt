@@ -59,7 +59,7 @@ class CalcHubRobolectricUiTest {
         composeRule.waitForIdle()
 
         composeRule.onNodeWithText("CalcHub").assertIsDisplayed()
-        composeRule.onNodeWithText("30+ Financial Calculators").assertIsDisplayed()
+        composeRule.onNodeWithText("40+ Financial Calculators").assertIsDisplayed()
         composeRule.onNodeWithText("Aurora", substring = true).assertDoesNotExist()
 
         composeRule.onNodeWithContentDescription("Offline privacy status").performClick()
@@ -84,13 +84,20 @@ class CalcHubRobolectricUiTest {
         composeRule.onNodeWithText("Vibrant colors with smooth modern cards").assertIsDisplayed()
         composeRule.onNodeWithText("Ledger Paper").assertIsDisplayed()
         composeRule.onNodeWithText("Dot Matrix").assertIsDisplayed()
+        composeRule.onNodeWithText("Minimal Black").assertIsDisplayed()
 
+        composeRule.onNodeWithText("Minimal Black").performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Background gradients apply to Aurora style.").assertIsDisplayed()
         composeRule.onNodeWithText("Ledger Paper").performClick()
         composeRule.waitForIdle()
         composeRule.onNodeWithText("Vibrant colors with smooth modern cards").performClick()
         composeRule.waitForIdle()
 
-        Espresso.pressBack()
+        composeRule.onNodeWithText("About CalcHub").performScrollTo().performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Rate App").assertIsDisplayed()
+        composeRule.onNodeWithText("Close").performClick()
         composeRule.waitForIdle()
     }
 
@@ -109,6 +116,9 @@ class CalcHubRobolectricUiTest {
         composeRule.waitForIdle()
 
         composeRule.onNodeWithText("SIP Calculator").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Share calculation summary").assertIsDisplayed()
+        composeRule.onNodeWithText("₹5K Starter").assertIsDisplayed().performClick()
+        composeRule.waitForIdle()
 
         Espresso.pressBack()
         composeRule.waitForIdle()
@@ -132,21 +142,27 @@ class CalcHubRobolectricUiTest {
         composeRule.onNodeWithText("Home").performClick()
         composeRule.waitForIdle()
 
-        composeRule.onNodeWithContentDescription("Popular").assertDoesNotExist()
+        composeRule.onNodeWithContentDescription("Popular,", substring = true).assertIsDisplayed().performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Monthly wealth builder").assertIsDisplayed()
+        composeRule.onNodeWithText("Senior citizen 8.2%").assertDoesNotExist()
+        composeRule.onNodeWithContentDescription("Popular,", substring = true).performClick()
+        composeRule.waitForIdle()
 
-        composeRule.onNodeWithText("Search 30+ calculators (SIP, Tax, EMI...)").performTextInput("Car Loan")
+        composeRule.onNodeWithText("Search 40+ calculators (SIP, Tax, EMI...)").performTextInput("Car Loan")
         composeRule.waitForIdle()
 
         composeRule.onNodeWithText("Auto EMI & interest").performClick()
         composeRule.waitForIdle()
 
         composeRule.onNodeWithText("EMI Calculator").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Share calculation summary").assertIsDisplayed()
 
         Espresso.pressBack()
         composeRule.waitForIdle()
 
         composeRule.onNodeWithContentDescription("Clear search").performClick()
         composeRule.waitForIdle()
-        composeRule.onNodeWithText("30+ Financial Calculators").assertIsDisplayed()
+        composeRule.onNodeWithText("40+ Financial Calculators").assertIsDisplayed()
     }
 }

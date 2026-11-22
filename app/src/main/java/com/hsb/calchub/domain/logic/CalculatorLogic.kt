@@ -2,16 +2,21 @@ package com.hsb.calchub.domain.logic
 
 import com.hsb.calchub.domain.logic.investment.EpfCalculator
 import com.hsb.calchub.domain.logic.investment.FdCalculator
+import com.hsb.calchub.domain.logic.investment.GoalSipCalculator
 import com.hsb.calchub.domain.logic.investment.LumpsumCalculator
 import com.hsb.calchub.domain.logic.investment.NscCalculator
 import com.hsb.calchub.domain.logic.investment.PpfCalculator
 import com.hsb.calchub.domain.logic.investment.RdCalculator
 import com.hsb.calchub.domain.logic.investment.SipCalculator
+import com.hsb.calchub.domain.logic.investment.SpendVsInvestCalculator
 import com.hsb.calchub.domain.logic.investment.SsyCalculator
 import com.hsb.calchub.domain.logic.investment.StepUpSipCalculator
 import com.hsb.calchub.domain.logic.investment.SwpCalculator
+import com.hsb.calchub.domain.logic.loan.BuyVsRentCalculator
+import com.hsb.calchub.domain.logic.loan.CreditCardCalculator
 import com.hsb.calchub.domain.logic.loan.EmiCalculator
 import com.hsb.calchub.domain.logic.loan.FlatVsReducingCalculator
+import com.hsb.calchub.domain.logic.loan.LoanPrepaymentCalculator
 import com.hsb.calchub.domain.logic.other.CompoundInterestCalculator
 import com.hsb.calchub.domain.logic.other.InflationCalculator
 import com.hsb.calchub.domain.logic.other.PostOfficeMisCalculator
@@ -19,9 +24,12 @@ import com.hsb.calchub.domain.logic.other.SalaryCalculator
 import com.hsb.calchub.domain.logic.other.ScssCalculator
 import com.hsb.calchub.domain.logic.other.SimpleInterestCalculator
 import com.hsb.calchub.domain.logic.retirement.ApyCalculator
+import com.hsb.calchub.domain.logic.retirement.FireCalculator
 import com.hsb.calchub.domain.logic.retirement.GratuityCalculator
 import com.hsb.calchub.domain.logic.retirement.NpsCalculator
 import com.hsb.calchub.domain.logic.retirement.RetirementCalculator
+import com.hsb.calchub.domain.logic.tax.CapitalGainsCalculator
+import com.hsb.calchub.domain.logic.tax.FreelanceTaxCalculator
 import com.hsb.calchub.domain.logic.tax.GstCalculator
 import com.hsb.calchub.domain.logic.tax.HraCalculator
 import com.hsb.calchub.domain.logic.tax.IncomeTaxCalculator
@@ -383,4 +391,129 @@ object CalculatorLogic {
      */
     fun calculateSCSS(investment: Double, interestRate: Double = 8.2) =
         ScssCalculator.calculate(investment, interestRate)
+
+    /**
+     * Calculates FY26 Short-Term and Long-Term Capital Gains Tax.
+     */
+    fun calculateCapitalGains(
+        purchaseValue: Double,
+        saleValue: Double,
+        holdingMonths: Int,
+        isEquity: Boolean = true
+    ) = CapitalGainsCalculator.calculate(purchaseValue, saleValue, holdingMonths, isEquity)
+
+    /**
+     * Calculates monthly SIP required to reach a target corpus (Goal-Based SIP).
+     */
+    fun calculateGoalSIP(
+        targetCorpus: Double,
+        expectedReturnRate: Double,
+        timePeriodYears: Double,
+        inflationRate: Double = 0.0
+    ) = GoalSipCalculator.calculate(targetCorpus, expectedReturnRate, timePeriodYears, inflationRate)
+
+    /**
+     * Calculates interest and tenure savings from monthly and lump-sum loan prepayments.
+     */
+    fun calculateLoanPrepayment(
+        loanAmount: Double,
+        interestRate: Double,
+        tenureYears: Double,
+        extraMonthlyPayment: Double = 0.0,
+        lumpSumPrepayment: Double = 0.0,
+        lumpSumAtMonth: Int = 12
+    ) = LoanPrepaymentCalculator.calculate(
+        loanAmount,
+        interestRate,
+        tenureYears,
+        extraMonthlyPayment,
+        lumpSumPrepayment,
+        lumpSumAtMonth
+    )
+
+    /**
+     * Compares fixed monthly credit card payoff against minimum-due payments.
+     */
+    fun calculateCreditCardPayoff(
+        balance: Double,
+        annualInterestRate: Double,
+        monthlyPayment: Double,
+        minDuePercent: Double = 5.0
+    ) = CreditCardCalculator.calculate(balance, annualInterestRate, monthlyPayment, minDuePercent)
+
+    /**
+     * Estimates monthly and annual take-home pay from Annual CTC using FY26 New Regime slabs.
+     */
+    fun calculateSalaryFromCtc(
+        annualCtc: Double,
+        variableBonusPct: Double = 0.0,
+        basicPctOfFixed: Double = 40.0,
+        pfMonthlyCap: Double = 1800.0,
+        monthlyProfTax: Double = 200.0
+    ) = SalaryCalculator.calculateFromCtc(annualCtc, variableBonusPct, basicPctOfFixed, pfMonthlyCap, monthlyProfTax)
+
+    /**
+     * Computes inflation-adjusted FIRE & Coast-FIRE timeline and corpus targets.
+     */
+    fun calculateFire(
+        currentAge: Int,
+        monthlyExpenses: Double,
+        currentCorpus: Double,
+        monthlySip: Double,
+        expectedReturnPct: Double,
+        inflationPct: Double,
+        safeWithdrawalRatePct: Double = 4.0,
+        targetRetirementAge: Int = 60
+    ) = FireCalculator.calculate(
+        currentAge,
+        monthlyExpenses,
+        currentCorpus,
+        monthlySip,
+        expectedReturnPct,
+        inflationPct,
+        safeWithdrawalRatePct,
+        targetRetirementAge
+    )
+
+    /**
+     * Compares buying a home with a loan versus renting and investing the surplus.
+     */
+    fun calculateBuyVsRent(
+        propertyPrice: Double,
+        downPaymentPct: Double,
+        loanRatePct: Double,
+        tenureYears: Int,
+        monthlyRent: Double,
+        rentEscalationPct: Double,
+        propertyAppreciationPct: Double,
+        sipReturnPct: Double
+    ) = BuyVsRentCalculator.calculate(
+        propertyPrice,
+        downPaymentPct,
+        loanRatePct,
+        tenureYears,
+        monthlyRent,
+        rentEscalationPct,
+        propertyAppreciationPct,
+        sipReturnPct
+    )
+
+    /**
+     * Computes the opportunity cost of recurring monthly spending vs. investing in a SIP.
+     */
+    fun calculateSpendVsInvest(
+        monthlySpend: Double,
+        expectedReturnPct: Double,
+        years: Double,
+        inflationPct: Double = 0.0
+    ) = SpendVsInvestCalculator.calculate(monthlySpend, expectedReturnPct, years, inflationPct)
+
+    /**
+     * Estimates Section 44ADA presumptive freelance income tax and post-tax hourly rate.
+     */
+    fun calculateFreelanceTax(
+        annualGrossReceipts: Double,
+        billableHoursPerWeek: Double = 30.0,
+        workingWeeksPerYear: Int = 48
+    ) = FreelanceTaxCalculator.calculate(annualGrossReceipts, billableHoursPerWeek, workingWeeksPerYear)
 }
