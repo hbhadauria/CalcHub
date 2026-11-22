@@ -30,9 +30,7 @@ fun SimpleInterestCalculatorScreen(onBackClick: () -> Unit) {
         estimatedReturns = results.second,
         totalValue = results.third,
         investedLabel = "Principal",
-        returnsLabel = "Interest",
-        donutInvestedLabel = "Principal",
-        donutReturnsLabel = "Interest"
+        returnsLabel = "Interest"
     ) {
         CalculatorInput("Principal Amount", principal, { principal = it }, 1000.0..10000000.0, "₹")
         CalculatorInput("Interest Rate", rate, { rate = it }, 1.0..30.0, "%")

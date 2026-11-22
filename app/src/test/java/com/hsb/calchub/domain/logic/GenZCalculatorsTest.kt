@@ -50,14 +50,16 @@ class GenZCalculatorsTest {
     @Test
     fun fireCalculator_computesFireAndCoastFireTargets() {
         val result = CalculatorLogic.calculateFire(
-            currentAge = 26,
-            monthlyExpenses = 50_000.0,
-            currentCorpus = 500_000.0,
-            monthlySip = 25_000.0,
-            expectedReturnPct = 12.0,
-            inflationPct = 6.0,
-            safeWithdrawalRatePct = 4.0,
-            targetRetirementAge = 60
+            FireCalculator.FireInput(
+                currentAge = 26,
+                monthlyExpenses = 50_000.0,
+                currentCorpus = 500_000.0,
+                monthlySip = 25_000.0,
+                expectedReturnPct = 12.0,
+                inflationPct = 6.0,
+                safeWithdrawalRatePct = 4.0,
+                targetRetirementAge = 60
+            )
         )
         assertEquals(15_000_000.0, result.fireNumber, 1.0)
         assertTrue(result.yearsToFire in 15..35)
@@ -67,23 +69,27 @@ class GenZCalculatorsTest {
         assertTrue(result.coastFireGap > 0.0)
 
         val coasted = FireCalculator.calculate(
-            currentAge = 28,
-            monthlyExpenses = 50_000.0,
-            currentCorpus = 5_000_000.0,
-            monthlySip = 0.0,
-            expectedReturnPct = 12.0,
-            inflationPct = 6.0
+            FireCalculator.FireInput(
+                currentAge = 28,
+                monthlyExpenses = 50_000.0,
+                currentCorpus = 5_000_000.0,
+                monthlySip = 0.0,
+                expectedReturnPct = 12.0,
+                inflationPct = 6.0
+            )
         )
         assertTrue(coasted.isCoastFireReached)
         assertEquals(0.0, coasted.coastFireGap, 0.01)
 
         val alreadyFire = FireCalculator.calculate(
-            currentAge = 32,
-            monthlyExpenses = 50_000.0,
-            currentCorpus = 16_000_000.0,
-            monthlySip = 0.0,
-            expectedReturnPct = 12.0,
-            inflationPct = 6.0
+            FireCalculator.FireInput(
+                currentAge = 32,
+                monthlyExpenses = 50_000.0,
+                currentCorpus = 16_000_000.0,
+                monthlySip = 0.0,
+                expectedReturnPct = 12.0,
+                inflationPct = 6.0
+            )
         )
         assertEquals(0, alreadyFire.yearsToFire)
         assertEquals(32, alreadyFire.fireAge)
@@ -91,37 +97,45 @@ class GenZCalculatorsTest {
 
     @Test
     fun fireCalculator_guardsInvalidInputs() {
-        val zeroExp = FireCalculator.calculate(25, 0.0, 100_000.0, 5_000.0, 12.0, 6.0)
+        val zeroExp = FireCalculator.calculate(
+            FireCalculator.FireInput(25, 0.0, 100_000.0, 5_000.0, 12.0, 6.0)
+        )
         assertEquals(0.0, zeroExp.fireNumber, 0.01)
-        val nanSwr = FireCalculator.calculate(25, 40_000.0, 100_000.0, 5_000.0, 12.0, 6.0, Double.NaN)
+        val nanSwr = FireCalculator.calculate(
+            FireCalculator.FireInput(25, 40_000.0, 100_000.0, 5_000.0, 12.0, 6.0, Double.NaN)
+        )
         assertEquals(0.0, nanSwr.coastFireNumber, 0.01)
     }
 
     @Test
     fun buyVsRent_comparesHomeEquityAgainstRentAndSip() {
         val rentFavored = CalculatorLogic.calculateBuyVsRent(
-            propertyPrice = 10_000_000.0,
-            downPaymentPct = 20.0,
-            loanRatePct = 9.0,
-            tenureYears = 20,
-            monthlyRent = 22_000.0,
-            rentEscalationPct = 5.0,
-            propertyAppreciationPct = 4.0,
-            sipReturnPct = 13.0
+            BuyVsRentCalculator.BuyVsRentInput(
+                propertyPrice = 10_000_000.0,
+                downPaymentPct = 20.0,
+                loanRatePct = 9.0,
+                tenureYears = 20,
+                monthlyRent = 22_000.0,
+                rentEscalationPct = 5.0,
+                propertyAppreciationPct = 4.0,
+                sipReturnPct = 13.0
+            )
         )
         assertTrue(rentFavored.monthlyEmi > 70_000.0)
         assertTrue(rentFavored.rentInvestNetWealth > rentFavored.buyNetWealth)
         assertFalse(rentFavored.isBuyingBetter)
 
         val buyFavored = BuyVsRentCalculator.calculate(
-            propertyPrice = 6_000_000.0,
-            downPaymentPct = 20.0,
-            loanRatePct = 8.0,
-            tenureYears = 20,
-            monthlyRent = 32_000.0,
-            rentEscalationPct = 7.0,
-            propertyAppreciationPct = 9.0,
-            sipReturnPct = 9.0
+            BuyVsRentCalculator.BuyVsRentInput(
+                propertyPrice = 6_000_000.0,
+                downPaymentPct = 20.0,
+                loanRatePct = 8.0,
+                tenureYears = 20,
+                monthlyRent = 32_000.0,
+                rentEscalationPct = 7.0,
+                propertyAppreciationPct = 9.0,
+                sipReturnPct = 9.0
+            )
         )
         assertTrue(buyFavored.buyNetWealth > buyFavored.rentInvestNetWealth)
         assertTrue(buyFavored.isBuyingBetter)
@@ -130,13 +144,19 @@ class GenZCalculatorsTest {
 
     @Test
     fun buyVsRent_guardsZeroRateAndInvalidInputs() {
-        val zeroRate = BuyVsRentCalculator.calculate(5_000_000.0, 100.0, 0.0, 10, 15_000.0, 0.0, 5.0, 10.0)
+        val zeroRate = BuyVsRentCalculator.calculate(
+            BuyVsRentCalculator.BuyVsRentInput(5_000_000.0, 100.0, 0.0, 10, 15_000.0, 0.0, 5.0, 10.0)
+        )
         assertEquals(0.0, zeroRate.monthlyEmi, 0.01)
         assertTrue(zeroRate.buyNetWealth > 0.0)
 
-        val invalid = BuyVsRentCalculator.calculate(-100.0, 20.0, 8.5, 20, 20_000.0, 5.0, 6.0, 12.0)
+        val invalid = BuyVsRentCalculator.calculate(
+            BuyVsRentCalculator.BuyVsRentInput(-100.0, 20.0, 8.5, 20, 20_000.0, 5.0, 6.0, 12.0)
+        )
         assertEquals(0.0, invalid.buyNetWealth, 0.01)
-        val nan = BuyVsRentCalculator.calculate(5_000_000.0, Double.NaN, 8.5, 20, 20_000.0, 5.0, 6.0, 12.0)
+        val nan = BuyVsRentCalculator.calculate(
+            BuyVsRentCalculator.BuyVsRentInput(5_000_000.0, Double.NaN, 8.5, 20, 20_000.0, 5.0, 6.0, 12.0)
+        )
         assertEquals(0.0, nan.rentInvestNetWealth, 0.01)
     }
 

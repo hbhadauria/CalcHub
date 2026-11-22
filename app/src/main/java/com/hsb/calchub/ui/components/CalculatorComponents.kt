@@ -47,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalFocusManager
@@ -115,11 +116,9 @@ fun CalculatorInput(
 ) {
     val tokens = LocalCalcHubTokens.current
     val focusManager = LocalFocusManager.current
-    val haptic = LocalHapticFeedback.current
 
     var textValue by remember { mutableStateOf(formatInputNumber(value)) }
     var isFocused by remember { mutableStateOf(false) }
-    var lastHapticBucket by remember { mutableStateOf(formatInputNumber(value)) }
 
     LaunchedEffect(value) {
         if (!isFocused) {
@@ -163,82 +162,20 @@ fun CalculatorInput(
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            Surface(
-                shape = inputBoxShape,
-                color = tokens.surfaceLow,
-                border = BorderStroke(1.dp, boxBorderColor)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
-                ) {
-                    if (symbol == "₹") {
-                        Text(
-                            text = "₹",
-                            style = MaterialTheme.typography.titleSmall.copy(
-                                fontWeight = FontWeight.Bold,
-                                fontFeatureSettings = "tnum"
-                            ),
-                            color = tokens.accentPrimary,
-                            modifier = Modifier.padding(end = 4.dp)
-                        )
-                    }
-                    BasicTextField(
-                        value = textValue,
-                        onValueChange = { next ->
-                            val sanitized = next.filter { it.isDigit() || it == '.' }
-                            if (sanitized.count { it == '.' } <= 1) {
-                                textValue = sanitized
-                                val parsed = sanitized.toDoubleOrNull()
-                                if (parsed != null && parsed in range) {
-                                    onValueChange(parsed)
-                                }
-                            }
-                        },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Decimal,
-                            imeAction = ImeAction.Done
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onDone = { focusManager.clearFocus() }
-                        ),
-                        textStyle = MaterialTheme.typography.titleSmall.copy(
-                            color = tokens.inkPrimary,
-                            fontWeight = FontWeight.Bold,
-                            fontFeatureSettings = "tnum",
-                            textAlign = TextAlign.End
-                        ),
-                        cursorBrush = SolidColor(tokens.accentPrimary),
-                        modifier = Modifier
-                            .widthIn(min = 52.dp, max = 104.dp)
-                            .semantics {
-                                contentDescription = "$label value input"
-                            }
-                            .onFocusChanged { focusState ->
-                                val nowFocused = focusState.isFocused
-                                if (isFocused && !nowFocused) {
-                                    val parsed = textValue.toDoubleOrNull()
-                                    val finalVal = (parsed ?: value).coerceIn(range.start, range.endInclusive)
-                                    onValueChange(finalVal)
-                                    textValue = formatInputNumber(finalVal)
-                                }
-                                isFocused = nowFocused
-                            }
-                    )
-                    if (symbol != "₹" && symbol.isNotEmpty()) {
-                        Text(
-                            text = symbol,
-                            style = MaterialTheme.typography.labelLarge.copy(
-                                fontWeight = FontWeight.SemiBold,
-                                fontFeatureSettings = "tnum"
-                            ),
-                            color = tokens.accentPrimary,
-                            modifier = Modifier.padding(start = 4.dp)
-                        )
-                    }
-                }
-            }
+            CalculatorInputTextBox(
+                label = label,
+                textValue = textValue,
+                value = value,
+                range = range,
+                symbol = symbol,
+                isFocused = isFocused,
+                inputBoxShape = inputBoxShape,
+                boxBorderColor = boxBorderColor,
+                onTextChange = { textValue = it },
+                onValueChange = onValueChange,
+                onFocusChange = { isFocused = it },
+                onDone = { focusManager.clearFocus() }
+            )
         }
 
         if (isOutOfRange) {
@@ -252,33 +189,147 @@ fun CalculatorInput(
 
         Spacer(modifier = Modifier.height(2.dp))
 
-        val sliderVal = value.toFloat().coerceIn(range.start.toFloat(), range.endInclusive.toFloat())
-        Slider(
-            value = sliderVal,
-            onValueChange = { raw ->
-                val rawDouble = raw.toDouble().coerceIn(range.start, range.endInclusive)
-                val formatted = formatInputNumber(rawDouble)
-                if (formatted != lastHapticBucket) {
-                    lastHapticBucket = formatted
-                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                }
+        CalculatorInputSlider(
+            label = label,
+            value = value,
+            range = range,
+            onSliderChange = { rawDouble, formatted ->
                 textValue = formatted
                 onValueChange(rawDouble)
-            },
-            valueRange = range.start.toFloat()..range.endInclusive.toFloat(),
-            colors = SliderDefaults.colors(
-                thumbColor = tokens.accentPrimary,
-                activeTrackColor = tokens.accentPrimary,
-                inactiveTrackColor = tokens.trackBg
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(36.dp)
-                .semantics {
-                    contentDescription = "$label slider"
-                }
+            }
         )
     }
+}
+
+@Composable
+private fun CalculatorInputTextBox(
+    label: String,
+    textValue: String,
+    value: Double,
+    range: ClosedFloatingPointRange<Double>,
+    symbol: String,
+    isFocused: Boolean,
+    inputBoxShape: RoundedCornerShape,
+    boxBorderColor: Color,
+    onTextChange: (String) -> Unit,
+    onValueChange: (Double) -> Unit,
+    onFocusChange: (Boolean) -> Unit,
+    onDone: () -> Unit
+) {
+    val tokens = LocalCalcHubTokens.current
+    Surface(
+        shape = inputBoxShape,
+        color = tokens.surfaceLow,
+        border = BorderStroke(1.dp, boxBorderColor)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+        ) {
+            if (symbol == "₹") {
+                Text(
+                    text = "₹",
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontFeatureSettings = "tnum"
+                    ),
+                    color = tokens.accentPrimary,
+                    modifier = Modifier.padding(end = 4.dp)
+                )
+            }
+            BasicTextField(
+                value = textValue,
+                onValueChange = { next ->
+                    val sanitized = next.filter { it.isDigit() || it == '.' }
+                    if (sanitized.count { it == '.' } <= 1) {
+                        onTextChange(sanitized)
+                        val parsed = sanitized.toDoubleOrNull()
+                        if (parsed != null && parsed in range) {
+                            onValueChange(parsed)
+                        }
+                    }
+                },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Decimal,
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = { onDone() }
+                ),
+                textStyle = MaterialTheme.typography.titleSmall.copy(
+                    color = tokens.inkPrimary,
+                    fontWeight = FontWeight.Bold,
+                    fontFeatureSettings = "tnum",
+                    textAlign = TextAlign.End
+                ),
+                cursorBrush = SolidColor(tokens.accentPrimary),
+                modifier = Modifier
+                    .widthIn(min = 52.dp, max = 104.dp)
+                    .semantics {
+                        contentDescription = "$label value input"
+                    }
+                    .onFocusChanged { focusState ->
+                        val nowFocused = focusState.isFocused
+                        if (isFocused && !nowFocused) {
+                            val parsed = textValue.toDoubleOrNull()
+                            val finalVal = (parsed ?: value).coerceIn(range.start, range.endInclusive)
+                            onValueChange(finalVal)
+                            onTextChange(formatInputNumber(finalVal))
+                        }
+                        onFocusChange(nowFocused)
+                    }
+            )
+            if (symbol != "₹" && symbol.isNotEmpty()) {
+                Text(
+                    text = symbol,
+                    style = MaterialTheme.typography.labelLarge.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        fontFeatureSettings = "tnum"
+                    ),
+                    color = tokens.accentPrimary,
+                    modifier = Modifier.padding(start = 4.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CalculatorInputSlider(
+    label: String,
+    value: Double,
+    range: ClosedFloatingPointRange<Double>,
+    onSliderChange: (Double, String) -> Unit
+) {
+    val tokens = LocalCalcHubTokens.current
+    val haptic = LocalHapticFeedback.current
+    var lastHapticBucket by remember { mutableStateOf(formatInputNumber(value)) }
+    val sliderVal = value.toFloat().coerceIn(range.start.toFloat(), range.endInclusive.toFloat())
+    Slider(
+        value = sliderVal,
+        onValueChange = { raw ->
+            val rawDouble = raw.toDouble().coerceIn(range.start, range.endInclusive)
+            val formatted = formatInputNumber(rawDouble)
+            if (formatted != lastHapticBucket) {
+                lastHapticBucket = formatted
+                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+            }
+            onSliderChange(rawDouble, formatted)
+        },
+        valueRange = range.start.toFloat()..range.endInclusive.toFloat(),
+        colors = SliderDefaults.colors(
+            thumbColor = tokens.accentPrimary,
+            activeTrackColor = tokens.accentPrimary,
+            inactiveTrackColor = tokens.trackBg
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(36.dp)
+            .semantics {
+                contentDescription = "$label slider"
+            }
+    )
 }
 
 /**
@@ -908,8 +959,8 @@ fun StandardInvestmentCalculatorLayout(
     primaryLabel: String = "Total Value",
     investedLabel: String = "Invested",
     returnsLabel: String = "Est. Returns",
-    donutInvestedLabel: String = "Invested",
-    donutReturnsLabel: String = "Returns",
+    donutInvestedLabel: String = investedLabel,
+    donutReturnsLabel: String = if (returnsLabel == "Est. Returns") "Returns" else returnsLabel,
     centerLabelText: String? = null,
     shareSummary: String? = null,
     inputsContent: @Composable ColumnScope.() -> Unit
@@ -943,5 +994,35 @@ fun StandardInvestmentCalculatorLayout(
             returnsLabel = donutReturnsLabel,
             centerLabelText = centerLabelText
         )
+    }
+}
+
+/**
+ * Shared result-first layout for custom-result calculators (Results NeonCard -> Inputs NeonCard -> optional footer).
+ */
+@Composable
+fun StandardResultsCalculatorLayout(
+    title: String,
+    calculatorId: String,
+    onBackClick: () -> Unit,
+    shareSummary: String? = null,
+    resultsContent: @Composable ColumnScope.() -> Unit,
+    inputsContent: @Composable ColumnScope.() -> Unit,
+    footerContent: (@Composable ColumnScope.() -> Unit)? = null
+) {
+    CalculatorScrollScaffold(
+        title = title,
+        onBackClick = onBackClick,
+        calculatorId = calculatorId,
+        shareSummary = shareSummary
+    ) {
+        NeonCard(modifier = Modifier.fillMaxWidth(), useGradientBorder = true, content = resultsContent)
+        NeonCard {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                content = inputsContent
+            )
+        }
+        footerContent?.invoke(this)
     }
 }

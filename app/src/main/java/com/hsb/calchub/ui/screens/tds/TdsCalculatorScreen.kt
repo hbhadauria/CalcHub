@@ -1,22 +1,16 @@
 package com.hsb.calchub.ui.screens.tds
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.hsb.calchub.domain.logic.CalculatorLogic
 import com.hsb.calchub.ui.components.CalculatorInput
-import com.hsb.calchub.ui.components.CalculatorScrollScaffold
 import com.hsb.calchub.ui.components.InvestedReturnsDonutCard
-import com.hsb.calchub.ui.components.NeonCard
 import com.hsb.calchub.ui.components.ResultRow
+import com.hsb.calchub.ui.components.StandardResultsCalculatorLayout
 import com.hsb.calchub.ui.components.rememberInrFormat
 
 /**
@@ -31,30 +25,27 @@ fun TdsCalculatorScreen(onBackClick: () -> Unit) {
     }
     val currencyFormat = rememberInrFormat(maxFractionDigits = 2)
 
-    CalculatorScrollScaffold(
+    StandardResultsCalculatorLayout(
         title = "TDS Calculator",
+        calculatorId = "tds",
         onBackClick = onBackClick,
-        calculatorId = "tds"
-    ) {
-        NeonCard(modifier = Modifier.fillMaxWidth(), useGradientBorder = true) {
+        resultsContent = {
             ResultRow("Gross Amount", currencyFormat.format(results.first))
             ResultRow("TDS Deducted", currencyFormat.format(results.second))
             ResultRow("Net Amount", currencyFormat.format(results.third), isTotal = true)
+        },
+        inputsContent = {
+            CalculatorInput("Gross Amount", amount, { amount = it }, 1000.0..10000000.0, "₹")
+            CalculatorInput("TDS Rate", tdsRate, { tdsRate = it }, 1.0..30.0, "%")
+        },
+        footerContent = {
+            InvestedReturnsDonutCard(
+                invested = results.third,
+                returns = results.second,
+                investedLabel = "Net Amount",
+                returnsLabel = "TDS",
+                useGainLossColors = true
+            )
         }
-
-        NeonCard {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                CalculatorInput("Gross Amount", amount, { amount = it }, 1000.0..10000000.0, "₹")
-                CalculatorInput("TDS Rate", tdsRate, { tdsRate = it }, 1.0..30.0, "%")
-            }
-        }
-
-        InvestedReturnsDonutCard(
-            invested = results.third,
-            returns = results.second,
-            investedLabel = "Net Amount",
-            returnsLabel = "TDS",
-            useGainLossColors = true
-        )
-    }
+    )
 }

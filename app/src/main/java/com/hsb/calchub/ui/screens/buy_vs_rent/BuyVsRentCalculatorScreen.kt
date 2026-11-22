@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.hsb.calchub.domain.logic.CalculatorLogic
+import com.hsb.calchub.domain.logic.loan.BuyVsRentCalculator
 import com.hsb.calchub.ui.components.CalculatorInput
 import com.hsb.calchub.ui.components.CalculatorScrollScaffold
 import com.hsb.calchub.ui.components.FinanceTermTooltip
@@ -55,14 +56,16 @@ fun BuyVsRentCalculatorScreen(onBackClick: () -> Unit) {
         sipReturnPct
     ) {
         CalculatorLogic.calculateBuyVsRent(
-            propertyPrice = propertyPrice,
-            downPaymentPct = downPaymentPct,
-            loanRatePct = loanRatePct,
-            tenureYears = tenureYears.roundToInt(),
-            monthlyRent = monthlyRent,
-            rentEscalationPct = rentEscalationPct,
-            propertyAppreciationPct = propertyAppreciationPct,
-            sipReturnPct = sipReturnPct
+            BuyVsRentCalculator.BuyVsRentInput(
+                propertyPrice = propertyPrice,
+                downPaymentPct = downPaymentPct,
+                loanRatePct = loanRatePct,
+                tenureYears = tenureYears.roundToInt(),
+                monthlyRent = monthlyRent,
+                rentEscalationPct = rentEscalationPct,
+                propertyAppreciationPct = propertyAppreciationPct,
+                sipReturnPct = sipReturnPct
+            )
         )
     }
 

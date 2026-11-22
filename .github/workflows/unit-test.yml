@@ -43,6 +43,7 @@ jobs:
         if: always()
         with:
           files: '**/build/test-results/test*/*.xml'
+          comment_mode: off
 
 
       - name: Publish Coverage Summary

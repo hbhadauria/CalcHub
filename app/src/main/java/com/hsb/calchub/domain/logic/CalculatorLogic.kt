@@ -455,48 +455,12 @@ object CalculatorLogic {
     /**
      * Computes inflation-adjusted FIRE & Coast-FIRE timeline and corpus targets.
      */
-    fun calculateFire(
-        currentAge: Int,
-        monthlyExpenses: Double,
-        currentCorpus: Double,
-        monthlySip: Double,
-        expectedReturnPct: Double,
-        inflationPct: Double,
-        safeWithdrawalRatePct: Double = 4.0,
-        targetRetirementAge: Int = 60
-    ) = FireCalculator.calculate(
-        currentAge,
-        monthlyExpenses,
-        currentCorpus,
-        monthlySip,
-        expectedReturnPct,
-        inflationPct,
-        safeWithdrawalRatePct,
-        targetRetirementAge
-    )
+    fun calculateFire(input: FireCalculator.FireInput) = FireCalculator.calculate(input)
 
     /**
      * Compares buying a home with a loan versus renting and investing the surplus.
      */
-    fun calculateBuyVsRent(
-        propertyPrice: Double,
-        downPaymentPct: Double,
-        loanRatePct: Double,
-        tenureYears: Int,
-        monthlyRent: Double,
-        rentEscalationPct: Double,
-        propertyAppreciationPct: Double,
-        sipReturnPct: Double
-    ) = BuyVsRentCalculator.calculate(
-        propertyPrice,
-        downPaymentPct,
-        loanRatePct,
-        tenureYears,
-        monthlyRent,
-        rentEscalationPct,
-        propertyAppreciationPct,
-        sipReturnPct
-    )
+    fun calculateBuyVsRent(input: BuyVsRentCalculator.BuyVsRentInput) = BuyVsRentCalculator.calculate(input)
 
     /**
      * Computes the opportunity cost of recurring monthly spending vs. investing in a SIP.

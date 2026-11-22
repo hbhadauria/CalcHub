@@ -1,22 +1,16 @@
 package com.hsb.calchub.ui.screens.inflation
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.hsb.calchub.domain.logic.CalculatorLogic
 import com.hsb.calchub.ui.components.CalculatorInput
-import com.hsb.calchub.ui.components.CalculatorScrollScaffold
 import com.hsb.calchub.ui.components.InvestedReturnsDonutCard
-import com.hsb.calchub.ui.components.NeonCard
 import com.hsb.calchub.ui.components.ResultRow
+import com.hsb.calchub.ui.components.StandardResultsCalculatorLayout
 import com.hsb.calchub.ui.components.rememberInrFormat
 
 /**
@@ -32,30 +26,27 @@ fun InflationCalculatorScreen(onBackClick: () -> Unit) {
     }
     val currencyFormat = rememberInrFormat(maxFractionDigits = 2)
 
-    CalculatorScrollScaffold(
+    StandardResultsCalculatorLayout(
         title = "Inflation Calculator",
+        calculatorId = "inflation",
         onBackClick = onBackClick,
-        calculatorId = "inflation"
-    ) {
-        NeonCard(modifier = Modifier.fillMaxWidth(), useGradientBorder = true) {
+        resultsContent = {
             ResultRow("Current Price", currencyFormat.format(results.first))
             ResultRow("Price Increase", currencyFormat.format(results.second))
             ResultRow("Future Price", currencyFormat.format(results.third), isTotal = true)
+        },
+        inputsContent = {
+            CalculatorInput("Current Price", currentPrice, { currentPrice = it }, 100.0..10000000.0, "₹")
+            CalculatorInput("Inflation Rate", inflationRate, { inflationRate = it }, 1.0..20.0, "%")
+            CalculatorInput("Time Period", years, { years = it }, 1.0..50.0, "Yr")
+        },
+        footerContent = {
+            InvestedReturnsDonutCard(
+                invested = currentPrice,
+                returns = results.second,
+                investedLabel = "Current",
+                returnsLabel = "Increase"
+            )
         }
-
-        NeonCard {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                CalculatorInput("Current Price", currentPrice, { currentPrice = it }, 100.0..10000000.0, "₹")
-                CalculatorInput("Inflation Rate", inflationRate, { inflationRate = it }, 1.0..20.0, "%")
-                CalculatorInput("Time Period", years, { years = it }, 1.0..50.0, "Yr")
-            }
-        }
-
-        InvestedReturnsDonutCard(
-            invested = currentPrice,
-            returns = results.second,
-            investedLabel = "Current",
-            returnsLabel = "Increase"
-        )
-    }
+    )
 }

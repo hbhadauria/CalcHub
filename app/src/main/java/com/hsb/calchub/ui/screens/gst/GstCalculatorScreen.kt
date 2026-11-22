@@ -1,8 +1,5 @@
 package com.hsb.calchub.ui.screens.gst
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
@@ -10,13 +7,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.hsb.calchub.domain.logic.CalculatorLogic
 import com.hsb.calchub.ui.components.CalculatorInput
-import com.hsb.calchub.ui.components.CalculatorScrollScaffold
-import com.hsb.calchub.ui.components.NeonCard
 import com.hsb.calchub.ui.components.ResultRow
+import com.hsb.calchub.ui.components.StandardResultsCalculatorLayout
 import com.hsb.calchub.ui.components.ThemedCheckboxRow
 import com.hsb.calchub.ui.components.rememberInrFormat
 
@@ -33,27 +27,23 @@ fun GstCalculatorScreen(onBackClick: () -> Unit) {
     }
     val currencyFormat = rememberInrFormat(maxFractionDigits = 2)
 
-    CalculatorScrollScaffold(
+    StandardResultsCalculatorLayout(
         title = "GST Calculator",
+        calculatorId = "gst",
         onBackClick = onBackClick,
-        calculatorId = "gst"
-    ) {
-        NeonCard(modifier = Modifier.fillMaxWidth(), useGradientBorder = true) {
+        resultsContent = {
             ResultRow("Base Amount", currencyFormat.format(results.first))
             ResultRow("GST Amount", currencyFormat.format(results.second))
             ResultRow("Total Amount", currencyFormat.format(results.third), isTotal = true)
+        },
+        inputsContent = {
+            CalculatorInput("Amount", amount, { amount = it }, 100.0..10000000.0, "₹")
+            CalculatorInput("GST Rate", gstRate, { gstRate = it }, 0.0..28.0, "%")
+            ThemedCheckboxRow(
+                label = "GST Inclusive",
+                checked = isInclusive,
+                onCheckedChange = { isInclusive = it }
+            )
         }
-
-        NeonCard {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                CalculatorInput("Amount", amount, { amount = it }, 100.0..10000000.0, "₹")
-                CalculatorInput("GST Rate", gstRate, { gstRate = it }, 0.0..28.0, "%")
-                ThemedCheckboxRow(
-                    label = "GST Inclusive",
-                    checked = isInclusive,
-                    onCheckedChange = { isInclusive = it }
-                )
-            }
-        }
-    }
+    )
 }

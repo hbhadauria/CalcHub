@@ -612,7 +612,7 @@ fun Modifier.calcHubScreenBackdrop(
  * Modal bottom sheet allowing instant customization of Design Skin, Polarity (Light/Dark/System),
  * and Screen Gradient mode (`By Screen` category-reactive or fixed preset / off).
  */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppearanceThemeSheet(
     preferences: ThemePreferences,
@@ -739,91 +739,10 @@ fun AppearanceThemeSheet(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            if (preferences.skin == CalcHubSkin.AURORA) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.Gradient,
-                            contentDescription = null,
-                            tint = tokens.accentPrimary,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Text(
-                            text = "BACKGROUND GRADIENT",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = tokens.inkSecondary
-                        )
-                    }
-                    Text(
-                        text = "Matches each calculator",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = tokens.accentPrimary
-                    )
-                }
-
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    GradientMode.entries.forEach { mode ->
-                        val isSelected = preferences.gradientMode == mode
-                        val previewColors = when (mode) {
-                            GradientMode.AUTO_BY_SCREEN -> listOf(tokens.chartStart, tokens.chartEnd)
-                            GradientMode.AURORA -> listOf(CategoryPalettes.Investment.gradStart, CategoryPalettes.Investment.gradEnd)
-                            GradientMode.SUNSET -> listOf(Color(0xFFEA580C), Color(0xFFE11D48))
-                            GradientMode.EMERALD -> listOf(Color(0xFF059669), Color(0xFF10B981))
-                            GradientMode.OCEAN -> listOf(CategoryPalettes.Tax.gradStart, CategoryPalettes.Tax.gradEnd)
-                            GradientMode.SOLID_OFF -> listOf(tokens.surfaceContainer, tokens.cardBorder)
-                        }
-                        Surface(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(14.dp))
-                                .clickable { onSelectGradientMode(mode) },
-                            shape = RoundedCornerShape(14.dp),
-                            color = if (isSelected) tokens.accentContainer else tokens.surfaceLow,
-                            border = BorderStroke(
-                                width = if (isSelected) 1.5.dp else 1.dp,
-                                color = if (isSelected) tokens.accentPrimary else tokens.cardBorder
-                            )
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(16.dp)
-                                        .clip(CircleShape)
-                                        .background(Brush.linearGradient(previewColors))
-                                        .border(1.dp, tokens.cardBorder, CircleShape)
-                                )
-                                Text(
-                                    text = mode.label,
-                                    style = MaterialTheme.typography.labelMedium.copy(
-                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
-                                    ),
-                                    color = if (isSelected) tokens.onAccentContainer else tokens.inkPrimary
-                                )
-                            }
-                        }
-                    }
-                }
-            } else {
-                Text(
-                    text = "Background gradients apply to Aurora style.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = tokens.inkMuted
-                )
-            }
+            GradientModeSection(
+                preferences = preferences,
+                onSelectGradientMode = onSelectGradientMode
+            )
 
             HorizontalDivider(color = tokens.cardBorder)
 
@@ -892,6 +811,101 @@ fun AppearanceThemeSheet(
                             color = tokens.inkSecondary
                         )
                     }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun GradientModeSection(
+    preferences: ThemePreferences,
+    onSelectGradientMode: (GradientMode) -> Unit
+) {
+    val tokens = LocalCalcHubTokens.current
+    if (preferences.skin != CalcHubSkin.AURORA) {
+        Text(
+            text = "Background gradients apply to Aurora style.",
+            style = MaterialTheme.typography.bodySmall,
+            color = tokens.inkMuted
+        )
+        return
+    }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.Gradient,
+                contentDescription = null,
+                tint = tokens.accentPrimary,
+                modifier = Modifier.size(16.dp)
+            )
+            Text(
+                text = "BACKGROUND GRADIENT",
+                style = MaterialTheme.typography.labelSmall,
+                color = tokens.inkSecondary
+            )
+        }
+        Text(
+            text = "Matches each calculator",
+            style = MaterialTheme.typography.labelSmall,
+            color = tokens.accentPrimary
+        )
+    }
+
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        GradientMode.entries.forEach { mode ->
+            val isSelected = preferences.gradientMode == mode
+            val previewColors = when (mode) {
+                GradientMode.AUTO_BY_SCREEN -> listOf(tokens.chartStart, tokens.chartEnd)
+                GradientMode.AURORA -> listOf(CategoryPalettes.Investment.gradStart, CategoryPalettes.Investment.gradEnd)
+                GradientMode.SUNSET -> listOf(Color(0xFFEA580C), Color(0xFFE11D48))
+                GradientMode.EMERALD -> listOf(Color(0xFF059669), Color(0xFF10B981))
+                GradientMode.OCEAN -> listOf(CategoryPalettes.Tax.gradStart, CategoryPalettes.Tax.gradEnd)
+                GradientMode.SOLID_OFF -> listOf(tokens.surfaceContainer, tokens.cardBorder)
+            }
+            Surface(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(14.dp))
+                    .clickable { onSelectGradientMode(mode) },
+                shape = RoundedCornerShape(14.dp),
+                color = if (isSelected) tokens.accentContainer else tokens.surfaceLow,
+                border = BorderStroke(
+                    width = if (isSelected) 1.5.dp else 1.dp,
+                    color = if (isSelected) tokens.accentPrimary else tokens.cardBorder
+                )
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(16.dp)
+                            .clip(CircleShape)
+                            .background(Brush.linearGradient(previewColors))
+                            .border(1.dp, tokens.cardBorder, CircleShape)
+                    )
+                    Text(
+                        text = mode.label,
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                        ),
+                        color = if (isSelected) tokens.onAccentContainer else tokens.inkPrimary
+                    )
                 }
             }
         }

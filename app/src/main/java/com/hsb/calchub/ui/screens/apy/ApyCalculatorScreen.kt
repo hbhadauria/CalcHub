@@ -1,21 +1,15 @@
 package com.hsb.calchub.ui.screens.apy
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.hsb.calchub.domain.logic.CalculatorLogic
 import com.hsb.calchub.ui.components.CalculatorInput
-import com.hsb.calchub.ui.components.CalculatorScrollScaffold
-import com.hsb.calchub.ui.components.NeonCard
 import com.hsb.calchub.ui.components.ResultRow
+import com.hsb.calchub.ui.components.StandardResultsCalculatorLayout
 import com.hsb.calchub.ui.components.rememberInrFormat
 
 /**
@@ -30,22 +24,18 @@ fun ApyCalculatorScreen(onBackClick: () -> Unit) {
     }
     val currencyFormat = rememberInrFormat(maxFractionDigits = 2)
 
-    CalculatorScrollScaffold(
+    StandardResultsCalculatorLayout(
         title = "APY Calculator",
+        calculatorId = "apy",
         onBackClick = onBackClick,
-        calculatorId = "apy"
-    ) {
-        NeonCard(modifier = Modifier.fillMaxWidth(), useGradientBorder = true) {
+        resultsContent = {
             ResultRow("Monthly Contribution", currencyFormat.format(results.first), isTotal = true)
             ResultRow("Total Contribution", currencyFormat.format(results.second))
             ResultRow("Monthly Pension at 60", currencyFormat.format(results.third))
+        },
+        inputsContent = {
+            CalculatorInput("Current Age", currentAge, { currentAge = it }, 18.0..40.0, "Yr")
+            CalculatorInput("Desired Pension", pensionAmount, { pensionAmount = it }, 1000.0..5000.0, "₹")
         }
-
-        NeonCard {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                CalculatorInput("Current Age", currentAge, { currentAge = it }, 18.0..40.0, "Yr")
-                CalculatorInput("Desired Pension", pensionAmount, { pensionAmount = it }, 1000.0..5000.0, "₹")
-            }
-        }
-    }
+    )
 }

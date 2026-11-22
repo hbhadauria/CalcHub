@@ -8,6 +8,20 @@ import kotlin.math.pow
  */
 object BuyVsRentCalculator {
     /**
+     * Input parameters comparing home ownership against renting and investing.
+     */
+    data class BuyVsRentInput(
+        val propertyPrice: Double,
+        val downPaymentPct: Double,
+        val loanRatePct: Double,
+        val tenureYears: Int,
+        val monthlyRent: Double,
+        val rentEscalationPct: Double,
+        val propertyAppreciationPct: Double,
+        val sipReturnPct: Double
+    )
+
+    /**
      * Net wealth comparison at the end of the home loan / rental horizon.
      */
     data class BuyVsRentResult(
@@ -23,16 +37,17 @@ object BuyVsRentCalculator {
     /**
      * Compares projected home equity (buy) against investing down payment + monthly EMI-vs-rent surplus (rent).
      */
-    fun calculate(
-        propertyPrice: Double,
-        downPaymentPct: Double,
-        loanRatePct: Double,
-        tenureYears: Int,
-        monthlyRent: Double,
-        rentEscalationPct: Double,
-        propertyAppreciationPct: Double,
-        sipReturnPct: Double
-    ): BuyVsRentResult {
+    fun calculate(input: BuyVsRentInput): BuyVsRentResult {
+        val (
+            propertyPrice,
+            downPaymentPct,
+            loanRatePct,
+            tenureYears,
+            monthlyRent,
+            rentEscalationPct,
+            propertyAppreciationPct,
+            sipReturnPct
+        ) = input
         if (!propertyPrice.isFinite() || !downPaymentPct.isFinite() || !loanRatePct.isFinite() ||
             !monthlyRent.isFinite() || !rentEscalationPct.isFinite() || !propertyAppreciationPct.isFinite() ||
             !sipReturnPct.isFinite() || propertyPrice <= 0.0 || tenureYears <= 0 ||

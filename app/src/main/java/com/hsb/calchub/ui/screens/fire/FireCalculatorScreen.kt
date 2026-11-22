@@ -14,6 +14,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.hsb.calchub.domain.logic.CalculatorLogic
+import com.hsb.calchub.domain.logic.retirement.FireCalculator
 import com.hsb.calchub.ui.components.CalculatorInput
 import com.hsb.calchub.ui.components.CalculatorScrollScaffold
 import com.hsb.calchub.ui.components.FinanceTermTooltip
@@ -50,13 +51,15 @@ fun FireCalculatorScreen(onBackClick: () -> Unit) {
         safeWithdrawalRatePct
     ) {
         CalculatorLogic.calculateFire(
-            currentAge = currentAge.roundToInt(),
-            monthlyExpenses = monthlyExpenses,
-            currentCorpus = currentCorpus,
-            monthlySip = monthlySip,
-            expectedReturnPct = expectedReturnPct,
-            inflationPct = inflationPct,
-            safeWithdrawalRatePct = safeWithdrawalRatePct
+            FireCalculator.FireInput(
+                currentAge = currentAge.roundToInt(),
+                monthlyExpenses = monthlyExpenses,
+                currentCorpus = currentCorpus,
+                monthlySip = monthlySip,
+                expectedReturnPct = expectedReturnPct,
+                inflationPct = inflationPct,
+                safeWithdrawalRatePct = safeWithdrawalRatePct
+            )
         )
     }
 

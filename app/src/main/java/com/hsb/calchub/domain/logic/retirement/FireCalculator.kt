@@ -10,6 +10,20 @@ object FireCalculator {
     private const val MAX_SIMULATION_YEARS = 60
 
     /**
+     * Input parameters for FIRE & Coast-FIRE calculations.
+     */
+    data class FireInput(
+        val currentAge: Int,
+        val monthlyExpenses: Double,
+        val currentCorpus: Double,
+        val monthlySip: Double,
+        val expectedReturnPct: Double,
+        val inflationPct: Double,
+        val safeWithdrawalRatePct: Double = 4.0,
+        val targetRetirementAge: Int = 60
+    )
+
+    /**
      * FIRE & Coast-FIRE projection expressed in today's purchasing power.
      */
     data class FireResult(
@@ -25,16 +39,17 @@ object FireCalculator {
     /**
      * Computes inflation-adjusted FIRE corpus target, Coast-FIRE threshold, and timeline to FIRE.
      */
-    fun calculate(
-        currentAge: Int,
-        monthlyExpenses: Double,
-        currentCorpus: Double,
-        monthlySip: Double,
-        expectedReturnPct: Double,
-        inflationPct: Double,
-        safeWithdrawalRatePct: Double = 4.0,
-        targetRetirementAge: Int = 60
-    ): FireResult {
+    fun calculate(input: FireInput): FireResult {
+        val (
+            currentAge,
+            monthlyExpenses,
+            currentCorpus,
+            monthlySip,
+            expectedReturnPct,
+            inflationPct,
+            safeWithdrawalRatePct,
+            targetRetirementAge
+        ) = input
         val safeAge = currentAge.coerceIn(18, 80)
         if (!monthlyExpenses.isFinite() || !currentCorpus.isFinite() || !monthlySip.isFinite() ||
             !expectedReturnPct.isFinite() || !inflationPct.isFinite() || !safeWithdrawalRatePct.isFinite() ||
