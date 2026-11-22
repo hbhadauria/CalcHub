@@ -52,6 +52,7 @@ on:
         required: false
         type: string
 
+permissions: {}
 
 jobs:
   version-bump:
@@ -69,13 +70,16 @@ jobs:
       
       # Auto-increments version code and optionally updates version name in version.properties
       - name: Bump Version
-
         id: bump
+        env:
+          INPUT_BUMP_VERSION_CODE: ${{ github.event.inputs.bump_version_code }}
+          INPUT_VERSION_NAME: ${{ github.event.inputs.version_name }}
         run: |
           # Read properties
           FILE="version.properties"
           if [ -f "$FILE" ]; then
             while IFS='=' read -r key value; do
+              [ -n "$key" ] || continue
               export "$key=$value"
             done < "$FILE"
           else
@@ -85,25 +89,31 @@ jobs:
 
 
           # Increment Code
-          if [ "${{ github.event.inputs.bump_version_code }}" == "yes" ]; then
+          if [ "$INPUT_BUMP_VERSION_CODE" = "yes" ]; then
             NEW_CODE=$((VERSION_CODE + 1))
           else
             NEW_CODE=$VERSION_CODE
           fi
           
           # Determine Name
-          if [ -n "${{ github.event.inputs.version_name }}" ]; then
-            NEW_NAME="${{ github.event.inputs.version_name }}"
+          SEMVER_RE='^[0-9]+\.[0-9]+\.[0-9]+([+-][0-9A-Za-z.-]+)?$'
+          if [ -n "$INPUT_VERSION_NAME" ]; then
+            if [[ ! "$INPUT_VERSION_NAME" =~ $SEMVER_RE ]]; then
+              echo "::error::Invalid version_name format: $INPUT_VERSION_NAME"
+              exit 1
+            fi
+            NEW_NAME="$INPUT_VERSION_NAME"
           else
             NEW_NAME="$VERSION_NAME"
           fi
 
           # Write back
-          echo "VERSION_CODE=$NEW_CODE" > "$FILE"
-          echo "VERSION_NAME=$NEW_NAME" >> "$FILE"
+          printf 'VERSION_CODE=%s\nVERSION_NAME=%s\n' "$NEW_CODE" "$NEW_NAME" > "$FILE"
           
-          echo "version_code=$NEW_CODE" >> $GITHUB_OUTPUT
-          echo "version_name=$NEW_NAME" >> $GITHUB_OUTPUT
+          {
+            echo "version_code=$NEW_CODE"
+            echo "version_name=$NEW_NAME"
+          } >> "$GITHUB_OUTPUT"
           
           # Display
           echo "Bumping version: $VERSION_NAME ($VERSION_CODE) -> $NEW_NAME ($NEW_CODE)"
@@ -132,7 +142,6 @@ jobs:
     permissions:
       contents: read
       checks: write
-      pull-requests: write
     uses: ./.github/workflows/unit-test.yml
 
   instrumentation-test:
@@ -177,36 +186,50 @@ jobs:
       # Parse CHANGELOG.md to find sections for the current version (falling back to Unreleased)
       - name: Extract Release Notes from CHANGELOG
         id: extract_notes
+        env:
+          RELEASE_VERSION: ${{ needs.version-bump.outputs.new_version_name }}
+          RELEASE_CODE: ${{ needs.version-bump.outputs.new_version_code }}
         run: |
-          VERSION="${{ needs.version-bump.outputs.new_version_name }}"
-          
           # Extract content between version header and next version or separator
-          NOTES=$(awk "/## \\[$VERSION\\]/{flag=1; next} /^## \\[/{flag=0} /^---$/{flag=0} flag" CHANGELOG.md)
+          NOTES=$(awk -v target="## [$RELEASE_VERSION]" '
+            index($0, target) == 1 { flag=1; next }
+            /^## \[/ { flag=0 }
+            /^---$/ { flag=0 }
+            flag { print }
+          ' CHANGELOG.md)
           
           # Fall back to [Unreleased] if versioned header isn't in CHANGELOG.md yet
-          if [ -z "$(echo "$NOTES" | tr -d '[:space:]')" ]; then
-            NOTES=$(awk "/## \\[Unreleased\\]/{flag=1; next} /^## \\[/{flag=0} /^---$/{flag=0} flag" CHANGELOG.md)
+          if [ -z "$(printf '%s' "$NOTES" | tr -d '[:space:]')" ]; then
+            NOTES=$(awk '
+              /^## \[Unreleased\]/ { flag=1; next }
+              /^## \[/ { flag=0 }
+              /^---$/ { flag=0 }
+              flag { print }
+            ' CHANGELOG.md)
           fi
 
           # If still empty, create basic release notes
-          if [ -z "$(echo "$NOTES" | tr -d '[:space:]')" ]; then
-            NOTES="Release version $VERSION (Build ${{ needs.version-bump.outputs.new_version_code }})"
+          if [ -z "$(printf '%s' "$NOTES" | tr -d '[:space:]')" ]; then
+            NOTES="Release version $RELEASE_VERSION (Build $RELEASE_CODE)"
           fi
           
           # Save to file for multiline content
-          echo "$NOTES" > release_notes.md
+          printf '%s\n' "$NOTES" > release_notes.md
           
-          echo "Release notes extracted for version $VERSION"
+          echo "Release notes extracted for version $RELEASE_VERSION"
           cat release_notes.md
 
       # Tag the release version in git
       - name: Create Git Tag
+        env:
+          RELEASE_VERSION: ${{ needs.version-bump.outputs.new_version_name }}
+          RELEASE_CODE: ${{ needs.version-bump.outputs.new_version_code }}
         run: |
-          VERSION="${{ needs.version-bump.outputs.new_version_name }}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag -a "v$VERSION" -m "Release v$VERSION (Build ${{ needs.version-bump.outputs.new_version_code }})"
-          git push origin "v$VERSION"
+          git tag -a "v$RELEASE_VERSION" -m "Release v$RELEASE_VERSION (Build $RELEASE_CODE)"
+          git push origin "v$RELEASE_VERSION"
+          git config --local --unset-all http.https://github.com/.extraheader || true
 
 
       - name: Create GitHub Release
@@ -223,12 +246,13 @@ jobs:
       - name: Verify GitHub Release Notes
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_VERSION: ${{ needs.version-bump.outputs.new_version_name }}
         run: |
-          TAG="v${{ needs.version-bump.outputs.new_version_name }}"
+          TAG="v$RELEASE_VERSION"
           BODY=$(gh release view "$TAG" --json body --jq .body)
           echo "Release body length: ${#BODY}"
 
-          if [ -z "$(echo "$BODY" | tr -d '[:space:]')" ] || echo "$BODY" | grep -q "^Release version "; then
+          if [ -z "$(printf '%s' "$BODY" | tr -d '[:space:]')" ] || printf '%s\n' "$BODY" | grep -q "^Release version "; then
             echo "::error::Release notes fell back to empty or 1-line placeholder for $TAG"
             exit 1
           fi

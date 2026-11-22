@@ -19,6 +19,8 @@ on:
   workflow_dispatch: # Allow manual trigger
   workflow_call: # Allow call from other workflows
 
+permissions: {}
+
 jobs:
   analyze:
     name: Analyze (${{ matrix.language }})
@@ -39,6 +41,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v5
+      with:
+        persist-credentials: false
 
     # Initialize CodeQL tools for scanning
     - name: Initialize CodeQL
