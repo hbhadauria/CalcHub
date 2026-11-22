@@ -2,9 +2,11 @@ package com.hsb.calchub.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,6 +15,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -20,6 +24,9 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BookmarkAdd
+import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -34,6 +41,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -144,11 +152,13 @@ fun CalculatorInput(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Text(
-                    text = "${formatBoundLabel(range.start, symbol)} – ${formatBoundLabel(range.endInclusive, symbol)}",
-                    style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"),
-                    color = tokens.inkMuted
-                )
+                if (isFocused || isOutOfRange) {
+                    Text(
+                        text = "${formatBoundLabel(range.start, symbol)} – ${formatBoundLabel(range.endInclusive, symbol)}",
+                        style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"),
+                        color = tokens.inkMuted
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.width(12.dp))
@@ -240,7 +250,7 @@ fun CalculatorInput(
             )
         }
 
-        Spacer(modifier = Modifier.height(6.dp))
+        Spacer(modifier = Modifier.height(2.dp))
 
         val sliderVal = value.toFloat().coerceIn(range.start.toFloat(), range.endInclusive.toFloat())
         Slider(
@@ -263,6 +273,7 @@ fun CalculatorInput(
             ),
             modifier = Modifier
                 .fillMaxWidth()
+                .height(36.dp)
                 .semantics {
                     contentDescription = "$label slider"
                 }
@@ -381,7 +392,7 @@ fun ResultCard(
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(6.dp))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -417,9 +428,9 @@ fun ResultCard(
             }
         }
 
-        Spacer(modifier = Modifier.height(14.dp))
+        Spacer(modifier = Modifier.height(10.dp))
         HorizontalDivider(color = tokens.cardBorder)
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -572,14 +583,21 @@ fun InflationAdjustmentControl(
                 colors = SwitchDefaults.colors(
                     checkedThumbColor = tokens.onAccent,
                     checkedTrackColor = tokens.accentPrimary,
-                    uncheckedTrackColor = tokens.surfaceContainer,
-                    uncheckedBorderColor = tokens.cardBorder
+                    checkedBorderColor = tokens.accentPrimary,
+                    uncheckedThumbColor = tokens.inkPrimary,
+                    uncheckedTrackColor = tokens.trackBg,
+                    uncheckedBorderColor = tokens.inkSecondary.copy(alpha = 0.65f)
                 ),
                 modifier = Modifier.semantics {
                     contentDescription = "Adjust for Inflation"
                 }
             )
         }
+        Spacer(modifier = Modifier.height(6.dp))
+        FinanceTermTooltip(
+            term = "What is Inflation Adjustment?",
+            explanation = "Converts future maturity into today's purchasing power so you see what your money will really buy."
+        )
         if (enabled) {
             Spacer(modifier = Modifier.height(12.dp))
             CalculatorInput(
@@ -675,5 +693,255 @@ fun InflationAdjustedSummaryCard(
         Spacer(modifier = Modifier.height(8.dp))
         ResultRow("Nominal Maturity", formatCompactINR(safeNominal, currencyFormat))
         ResultRow("Real Gain vs. Invested", currencyFormat.format(realGain))
+    }
+}
+
+/**
+ * Shared compact donut card used below calculator inputs across screens.
+ */
+@Composable
+fun StandardDonutCard(
+    data: List<DonutChartData>,
+    centerLabelText: String? = null,
+    modifier: Modifier = Modifier
+) {
+    NeonCard(modifier = modifier) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            DonutChart(
+                data = data,
+                centerLabelText = centerLabelText
+            )
+        }
+    }
+}
+
+/**
+ * Quick-fill preset chip model used across calculator screens for single-tap exploration.
+ */
+data class StarterPreset(
+    val label: String,
+    val onApply: () -> Unit
+)
+
+/**
+ * Horizontal row of compact starter preset chips so beginners can explore realistic inputs in one tap.
+ */
+@Composable
+fun StarterPresetChips(
+    presets: List<StarterPreset>,
+    modifier: Modifier = Modifier
+) {
+    if (presets.isEmpty()) return
+    val tokens = LocalCalcHubTokens.current
+    val haptic = LocalHapticFeedback.current
+    LazyRow(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(presets, key = { it.label }) { preset ->
+            Surface(
+                shape = RoundedCornerShape(999.dp),
+                color = tokens.surfaceLow,
+                border = BorderStroke(1.dp, tokens.cardBorder),
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    preset.onApply()
+                }
+            ) {
+                Text(
+                    text = preset.label,
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                    color = tokens.accentPrimary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Compact expandable inline hint explaining financial terminology in plain English.
+ */
+@Composable
+fun FinanceTermTooltip(
+    term: String,
+    explanation: String,
+    modifier: Modifier = Modifier
+) {
+    val tokens = LocalCalcHubTokens.current
+    var expanded by rememberSaveable(term) { mutableStateOf(false) }
+
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Surface(
+            shape = RoundedCornerShape(999.dp),
+            color = tokens.surfaceLow,
+            border = BorderStroke(1.dp, if (expanded) tokens.accentPrimary.copy(alpha = 0.4f) else tokens.cardBorder),
+            onClick = { expanded = !expanded }
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Info,
+                    contentDescription = if (expanded) "Hide explanation for $term" else "Explain $term",
+                    tint = tokens.accentPrimary,
+                    modifier = Modifier.size(14.dp)
+                )
+                Text(
+                    text = term,
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+                    color = tokens.inkSecondary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+        if (expanded) {
+            Surface(
+                shape = RoundedCornerShape(10.dp),
+                color = tokens.surfaceContainer,
+                border = BorderStroke(1.dp, tokens.cardBorder),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = explanation,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = tokens.inkSecondary,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                )
+            }
+        }
+    }
+}
+
+/**
+ * High-contrast theme-aware checkbox row matching active CalcHub skin tokens.
+ */
+@Composable
+fun ThemedCheckboxRow(
+    label: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val tokens = LocalCalcHubTokens.current
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(10.dp))
+            .clickable { onCheckedChange(!checked) }
+            .padding(vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Checkbox(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            colors = CheckboxDefaults.colors(
+                checkedColor = tokens.accentPrimary,
+                uncheckedColor = tokens.inkSecondary,
+                checkmarkColor = tokens.onAccent
+            )
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = tokens.inkPrimary
+        )
+    }
+}
+
+/**
+ * Remembers an Indian-locale currency [NumberFormat] configured with [maxFractionDigits].
+ */
+@Composable
+fun rememberInrFormat(maxFractionDigits: Int = 0): NumberFormat = remember(maxFractionDigits) {
+    NumberFormat.getCurrencyInstance(Locale.Builder().setLanguage("en").setRegion("IN").build()).apply {
+        maximumFractionDigits = maxFractionDigits
+    }
+}
+
+/**
+ * Standard two-slice donut card comparing invested principal/outflow vs. returns/gains.
+ */
+@Composable
+fun InvestedReturnsDonutCard(
+    invested: Double,
+    returns: Double,
+    investedLabel: String = "Invested",
+    returnsLabel: String = "Returns",
+    centerLabelText: String? = null,
+    useGainLossColors: Boolean = false,
+    modifier: Modifier = Modifier
+) {
+    val tokens = LocalCalcHubTokens.current
+    StandardDonutCard(
+        data = listOf(
+            DonutChartData(invested, if (useGainLossColors) tokens.gainInk else tokens.chartStart, investedLabel),
+            DonutChartData(returns, if (useGainLossColors) tokens.lossInk else tokens.chartEnd, returnsLabel)
+        ),
+        centerLabelText = centerLabelText,
+        modifier = modifier
+    )
+}
+
+/**
+ * Shared result-first layout for standard investment calculators (ResultCard -> Inputs NeonCard -> Donut).
+ */
+@Composable
+fun StandardInvestmentCalculatorLayout(
+    title: String,
+    calculatorId: String,
+    onBackClick: () -> Unit,
+    investedAmount: Double,
+    estimatedReturns: Double,
+    totalValue: Double,
+    primaryLabel: String = "Total Value",
+    investedLabel: String = "Invested",
+    returnsLabel: String = "Est. Returns",
+    donutInvestedLabel: String = "Invested",
+    donutReturnsLabel: String = "Returns",
+    centerLabelText: String? = null,
+    shareSummary: String? = null,
+    inputsContent: @Composable ColumnScope.() -> Unit
+) {
+    CalculatorScrollScaffold(
+        title = title,
+        onBackClick = onBackClick,
+        calculatorId = calculatorId,
+        shareSummary = shareSummary
+    ) {
+        ResultCard(
+            investedAmount = investedAmount,
+            estimatedReturns = estimatedReturns,
+            totalValue = totalValue,
+            primaryLabel = primaryLabel,
+            investedLabel = investedLabel,
+            returnsLabel = returnsLabel
+        )
+
+        NeonCard {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                content = inputsContent
+            )
+        }
+
+        InvestedReturnsDonutCard(
+            invested = investedAmount,
+            returns = estimatedReturns,
+            investedLabel = donutInvestedLabel,
+            returnsLabel = donutReturnsLabel,
+            centerLabelText = centerLabelText
+        )
     }
 }

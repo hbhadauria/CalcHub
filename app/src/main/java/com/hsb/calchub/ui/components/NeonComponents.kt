@@ -15,14 +15,18 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -59,6 +63,7 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.hsb.calchub.ui.theme.CalcHubSkin
 import com.hsb.calchub.ui.theme.LocalCalcHubTokens
@@ -189,7 +194,7 @@ fun NeonSearch(
     query: String,
     onQueryChange: (String) -> Unit,
     modifier: Modifier = Modifier,
-    placeholder: String = "Search 30+ calculators (SIP, Tax, EMI...)"
+    placeholder: String = "Search 40+ calculators (SIP, Tax, EMI...)"
 ) {
     val tokens = LocalCalcHubTokens.current
     val shape = RoundedCornerShape(if (tokens.skin == CalcHubSkin.MATRIX) 10.dp else tokens.pillCornerRadius)
@@ -243,7 +248,14 @@ fun NeonSearch(
 }
 
 /**
- * Bottom navigation pill toolbar shared by [MainScreen] and legacy [NeonNavBar] callers.
+ * Recommended bottom padding for scrollable lists so the final card clears the floating [NeonNavBar].
+ */
+@Composable
+fun floatingNavBottomPadding(): Dp =
+    WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 92.dp
+
+/**
+ * Floating overlay bottom navigation pill toolbar shared by [MainScreen] and legacy [NeonNavBar] callers.
  */
 @Composable
 fun NeonNavBar(
@@ -268,20 +280,23 @@ fun NeonNavBar(
         modifier = modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(horizontal = 16.dp, vertical = 10.dp),
+            .padding(horizontal = 24.dp, vertical = 10.dp),
         contentAlignment = Alignment.Center
     ) {
         Surface(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .widthIn(max = 320.dp)
+                .fillMaxWidth(),
             shape = RoundedCornerShape(outerCorner),
             color = tokens.surfaceToolbar,
             border = BorderStroke(1.dp, tokens.cardBorder),
+            shadowElevation = 10.dp,
             tonalElevation = 0.dp
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 6.dp, vertical = 6.dp),
+                    .padding(horizontal = 6.dp, vertical = 5.dp),
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -301,7 +316,7 @@ fun NeonNavBar(
                     Surface(
                         modifier = Modifier
                             .weight(1f)
-                            .height(48.dp)
+                            .height(44.dp)
                             .clip(RoundedCornerShape(itemCorner))
                             .semantics { this.selected = isSelected }
                             .clickable(role = Role.Tab) {

@@ -1,7 +1,11 @@
 package com.hsb.calchub.ui.components
 
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Matrix
 import android.graphics.Path as AndroidPath
+import android.net.Uri
+import android.os.Build
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
@@ -27,6 +31,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -36,12 +41,17 @@ import androidx.compose.material.icons.automirrored.rounded.MenuBook
 import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Contrast
 import androidx.compose.material.icons.rounded.Gradient
 import androidx.compose.material.icons.rounded.Grid4x4
+import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Security
+import androidx.compose.material.icons.rounded.StarRate
 import androidx.compose.material.icons.rounded.VerifiedUser
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -69,6 +79,7 @@ import androidx.compose.ui.graphics.asComposePath
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -227,7 +238,8 @@ fun MorphingPolygonBadge(
         label = "polygonMorph"
     )
 
-    val idleContainer = if (tokens.skin == CalcHubSkin.MATRIX) {
+    val isMinimalBlack = tokens.skin == CalcHubSkin.MINIMAL_BLACK
+    val idleContainer = if (tokens.skin == CalcHubSkin.MATRIX || isMinimalBlack) {
         tokens.surfaceLow
     } else if (tokens.isDark) {
         accentPalette.darkWashStart
@@ -235,14 +247,16 @@ fun MorphingPolygonBadge(
         accentPalette.lightWashStart
     }
 
-    val containerBrush = if (selected) {
-        Brush.linearGradient(listOf(accentPalette.badgeGradStart, accentPalette.badgeGradEnd))
-    } else {
-        SolidColor(idleContainer)
+    val containerBrush = when {
+        isMinimalBlack && selected -> SolidColor(tokens.accentPrimary)
+        selected -> Brush.linearGradient(listOf(accentPalette.badgeGradStart, accentPalette.badgeGradEnd))
+        else -> SolidColor(idleContainer)
     }
 
     val iconTint by animateColorAsState(
         targetValue = when {
+            isMinimalBlack && selected -> tokens.onAccent
+            isMinimalBlack -> tokens.inkSecondary
             selected -> Color.White
             tokens.isDark -> lerp(accentPalette.gradStart, Color.White, 0.42f)
             else -> accentPalette.badgeGradStart
@@ -253,6 +267,8 @@ fun MorphingPolygonBadge(
 
     val borderColor by animateColorAsState(
         targetValue = when {
+            isMinimalBlack && selected -> tokens.accentPrimary
+            isMinimalBlack -> tokens.cardBorder
             selected -> accentPalette.badgeGradEnd
             else -> accentPalette.gradStart.copy(alpha = if (tokens.isDark) 0.45f else 0.35f)
         },
@@ -265,15 +281,16 @@ fun MorphingPolygonBadge(
             CalcHubSkin.AURORA -> MorphPolygonShape(morph, morphProgress)
             CalcHubSkin.LEDGER -> RoundedCornerShape(14.dp)
             CalcHubSkin.MATRIX -> RoundedCornerShape(8.dp)
+            CalcHubSkin.MINIMAL_BLACK -> RoundedCornerShape(12.dp)
         }
     }
 
-    val labelAccent = if (tokens.isDark) {
-        lerp(accentPalette.gradStart, Color.White, 0.35f)
-    } else {
-        accentPalette.badgeGradStart
+    val labelAccent = when {
+        isMinimalBlack -> tokens.inkPrimary
+        tokens.isDark -> lerp(accentPalette.gradStart, Color.White, 0.35f)
+        else -> accentPalette.badgeGradStart
     }
-    val countLabel = count?.let { if (it > 30) "30+" else it.toString() }
+    val countLabel = count?.let { if (it > 40) "40+" else it.toString() }
 
     Column(
         modifier = modifier
@@ -385,7 +402,7 @@ fun <T> SegmentedPillGroup(
             options.forEach { option ->
                 val isSelected = option == selectedOption
                 val pillBg by animateColorAsState(
-                    targetValue = if (isSelected) accentColor else tokens.surfaceLow,
+                    targetValue = if (isSelected) accentColor else Color.Transparent,
                     animationSpec = tween(180),
                     label = "segmentBg"
                 )
@@ -603,6 +620,7 @@ fun AppearanceThemeSheet(
     onSelectPolarity: (ThemePolarity) -> Unit,
     onSelectGradientMode: (GradientMode) -> Unit,
     onOpenPrivacyInfo: () -> Unit,
+    onOpenAboutInfo: () -> Unit = {},
     onDismiss: () -> Unit
 ) {
     val tokens = LocalCalcHubTokens.current
@@ -689,6 +707,14 @@ fun AppearanceThemeSheet(
                     selected = preferences.skin == CalcHubSkin.MATRIX,
                     onClick = { onSelectSkin(CalcHubSkin.MATRIX) }
                 )
+                SkinOptionCard(
+                    title = CalcHubSkin.MINIMAL_BLACK.title,
+                    subtitle = CalcHubSkin.MINIMAL_BLACK.subtitle,
+                    icon = Icons.Rounded.Contrast,
+                    swatchColors = listOf(Color(0xFF000000), Color(0xFF27272A), Color(0xFFFFFFFF)),
+                    selected = preferences.skin == CalcHubSkin.MINIMAL_BLACK,
+                    onClick = { onSelectSkin(CalcHubSkin.MINIMAL_BLACK) }
+                )
             }
 
             Text(
@@ -713,82 +739,90 @@ fun AppearanceThemeSheet(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            if (preferences.skin == CalcHubSkin.AURORA) {
                 Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = Icons.Rounded.Gradient,
-                        contentDescription = null,
-                        tint = tokens.accentPrimary,
-                        modifier = Modifier.size(16.dp)
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Gradient,
+                            contentDescription = null,
+                            tint = tokens.accentPrimary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            text = "BACKGROUND GRADIENT",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = tokens.inkSecondary
+                        )
+                    }
                     Text(
-                        text = "BACKGROUND GRADIENT",
+                        text = "Matches each calculator",
                         style = MaterialTheme.typography.labelSmall,
-                        color = tokens.inkSecondary
+                        color = tokens.accentPrimary
                     )
                 }
-                Text(
-                    text = "Matches each calculator",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = tokens.accentPrimary
-                )
-            }
 
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                GradientMode.entries.forEach { mode ->
-                    val isSelected = preferences.gradientMode == mode
-                    val previewColors = when (mode) {
-                        GradientMode.AUTO_BY_SCREEN -> listOf(tokens.chartStart, tokens.chartEnd)
-                        GradientMode.AURORA -> listOf(CategoryPalettes.Investment.gradStart, CategoryPalettes.Investment.gradEnd)
-                        GradientMode.SUNSET -> listOf(Color(0xFFEA580C), Color(0xFFE11D48))
-                        GradientMode.EMERALD -> listOf(Color(0xFF059669), Color(0xFF10B981))
-                        GradientMode.OCEAN -> listOf(CategoryPalettes.Tax.gradStart, CategoryPalettes.Tax.gradEnd)
-                        GradientMode.SOLID_OFF -> listOf(tokens.surfaceContainer, tokens.cardBorder)
-                    }
-                    Surface(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(14.dp))
-                            .clickable { onSelectGradientMode(mode) },
-                        shape = RoundedCornerShape(14.dp),
-                        color = if (isSelected) tokens.accentContainer else tokens.surfaceLow,
-                        border = BorderStroke(
-                            width = if (isSelected) 1.5.dp else 1.dp,
-                            color = if (isSelected) tokens.accentPrimary else tokens.cardBorder
-                        )
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    GradientMode.entries.forEach { mode ->
+                        val isSelected = preferences.gradientMode == mode
+                        val previewColors = when (mode) {
+                            GradientMode.AUTO_BY_SCREEN -> listOf(tokens.chartStart, tokens.chartEnd)
+                            GradientMode.AURORA -> listOf(CategoryPalettes.Investment.gradStart, CategoryPalettes.Investment.gradEnd)
+                            GradientMode.SUNSET -> listOf(Color(0xFFEA580C), Color(0xFFE11D48))
+                            GradientMode.EMERALD -> listOf(Color(0xFF059669), Color(0xFF10B981))
+                            GradientMode.OCEAN -> listOf(CategoryPalettes.Tax.gradStart, CategoryPalettes.Tax.gradEnd)
+                            GradientMode.SOLID_OFF -> listOf(tokens.surfaceContainer, tokens.cardBorder)
+                        }
+                        Surface(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(14.dp))
+                                .clickable { onSelectGradientMode(mode) },
+                            shape = RoundedCornerShape(14.dp),
+                            color = if (isSelected) tokens.accentContainer else tokens.surfaceLow,
+                            border = BorderStroke(
+                                width = if (isSelected) 1.5.dp else 1.dp,
+                                color = if (isSelected) tokens.accentPrimary else tokens.cardBorder
+                            )
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(16.dp)
-                                    .clip(CircleShape)
-                                    .background(Brush.linearGradient(previewColors))
-                                    .border(1.dp, tokens.cardBorder, CircleShape)
-                            )
-                            Text(
-                                text = mode.label,
-                                style = MaterialTheme.typography.labelMedium.copy(
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
-                                ),
-                                color = if (isSelected) tokens.onAccentContainer else tokens.inkPrimary
-                            )
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(16.dp)
+                                        .clip(CircleShape)
+                                        .background(Brush.linearGradient(previewColors))
+                                        .border(1.dp, tokens.cardBorder, CircleShape)
+                                )
+                                Text(
+                                    text = mode.label,
+                                    style = MaterialTheme.typography.labelMedium.copy(
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                                    ),
+                                    color = if (isSelected) tokens.onAccentContainer else tokens.inkPrimary
+                                )
+                            }
                         }
                     }
                 }
+            } else {
+                Text(
+                    text = "Background gradients apply to Aurora style.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = tokens.inkMuted
+                )
             }
 
             HorizontalDivider(color = tokens.cardBorder)
@@ -820,6 +854,40 @@ fun AppearanceThemeSheet(
                         )
                         Text(
                             text = "All calculations and saved plans stay on your phone",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = tokens.inkSecondary
+                        )
+                    }
+                }
+            }
+
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(tokens.cardCornerRadius))
+                    .clickable(onClick = onOpenAboutInfo),
+                shape = RoundedCornerShape(tokens.cardCornerRadius),
+                color = tokens.surfaceLow,
+                border = BorderStroke(1.dp, tokens.cardBorder)
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Info,
+                        contentDescription = null,
+                        tint = tokens.accentPrimary
+                    )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "About CalcHub",
+                            style = MaterialTheme.typography.titleSmall,
+                            color = tokens.inkPrimary
+                        )
+                        Text(
+                            text = "Version, disclaimer & rate app",
                             style = MaterialTheme.typography.bodySmall,
                             color = tokens.inkSecondary
                         )
@@ -1002,4 +1070,124 @@ private fun PrivacyBulletRow(title: String, detail: String) {
             )
         }
     }
+}
+
+/**
+ * Compact About dialog showing dynamic app version, offline MIT summary,
+ * financial planning disclaimer, and Play Store rating action.
+ */
+@Composable
+fun AboutCalcHubDialog(
+    onDismiss: () -> Unit
+) {
+    val tokens = LocalCalcHubTokens.current
+    val context = LocalContext.current
+    val versionName = remember(context) {
+        runCatching {
+            val pkgInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                context.packageManager.getPackageInfo(
+                    context.packageName,
+                    PackageManager.PackageInfoFlags.of(0)
+                )
+            } else {
+                @Suppress("DEPRECATION")
+                context.packageManager.getPackageInfo(context.packageName, 0)
+            }
+            pkgInfo.versionName
+        }.getOrNull() ?: "3.0.0"
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = tokens.surfaceLowest,
+        titleContentColor = tokens.inkPrimary,
+        textContentColor = tokens.inkSecondary,
+        icon = {
+            Icon(
+                imageVector = Icons.Rounded.Info,
+                contentDescription = null,
+                tint = tokens.accentPrimary
+            )
+        },
+        title = {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "About CalcHub",
+                    style = MaterialTheme.typography.titleLarge
+                )
+                Surface(
+                    shape = RoundedCornerShape(999.dp),
+                    color = tokens.surfaceContainer
+                ) {
+                    Text(
+                        text = "v$versionName",
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                        color = tokens.inkPrimary,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
+                }
+            }
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(
+                    text = "100% offline financial toolkit built for privacy with zero ads or tracking. Open-source under the MIT license.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = tokens.inkSecondary
+                )
+                Surface(
+                    shape = RoundedCornerShape(10.dp),
+                    color = tokens.surfaceLow,
+                    border = BorderStroke(1.dp, tokens.cardBorder)
+                ) {
+                    Text(
+                        text = "Disclaimer: Estimates are for planning and educational purposes. Verify tax, bank, and scheme rules before investing.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = tokens.inkMuted,
+                        modifier = Modifier.padding(10.dp)
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    val pkg = context.packageName
+                    val marketIntent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$pkg")).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    val webIntent = Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse("https://play.google.com/store/apps/details?id=$pkg")
+                    ).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    runCatching { context.startActivity(marketIntent) }
+                        .onFailure { runCatching { context.startActivity(webIntent) } }
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = tokens.accentPrimary,
+                    contentColor = tokens.onAccent
+                ),
+                shape = RoundedCornerShape(tokens.pillCornerRadius)
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.StarRate,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text("Rate App")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Close", color = tokens.inkSecondary, fontWeight = FontWeight.SemiBold)
+            }
+        }
+    )
 }

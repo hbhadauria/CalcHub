@@ -1,14 +1,7 @@
 package com.hsb.calchub.ui.screens.emi
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -20,7 +13,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.hsb.calchub.data.repository.RecentCalculation
@@ -29,16 +21,15 @@ import com.hsb.calchub.di.LocalAppContainer
 import com.hsb.calchub.domain.logic.CalculatorLogic
 import com.hsb.calchub.domain.logic.loan.LoanScheduleCalculator
 import com.hsb.calchub.ui.components.CalculatorInput
-import com.hsb.calchub.ui.components.CalculatorScaffold
-import com.hsb.calchub.ui.components.DonutChart
-import com.hsb.calchub.ui.components.DonutChartData
+import com.hsb.calchub.ui.components.CalculatorScrollScaffold
+import com.hsb.calchub.ui.components.InvestedReturnsDonutCard
 import com.hsb.calchub.ui.components.LoanAmortizationChart
 import com.hsb.calchub.ui.components.NeonCard
 import com.hsb.calchub.ui.components.ResultRow
 import com.hsb.calchub.ui.components.formatCompactINR
+import com.hsb.calchub.ui.components.rememberInrFormat
 import com.hsb.calchub.ui.theme.LocalCalcHubTokens
 import kotlinx.coroutines.launch
-import java.text.NumberFormat
 import java.util.Locale
 import kotlin.math.roundToInt
 
@@ -63,11 +54,7 @@ fun EmiCalculatorScreen(onBackClick: () -> Unit) {
         LoanScheduleCalculator.computeAmortizationSummary(loanAmount, interestRate, yearsInt, emi)
     }
 
-    val inrFormat = remember {
-        NumberFormat.getCurrencyInstance(Locale.Builder().setLanguage("en").setRegion("IN").build()).apply {
-            maximumFractionDigits = 0
-        }
-    }
+    val inrFormat = rememberInrFormat()
     val compactLoan = remember(loanAmount) { formatCompactINR(loanAmount, inrFormat) }
     val compactInterest = remember(totalInterest) { formatCompactINR(totalInterest, inrFormat) }
 
@@ -101,74 +88,58 @@ fun EmiCalculatorScreen(onBackClick: () -> Unit) {
         }
     }
 
-    CalculatorScaffold(
+    CalculatorScrollScaffold(
         title = "EMI Calculator",
         onBackClick = onBackClick,
         calculatorId = "emi",
-        onSaveScenario = saveToVault
-    ) { paddingValues ->
-        val tokens = LocalCalcHubTokens.current
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
-        ) {
-            ResultCardWithLabels(
-                label1 = "Monthly EMI",
-                value1 = emi,
-                label2 = "Principal Amount",
-                value2 = loanAmount,
-                label3 = "Total Interest",
-                value3 = totalInterest,
-                label4 = "Total Payment",
-                value4 = totalPayment
-            )
+        onSaveScenario = saveToVault,
+        verticalSpacing = 14.dp,
+        bottomSpacerHeight = 24.dp
+    ) {
+        ResultCardWithLabels(
+            label1 = "Monthly EMI",
+            value1 = emi,
+            label2 = "Principal Amount",
+            value2 = loanAmount,
+            label3 = "Total Interest",
+            value3 = totalInterest,
+            label4 = "Total Payment",
+            value4 = totalPayment
+        )
 
-            LoanAmortizationChart(
-                yearlyBreakdown = amortization.yearlyBreakdown,
-                crossoverYear = amortization.crossoverYear
-            )
+        LoanInputsCard(
+            loanAmount = loanAmount,
+            onLoanAmountChange = { loanAmount = it },
+            interestRate = interestRate,
+            onInterestRateChange = { interestRate = it },
+            tenureYears = tenureYears,
+            onTenureYearsChange = { tenureYears = it }
+        )
 
-            LoanDonutCard(
-                principal = loanAmount,
-                interest = totalInterest
-            )
+        LoanAmortizationChart(
+            yearlyBreakdown = amortization.yearlyBreakdown,
+            crossoverYear = amortization.crossoverYear
+        )
 
-            LoanInputsCard(
-                loanAmount = loanAmount,
-                onLoanAmountChange = { loanAmount = it },
-                interestRate = interestRate,
-                onInterestRateChange = { interestRate = it },
-                tenureYears = tenureYears,
-                onTenureYearsChange = { tenureYears = it }
-            )
+        LoanDonutCard(
+            principal = loanAmount,
+            interest = totalInterest
+        )
 
-            SnackbarHost(hostState = snackbarHostState)
-            Spacer(modifier = Modifier.height(24.dp))
-        }
+        SnackbarHost(hostState = snackbarHostState)
     }
 }
 
 @Composable
 internal fun LoanDonutCard(principal: Double, interest: Double) {
-    val tokens = com.hsb.calchub.ui.theme.LocalCalcHubTokens.current
-    NeonCard {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            DonutChart(
-                data = listOf(
-                    DonutChartData(principal, tokens.gainInk, "Principal"),
-                    DonutChartData(interest, tokens.lossInk, "Interest")
-                ),
-                centerLabelText = "Interest Share"
-            )
-        }
-    }
+    InvestedReturnsDonutCard(
+        invested = principal,
+        returns = interest,
+        investedLabel = "Principal",
+        returnsLabel = "Interest",
+        centerLabelText = "Interest Share",
+        useGainLossColors = true
+    )
 }
 
 @Composable
@@ -193,7 +164,7 @@ internal fun LoanInputsCard(
             range = loanRange,
             symbol = "₹"
         )
-        Spacer(modifier = Modifier.height(14.dp))
+        Spacer(modifier = Modifier.height(10.dp))
         CalculatorInput(
             label = "Interest Rate (p.a)",
             value = interestRate,
@@ -201,7 +172,7 @@ internal fun LoanInputsCard(
             range = rateRange,
             symbol = "%"
         )
-        Spacer(modifier = Modifier.height(14.dp))
+        Spacer(modifier = Modifier.height(10.dp))
         CalculatorInput(
             label = tenureLabel,
             value = tenureYears,
@@ -227,11 +198,7 @@ fun ResultCardWithLabels(
     value4: Double? = null
 ) {
     val tokens = LocalCalcHubTokens.current
-    val currencyFormat = remember {
-        NumberFormat.getCurrencyInstance(Locale.Builder().setLanguage("en").setRegion("IN").build()).apply {
-            maximumFractionDigits = 0
-        }
-    }
+    val currencyFormat = rememberInrFormat()
 
     NeonCard(useGradientBorder = true) {
         ResultRow(label = label1, value = currencyFormat.format(if (value1.isFinite()) value1 else 0.0), isTotal = true)

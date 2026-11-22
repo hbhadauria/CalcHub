@@ -35,7 +35,7 @@ CalcHub is a comprehensive financial calculator application for Android. It prov
 
 
 ### Features
-CalcHub includes over 30+ financial calculators across various categories:
+CalcHub includes over 40+ financial calculators across various categories:
 - **Investment**: SIP, SWP, PPF, FD, RD, and more.
 - **Loan**: EMI, Home/Car Loan, Flat vs Reducing Rate.
 - **Retirement**: EPF, NPS, Retirement Planning.

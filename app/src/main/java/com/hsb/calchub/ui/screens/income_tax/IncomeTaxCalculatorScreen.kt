@@ -5,13 +5,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
@@ -36,17 +33,16 @@ import com.hsb.calchub.data.repository.SavedScenario
 import com.hsb.calchub.di.LocalAppContainer
 import com.hsb.calchub.domain.logic.CalculatorLogic
 import com.hsb.calchub.ui.components.CalculatorInput
-import com.hsb.calchub.ui.components.CalculatorScaffold
-import com.hsb.calchub.ui.components.DonutChart
-import com.hsb.calchub.ui.components.DonutChartData
+import com.hsb.calchub.ui.components.CalculatorScrollScaffold
+import com.hsb.calchub.ui.components.InvestedReturnsDonutCard
 import com.hsb.calchub.ui.components.NeonCard
 import com.hsb.calchub.ui.components.OdometerText
 import com.hsb.calchub.ui.components.ResultRow
 import com.hsb.calchub.ui.components.SegmentedPillGroup
 import com.hsb.calchub.ui.components.formatCompactINR
+import com.hsb.calchub.ui.components.rememberInrFormat
 import com.hsb.calchub.ui.theme.LocalCalcHubTokens
 import kotlinx.coroutines.launch
-import java.text.NumberFormat
 import java.util.Locale
 import kotlin.math.abs
 
@@ -81,11 +77,7 @@ fun IncomeTaxCalculatorScreen(onBackClick: () -> Unit) {
     val shownNet = if (selectedRegime == TaxRegimeTab.NEW_FY26) newNetIncome else oldNetIncome
     val effectiveRate = if (annualIncome > 0.0) (shownTax / annualIncome) * 100.0 else 0.0
 
-    val inrFormat = remember {
-        NumberFormat.getCurrencyInstance(Locale.Builder().setLanguage("en").setRegion("IN").build()).apply {
-            maximumFractionDigits = 0
-        }
-    }
+    val inrFormat = rememberInrFormat()
     val compactIncome = remember(annualIncome) { formatCompactINR(annualIncome, inrFormat) }
     val compactTax = remember(shownTax) { formatCompactINR(shownTax, inrFormat) }
     val compactDelta = remember(savingsDelta) { formatCompactINR(savingsDelta, inrFormat) }
@@ -120,152 +112,138 @@ fun IncomeTaxCalculatorScreen(onBackClick: () -> Unit) {
         }
     }
 
-    CalculatorScaffold(
+    CalculatorScrollScaffold(
         title = "Income Tax FY26",
         onBackClick = onBackClick,
         calculatorId = "income_tax",
-        onSaveScenario = saveToVault
-    ) { paddingValues ->
+        onSaveScenario = saveToVault,
+        verticalSpacing = 14.dp,
+        bottomSpacerHeight = 24.dp
+    ) {
         val tokens = LocalCalcHubTokens.current
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
-        ) {
-            SegmentedPillGroup(
-                options = TaxRegimeTab.entries,
-                selectedOption = selectedRegime,
-                onOptionSelected = { selectedRegime = it },
-                labelProvider = { it.label },
-                modifier = Modifier.fillMaxWidth()
+        SegmentedPillGroup(
+            options = TaxRegimeTab.entries,
+            selectedOption = selectedRegime,
+            onOptionSelected = { selectedRegime = it },
+            labelProvider = { it.label },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        NeonCard(useGradientBorder = true) {
+            Text(
+                text = "${selectedRegime.label.uppercase()} · ESTIMATED TAX",
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                color = tokens.accentPrimary
             )
+            Spacer(modifier = Modifier.height(6.dp))
+            OdometerText(
+                text = inrFormat.format(shownTax),
+                style = MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.ExtraBold),
+                color = tokens.inkPrimary,
+                highlightLedger = true,
+                useDotMatrixInMatrixSkin = true
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            HorizontalDivider(color = tokens.cardBorder)
+            Spacer(modifier = Modifier.height(10.dp))
+            ResultRow("Net Take-Home (Post Tax)", inrFormat.format(shownNet), isTotal = true)
+            ResultRow("Effective Tax Rate", String.format(Locale.US, "%.1f%%", effectiveRate))
+        }
 
-            NeonCard(useGradientBorder = true) {
-                Text(
-                    text = "${selectedRegime.label.uppercase()} · ESTIMATED TAX",
-                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                    color = tokens.accentPrimary
-                )
-                Spacer(modifier = Modifier.height(6.dp))
-                OdometerText(
-                    text = inrFormat.format(shownTax),
-                    style = MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.ExtraBold),
-                    color = tokens.inkPrimary,
-                    highlightLedger = true,
-                    useDotMatrixInMatrixSkin = true
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-                HorizontalDivider(color = tokens.cardBorder)
-                Spacer(modifier = Modifier.height(10.dp))
-                ResultRow("Net Take-Home (Post Tax)", inrFormat.format(shownNet), isTotal = true)
-                ResultRow("Effective Tax Rate", String.format(Locale.US, "%.1f%%", effectiveRate))
-            }
-
-            // Face-Off Comparison Banner
-            Surface(
-                shape = RoundedCornerShape(tokens.cardCornerRadius),
-                color = tokens.gainBg,
-                border = BorderStroke(1.dp, tokens.gainInk.copy(alpha = 0.30f))
+        // Face-Off Comparison Banner
+        Surface(
+            shape = RoundedCornerShape(tokens.cardCornerRadius),
+            color = tokens.gainBg,
+            border = BorderStroke(1.dp, tokens.gainInk.copy(alpha = 0.30f))
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(14.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(14.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = if (newRegimeWins) "Winner: New Regime (FY26)" else "Winner: Old Regime",
-                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                            color = tokens.gainInk
-                        )
-                        Text(
-                            text = "Saves $compactDelta",
-                            style = MaterialTheme.typography.labelLarge.copy(
-                                fontWeight = FontWeight.ExtraBold,
-                                fontFeatureSettings = "tnum"
-                            ),
-                            color = tokens.gainInk
-                        )
-                    }
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Surface(
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(10.dp),
-                            color = tokens.surfaceLowest
-                        ) {
-                            Column(modifier = Modifier.padding(10.dp)) {
-                                Text("New FY26 (₹75K Std)", style = MaterialTheme.typography.labelSmall, color = tokens.inkSecondary)
-                                Text(
-                                    text = formatCompactINR(newTax, inrFormat),
-                                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold, fontFeatureSettings = "tnum"),
-                                    color = tokens.inkPrimary
-                                )
-                            }
-                        }
-                        Surface(
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(10.dp),
-                            color = tokens.surfaceLowest
-                        ) {
-                            Column(modifier = Modifier.padding(10.dp)) {
-                                Text("Old Regime Slabs", style = MaterialTheme.typography.labelSmall, color = tokens.inkSecondary)
-                                Text(
-                                    text = formatCompactINR(oldTax, inrFormat),
-                                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold, fontFeatureSettings = "tnum"),
-                                    color = tokens.inkPrimary
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            NeonCard {
-                Column(
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    DonutChart(
-                        data = listOf(
-                            DonutChartData(shownNet, tokens.gainInk, "Net Pay"),
-                            DonutChartData(shownTax, tokens.lossInk, "Tax")
+                    Text(
+                        text = if (newRegimeWins) "Winner: New Regime (FY26)" else "Winner: Old Regime",
+                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                        color = tokens.gainInk
+                    )
+                    Text(
+                        text = "Saves $compactDelta",
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontWeight = FontWeight.ExtraBold,
+                            fontFeatureSettings = "tnum"
                         ),
-                        centerLabelText = "Tax Outflow"
+                        color = tokens.gainInk
                     )
                 }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Surface(
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(10.dp),
+                        color = tokens.surfaceLowest
+                    ) {
+                        Column(modifier = Modifier.padding(10.dp)) {
+                            Text("New FY26 (₹75K Std)", style = MaterialTheme.typography.labelSmall, color = tokens.inkSecondary)
+                            Text(
+                                text = formatCompactINR(newTax, inrFormat),
+                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold, fontFeatureSettings = "tnum"),
+                                color = tokens.inkPrimary
+                            )
+                        }
+                    }
+                    Surface(
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(10.dp),
+                        color = tokens.surfaceLowest
+                    ) {
+                        Column(modifier = Modifier.padding(10.dp)) {
+                            Text("Old Regime Slabs", style = MaterialTheme.typography.labelSmall, color = tokens.inkSecondary)
+                            Text(
+                                text = formatCompactINR(oldTax, inrFormat),
+                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold, fontFeatureSettings = "tnum"),
+                                color = tokens.inkPrimary
+                            )
+                        }
+                    }
+                }
             }
-
-            NeonCard {
-                CalculatorInput(
-                    label = "Gross Annual Income",
-                    value = annualIncome,
-                    onValueChange = { annualIncome = it },
-                    range = 300_000.0..10_000_000.0,
-                    symbol = "₹"
-                )
-                Spacer(modifier = Modifier.height(14.dp))
-                CalculatorInput(
-                    label = "Old Regime Deductions (80C/80D/HRA)",
-                    value = deductions,
-                    onValueChange = { deductions = it },
-                    range = 0.0..1_000_000.0,
-                    symbol = "₹"
-                )
-            }
-
-            SnackbarHost(hostState = snackbarHostState)
-            Spacer(modifier = Modifier.height(24.dp))
         }
+
+        NeonCard {
+            CalculatorInput(
+                label = "Gross Annual Income",
+                value = annualIncome,
+                onValueChange = { annualIncome = it },
+                range = 300_000.0..10_000_000.0,
+                symbol = "₹"
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            CalculatorInput(
+                label = "Old Regime Deductions (80C/80D/HRA)",
+                value = deductions,
+                onValueChange = { deductions = it },
+                range = 0.0..1_000_000.0,
+                symbol = "₹"
+            )
+        }
+
+        InvestedReturnsDonutCard(
+            invested = shownNet,
+            returns = shownTax,
+            investedLabel = "Net Pay",
+            returnsLabel = "Tax",
+            centerLabelText = "Tax Outflow",
+            useGainLossColors = true
+        )
+
+        SnackbarHost(hostState = snackbarHostState)
     }
 }

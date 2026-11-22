@@ -5,13 +5,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -35,7 +32,7 @@ import com.hsb.calchub.data.repository.SavedScenario
 import com.hsb.calchub.di.LocalAppContainer
 import com.hsb.calchub.domain.logic.CalculatorLogic
 import com.hsb.calchub.ui.components.CalculatorInput
-import com.hsb.calchub.ui.components.CalculatorScaffold
+import com.hsb.calchub.ui.components.CalculatorScrollScaffold
 import com.hsb.calchub.ui.components.InflationAdjustedSummaryCard
 import com.hsb.calchub.ui.components.InflationAdjustmentControl
 import com.hsb.calchub.ui.components.NeonCard
@@ -44,11 +41,11 @@ import com.hsb.calchub.ui.components.ResultRow
 import com.hsb.calchub.ui.components.SegmentedPillGroup
 import com.hsb.calchub.ui.components.WealthGrowthSplineChart
 import com.hsb.calchub.ui.components.formatCompactINR
+import com.hsb.calchub.ui.components.rememberInrFormat
 import com.hsb.calchub.ui.screens.sip.SipCoreInputsSection
 import com.hsb.calchub.ui.screens.sip.SipGainsDonut
 import com.hsb.calchub.ui.theme.LocalCalcHubTokens
 import kotlinx.coroutines.launch
-import java.text.NumberFormat
 import java.util.Locale
 import kotlin.math.roundToInt
 
@@ -108,11 +105,7 @@ fun StepUpSipCalculatorScreen(onBackClick: () -> Unit) {
         }
     }
 
-    val inrFormat = remember {
-        NumberFormat.getCurrencyInstance(Locale.Builder().setLanguage("en").setRegion("IN").build()).apply {
-            maximumFractionDigits = 0
-        }
-    }
+    val inrFormat = rememberInrFormat()
     val compactTotal = remember(shownTotal) { formatCompactINR(shownTotal, inrFormat) }
     val compactAdvantage = remember(stepUpAdvantage) { formatCompactINR(stepUpAdvantage, inrFormat) }
 
@@ -146,129 +139,121 @@ fun StepUpSipCalculatorScreen(onBackClick: () -> Unit) {
         }
     }
 
-    CalculatorScaffold(
+    CalculatorScrollScaffold(
         title = "Step-up SIP Calculator",
         onBackClick = onBackClick,
         calculatorId = "step_up_sip",
-        onSaveScenario = saveToVault
-    ) { paddingValues ->
+        onSaveScenario = saveToVault,
+        verticalSpacing = 14.dp,
+        bottomSpacerHeight = 24.dp
+    ) {
         val tokens = LocalCalcHubTokens.current
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
-        ) {
-            SegmentedPillGroup(
-                options = StepUpSipMode.entries,
-                selectedOption = mode,
-                onOptionSelected = { mode = it },
-                labelProvider = { it.label },
-                modifier = Modifier.fillMaxWidth()
-            )
+        SegmentedPillGroup(
+            options = StepUpSipMode.entries,
+            selectedOption = mode,
+            onOptionSelected = { mode = it },
+            labelProvider = { it.label },
+            modifier = Modifier.fillMaxWidth()
+        )
 
-            ResultCard(
+        ResultCard(
+            investedAmount = shownInvested,
+            estimatedReturns = shownReturns,
+            totalValue = shownTotal,
+            primaryLabel = if (mode == StepUpSipMode.STEP_UP) "Step-Up Maturity" else "Regular Maturity",
+            investedLabel = "Total Invested",
+            returnsLabel = "Est. Returns",
+            onSaveScenario = saveToVault
+        )
+
+        if (adjustForInflation) {
+            InflationAdjustedSummaryCard(
+                nominalValue = shownTotal,
+                realValue = shownRealTotal,
                 investedAmount = shownInvested,
-                estimatedReturns = shownReturns,
-                totalValue = shownTotal,
-                primaryLabel = if (mode == StepUpSipMode.STEP_UP) "Step-Up Maturity" else "Regular Maturity",
-                investedLabel = "Total Invested",
-                returnsLabel = "Est. Returns",
-                onSaveScenario = saveToVault
+                inflationRate = inflationRate,
+                years = yearsInt.toDouble()
             )
+        }
 
-            if (adjustForInflation) {
-                InflationAdjustedSummaryCard(
-                    nominalValue = shownTotal,
-                    realValue = shownRealTotal,
-                    investedAmount = shownInvested,
-                    inflationRate = inflationRate,
-                    years = yearsInt.toDouble()
-                )
-            }
-
-            Surface(
-                shape = RoundedCornerShape(tokens.cardCornerRadius),
-                color = tokens.gainBg,
-                border = BorderStroke(1.dp, tokens.gainInk.copy(alpha = 0.30f))
+        Surface(
+            shape = RoundedCornerShape(tokens.cardCornerRadius),
+            color = tokens.gainBg,
+            border = BorderStroke(1.dp, tokens.gainInk.copy(alpha = 0.30f))
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 14.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Step-Up Advantage (+${annualStepUpPct.roundToInt()}%/yr)",
-                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                            color = tokens.gainInk
-                        )
-                        Text(
-                            text = "Year $yearsInt monthly SIP: ${inrFormat.format(stepUpProj.finalMonthlySip)}/mo",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = tokens.inkSecondary
-                        )
-                    }
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "+$compactAdvantage",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.ExtraBold,
-                            fontFeatureSettings = "tnum"
-                        ),
+                        text = "Step-Up Advantage (+${annualStepUpPct.roundToInt()}%/yr)",
+                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
                         color = tokens.gainInk
                     )
+                    Text(
+                        text = "Year $yearsInt monthly SIP: ${inrFormat.format(stepUpProj.finalMonthlySip)}/mo",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = tokens.inkSecondary
+                    )
                 }
-            }
-
-            WealthGrowthSplineChart(
-                title = "Compounding Trajectory",
-                points = shownPoints
-            )
-
-            NeonCard {
-                ResultRow("Flat Regular SIP Maturity", formatCompactINR(regTotal, inrFormat))
-                ResultRow("Step-Up SIP Maturity", formatCompactINR(stepUpProj.totalValue, inrFormat), isTotal = true)
-                Spacer(modifier = Modifier.height(10.dp))
-                SipGainsDonut(
-                    invested = shownInvested,
-                    returns = shownReturns
+                Text(
+                    text = "+$compactAdvantage",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.ExtraBold,
+                        fontFeatureSettings = "tnum"
+                    ),
+                    color = tokens.gainInk
                 )
             }
-
-            SipCoreInputsSection(
-                monthlyInvestment = monthlyInvestment,
-                onMonthlyInvestmentChange = { monthlyInvestment = it },
-                expectedReturnRate = expectedReturnRate,
-                onExpectedReturnRateChange = { expectedReturnRate = it },
-                timePeriodYears = timePeriodYears,
-                onTimePeriodYearsChange = { timePeriodYears = it },
-                monthlyLabel = "Starting Monthly SIP",
-                returnLabel = "Expected Return (p.a)",
-                afterMonthlyContent = {
-                    CalculatorInput(
-                        label = "Annual Step-Up",
-                        value = annualStepUpPct,
-                        onValueChange = { annualStepUpPct = it },
-                        range = 0.0..30.0,
-                        symbol = "%"
-                    )
-                },
-                footerContent = {
-                    InflationAdjustmentControl(
-                        enabled = adjustForInflation,
-                        onEnabledChange = { adjustForInflation = it },
-                        inflationRate = inflationRate,
-                        onInflationRateChange = { inflationRate = it }
-                    )
-                }
-            )
-
-            SnackbarHost(hostState = snackbarHostState)
-            Spacer(modifier = Modifier.height(24.dp))
         }
+
+        SipCoreInputsSection(
+            monthlyInvestment = monthlyInvestment,
+            onMonthlyInvestmentChange = { monthlyInvestment = it },
+            expectedReturnRate = expectedReturnRate,
+            onExpectedReturnRateChange = { expectedReturnRate = it },
+            timePeriodYears = timePeriodYears,
+            onTimePeriodYearsChange = { timePeriodYears = it },
+            monthlyLabel = "Starting Monthly SIP",
+            returnLabel = "Expected Return (p.a)",
+            afterMonthlyContent = {
+                CalculatorInput(
+                    label = "Annual Step-Up",
+                    value = annualStepUpPct,
+                    onValueChange = { annualStepUpPct = it },
+                    range = 0.0..30.0,
+                    symbol = "%"
+                )
+            },
+            footerContent = {
+                InflationAdjustmentControl(
+                    enabled = adjustForInflation,
+                    onEnabledChange = { adjustForInflation = it },
+                    inflationRate = inflationRate,
+                    onInflationRateChange = { inflationRate = it }
+                )
+            }
+        )
+
+        WealthGrowthSplineChart(
+            title = "Compounding Trajectory",
+            points = shownPoints
+        )
+
+        NeonCard {
+            ResultRow("Flat Regular SIP Maturity", formatCompactINR(regTotal, inrFormat))
+            ResultRow("Step-Up SIP Maturity", formatCompactINR(stepUpProj.totalValue, inrFormat), isTotal = true)
+        }
+
+        SipGainsDonut(
+            invested = shownInvested,
+            returns = shownReturns
+        )
+
+        SnackbarHost(hostState = snackbarHostState)
     }
 }

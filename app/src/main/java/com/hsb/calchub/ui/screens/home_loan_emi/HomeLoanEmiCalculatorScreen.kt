@@ -4,14 +4,9 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -35,17 +30,16 @@ import com.hsb.calchub.data.repository.SavedScenario
 import com.hsb.calchub.di.LocalAppContainer
 import com.hsb.calchub.domain.logic.CalculatorLogic
 import com.hsb.calchub.domain.logic.loan.LoanScheduleCalculator
-import com.hsb.calchub.ui.components.CalculatorScaffold
+import com.hsb.calchub.ui.components.CalculatorScrollScaffold
 import com.hsb.calchub.ui.components.LoanAmortizationChart
-import com.hsb.calchub.ui.components.NeonCard
 import com.hsb.calchub.ui.components.SegmentedPillGroup
 import com.hsb.calchub.ui.components.formatCompactINR
+import com.hsb.calchub.ui.components.rememberInrFormat
 import com.hsb.calchub.ui.screens.emi.LoanDonutCard
 import com.hsb.calchub.ui.screens.emi.LoanInputsCard
 import com.hsb.calchub.ui.screens.emi.ResultCardWithLabels
 import com.hsb.calchub.ui.theme.LocalCalcHubTokens
 import kotlinx.coroutines.launch
-import java.text.NumberFormat
 import java.util.Locale
 import kotlin.math.roundToInt
 
@@ -86,11 +80,7 @@ fun HomeLoanEmiCalculatorScreen(onBackClick: () -> Unit) {
     val interestSaved = (baseTotalInterest - prepaySchedule.totalInterest).coerceAtLeast(0.0)
     val monthsSaved = (yearsInt * 12 - prepaySchedule.totalMonths).coerceAtLeast(0)
 
-    val inrFormat = remember {
-        NumberFormat.getCurrencyInstance(Locale.Builder().setLanguage("en").setRegion("IN").build()).apply {
-            maximumFractionDigits = 0
-        }
-    }
+    val inrFormat = rememberInrFormat()
     val compactLoan = remember(loanAmount) { formatCompactINR(loanAmount, inrFormat) }
     val compactSaved = remember(interestSaved) { formatCompactINR(interestSaved, inrFormat) }
 
@@ -124,103 +114,95 @@ fun HomeLoanEmiCalculatorScreen(onBackClick: () -> Unit) {
         }
     }
 
-    CalculatorScaffold(
+    CalculatorScrollScaffold(
         title = "Home Loan EMI",
         onBackClick = onBackClick,
         calculatorId = "home_loan_emi",
-        onSaveScenario = saveToVault
-    ) { paddingValues ->
+        onSaveScenario = saveToVault,
+        verticalSpacing = 14.dp,
+        bottomSpacerHeight = 24.dp
+    ) {
         val tokens = LocalCalcHubTokens.current
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+        SegmentedPillGroup(
+            options = HomeLoanPlanMode.entries,
+            selectedOption = mode,
+            onOptionSelected = { mode = it },
+            labelProvider = { it.label },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        ResultCardWithLabels(
+            label1 = "Monthly EMI",
+            value1 = emi,
+            label2 = "Principal Amount",
+            value2 = loanAmount,
+            label3 = if (isPrepay) "Interest (With +1 EMI/yr)" else "Total Interest",
+            value3 = displayedInterest,
+            label4 = "Total Outflow",
+            value4 = displayedTotal
+        )
+
+        Surface(
+            shape = RoundedCornerShape(tokens.cardCornerRadius),
+            color = tokens.gainBg,
+            border = BorderStroke(1.dp, tokens.gainInk.copy(alpha = 0.30f))
         ) {
-            SegmentedPillGroup(
-                options = HomeLoanPlanMode.entries,
-                selectedOption = mode,
-                onOptionSelected = { mode = it },
-                labelProvider = { it.label },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            ResultCardWithLabels(
-                label1 = "Monthly EMI",
-                value1 = emi,
-                label2 = "Principal Amount",
-                value2 = loanAmount,
-                label3 = if (isPrepay) "Interest (With +1 EMI/yr)" else "Total Interest",
-                value3 = displayedInterest,
-                label4 = "Total Outflow",
-                value4 = displayedTotal
-            )
-
-            Surface(
-                shape = RoundedCornerShape(tokens.cardCornerRadius),
-                color = tokens.gainBg,
-                border = BorderStroke(1.dp, tokens.gainInk.copy(alpha = 0.30f))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 14.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = if (isPrepay) "Prepayment Active" else "Prepay Hack: +1 Extra EMI / yr",
-                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                            color = tokens.gainInk
-                        )
-                        val yrsOff = monthsSaved / 12
-                        val mosOff = monthsSaved % 12
-                        Text(
-                            text = "Closes ${yrsOff}y ${mosOff}m sooner (${prepaySchedule.totalMonths} EMIs vs ${yearsInt * 12})",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = tokens.inkSecondary
-                        )
-                    }
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "-$compactSaved",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.ExtraBold,
-                            fontFeatureSettings = "tnum"
-                        ),
+                        text = if (isPrepay) "Prepayment Active" else "Prepay Hack: +1 Extra EMI / yr",
+                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
                         color = tokens.gainInk
                     )
+                    val yrsOff = monthsSaved / 12
+                    val mosOff = monthsSaved % 12
+                    Text(
+                        text = "Closes ${yrsOff}y ${mosOff}m sooner (${prepaySchedule.totalMonths} EMIs vs ${yearsInt * 12})",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = tokens.inkSecondary
+                    )
                 }
+                Text(
+                    text = "-$compactSaved",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.ExtraBold,
+                        fontFeatureSettings = "tnum"
+                    ),
+                    color = tokens.gainInk
+                )
             }
-
-            LoanAmortizationChart(
-                yearlyBreakdown = activeSchedule.yearlyBreakdown,
-                crossoverYear = activeSchedule.crossoverYear
-            )
-
-            LoanDonutCard(
-                principal = loanAmount,
-                interest = displayedInterest
-            )
-
-            LoanInputsCard(
-                loanAmount = loanAmount,
-                onLoanAmountChange = { loanAmount = it },
-                interestRate = interestRate,
-                onInterestRateChange = { interestRate = it },
-                tenureYears = tenureYears,
-                onTenureYearsChange = { tenureYears = it },
-                loanLabel = "Home Loan Amount",
-                loanRange = 500_000.0..50_000_000.0,
-                rateRange = 6.0..15.0,
-                tenureLabel = "Tenure",
-                tenureRange = 5.0..30.0
-            )
-
-            SnackbarHost(hostState = snackbarHostState)
-            Spacer(modifier = Modifier.height(24.dp))
         }
+
+        LoanInputsCard(
+            loanAmount = loanAmount,
+            onLoanAmountChange = { loanAmount = it },
+            interestRate = interestRate,
+            onInterestRateChange = { interestRate = it },
+            tenureYears = tenureYears,
+            onTenureYearsChange = { tenureYears = it },
+            loanLabel = "Home Loan Amount",
+            loanRange = 500_000.0..50_000_000.0,
+            rateRange = 6.0..15.0,
+            tenureLabel = "Tenure",
+            tenureRange = 5.0..30.0
+        )
+
+        LoanAmortizationChart(
+            yearlyBreakdown = activeSchedule.yearlyBreakdown,
+            crossoverYear = activeSchedule.crossoverYear
+        )
+
+        LoanDonutCard(
+            principal = loanAmount,
+            interest = displayedInterest
+        )
+
+        SnackbarHost(hostState = snackbarHostState)
     }
 }
