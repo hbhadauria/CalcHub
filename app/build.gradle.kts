@@ -30,6 +30,18 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    val releaseStoreFile = providers.environmentVariable("KEYSTORE_FILE").orNull
+    if (!releaseStoreFile.isNullOrBlank()) {
+        signingConfigs {
+            create("release") {
+                storeFile = file(releaseStoreFile)
+                storePassword = providers.environmentVariable("KEYSTORE_PASSWORD").orNull
+                keyAlias = providers.environmentVariable("KEY_ALIAS").orNull
+                keyPassword = providers.environmentVariable("KEY_PASSWORD").orNull
+            }
+        }
+    }
+
     buildTypes {
         release {
             // Enables code shrinking, obfuscation, and optimization
@@ -48,6 +60,8 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+
+            signingConfigs.findByName("release")?.let { signingConfig = it }
         }
     }
     compileOptions {

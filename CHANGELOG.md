@@ -2,7 +2,23 @@
 
 All notable changes to CalcHub will be documented in this file.
 
-## [Unreleased]
+## [3.1.0] - 2026-11-22
+
+### Added
+- **Minimal Black Theme**: Added a pure dark monochrome appearance option alongside Aurora, Ledger Paper, and Dot Matrix
+- **Inflation Adjustment**: Added an optional inflation toggle and rate control to SIP, Step-up SIP, and Lumpsum calculators to show inflation-adjusted purchasing power
+- **New Financial Calculators**: Added Capital Gains Tax (FY26), Goal SIP Planner, Loan Prepayment Savings, Credit Card Payoff, FIRE / Coast-FIRE, Buy vs. Rent, Spend vs. Invest, and Freelance Tax (Section 44ADA) calculators
+- **Upgraded Salary Calculator**: Added an instant CTC-to-in-hand estimation mode using FY26 New Regime slabs alongside custom pay components
+- **Popular Discovery & Offline Sharing**: Added a Popular filter orb on Home, one-tap offline result sharing in calculators, starter preset chips, and expandable plain-English financial term hints
+- **About & App Rating**: Added an About CalcHub dialog inside Appearance & Theme with version info, financial disclaimer, and a quick Play Store rating link
+
+### Changed
+- **Floating Bottom Navigation & Tools Tabs**: Switched the hub navigation bar to a floating overlay and updated Tools sub-tabs to an underline tab bar with cleaner segmented pills
+- **Theme Gradient Scoping**: Scoped background gradient presets exclusively to the Aurora theme where gradients apply
+- **Compact Result-First Layout**: Reordered calculator screens to show primary results above inputs and charts below, with tighter input spacing and configuration-safe state
+
+### Fixed
+- **Calculator Math & Edge Cases**: Audited and corrected calculations across GST inclusive, Flat vs. Reducing, SWP depletion, RD quarterly compounding, SSY tenure limits, EPF monthly accrual, APY slabs, and Income Tax regimes, with zero/negative/`NaN` guards and expanded unit tests
 
 ## [3.0.0] - 2026-11-17
 

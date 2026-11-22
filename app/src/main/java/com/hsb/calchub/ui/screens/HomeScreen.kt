@@ -31,6 +31,7 @@ import androidx.compose.material.icons.rounded.Calculate
 import androidx.compose.material.icons.rounded.Elderly
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
+import androidx.compose.material.icons.rounded.Whatshot
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -64,6 +65,7 @@ import com.hsb.calchub.ui.components.MorphingPolygonBadge
 import com.hsb.calchub.ui.components.NeonCard
 import com.hsb.calchub.ui.components.NeonSearch
 import com.hsb.calchub.ui.components.OdometerText
+import com.hsb.calchub.ui.components.floatingNavBottomPadding
 import com.hsb.calchub.ui.components.label
 import com.hsb.calchub.ui.components.shapeTypeForCategory
 import com.hsb.calchub.ui.theme.CalcHubSkin
@@ -80,6 +82,7 @@ private data class CategoryOrbItem(
 
 private val HOME_ORBS = listOf(
     CategoryOrbItem(null, "All", Icons.Rounded.Apps, CategoryPalettes.All),
+    CategoryOrbItem(CalculatorCategory.POPULAR, "Popular", Icons.Rounded.Whatshot, CategoryPalettes.All),
     CategoryOrbItem(CalculatorCategory.INVESTMENT, "Invest", Icons.AutoMirrored.Rounded.TrendingUp, CategoryPalettes.Investment),
     CategoryOrbItem(CalculatorCategory.LOAN, "Loan", Icons.Rounded.AccountBalance, CategoryPalettes.Loan),
     CategoryOrbItem(CalculatorCategory.TAX, "Tax", Icons.AutoMirrored.Rounded.ReceiptLong, CategoryPalettes.Tax),
@@ -90,7 +93,7 @@ private val HOME_ORBS = listOf(
 
 /**
  * Discovery hub featuring the live Continue Hero banner, morphing category polygon orbs,
- * instant 34-tool search, and skin-adaptive calculator grid/ledger rows.
+ * instant 42-tool search, and skin-adaptive calculator grid/ledger rows.
  */
 @Composable
 fun HomeScreen(
@@ -113,7 +116,11 @@ fun HomeScreen(
 
     val filteredCalculators = remember(searchQuery, selectedCategory) {
         allCalculators.filter { calc ->
-            val matchesCat = selectedCategory == null || calc.category == selectedCategory
+            val matchesCat = when (selectedCategory) {
+                null -> true
+                CalculatorCategory.POPULAR -> calc.isPopular
+                else -> calc.category == selectedCategory
+            }
             val q = searchQuery.trim()
             val matchesQuery = q.isEmpty() ||
                 calc.name.contains(q, ignoreCase = true) ||
@@ -125,16 +132,19 @@ fun HomeScreen(
         }
     }
 
-    val useTwoColumnAuroraGrid = tokens.skin == CalcHubSkin.AURORA && searchQuery.isBlank()
+    val useTwoColumnAuroraGrid =
+        (tokens.skin == CalcHubSkin.AURORA || tokens.skin == CalcHubSkin.MINIMAL_BLACK) && searchQuery.isBlank()
     val chunkedPairs = remember(filteredCalculators, useTwoColumnAuroraGrid) {
         if (useTwoColumnAuroraGrid) filteredCalculators.chunked(2) else emptyList()
     }
+
+    val bottomNavClearance = floatingNavBottomPadding()
 
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .imePadding(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 6.dp, bottom = 18.dp),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 6.dp, bottom = bottomNavClearance),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         if (searchQuery.isBlank() && selectedCategory == null) {
@@ -159,10 +169,10 @@ fun HomeScreen(
                 contentPadding = PaddingValues(vertical = 2.dp)
             ) {
                 items(HOME_ORBS, key = { it.label }) { orb ->
-                    val count = if (orb.category == null) {
-                        allCalculators.size
-                    } else {
-                        countsByCategory[orb.category] ?: 0
+                    val count = when (orb.category) {
+                        null -> allCalculators.size
+                        CalculatorCategory.POPULAR -> allCalculators.count { it.isPopular }
+                        else -> countsByCategory[orb.category] ?: 0
                     }
                     MorphingPolygonBadge(
                         label = orb.label,
@@ -194,7 +204,7 @@ fun HomeScreen(
                     shape = RoundedCornerShape(999.dp),
                     color = tokens.surfaceContainer
                 ) {
-                    val toolsCountLabel = if (filteredCalculators.size > 30) "30+" else filteredCalculators.size.toString()
+                    val toolsCountLabel = if (filteredCalculators.size > 40) "40+" else filteredCalculators.size.toString()
                     Text(
                         text = "$toolsCountLabel tools",
                         style = MaterialTheme.typography.labelSmall.copy(
@@ -321,7 +331,9 @@ private fun ContinueHeroBanner(
                             modifier = Modifier
                                 .size(8.dp)
                                 .clip(CircleShape)
-                                .background(palette.gradStart)
+                                .background(
+                                    if (tokens.skin == CalcHubSkin.MINIMAL_BLACK) tokens.accentPrimary else palette.gradStart
+                                )
                         )
                         Text(
                             text = "CONTINUE · ${cat.label().uppercase()}",
@@ -531,23 +543,33 @@ private fun CalculatorBadgeIcon(
     cornerRadius: androidx.compose.ui.unit.Dp,
     iconSize: androidx.compose.ui.unit.Dp
 ) {
-    Box(
-        modifier = Modifier
-            .size(40.dp)
-            .clip(RoundedCornerShape(cornerRadius))
-            .background(
-                Brush.linearGradient(
-                    listOf(gradStart, gradEnd)
-                )
-            ),
-        contentAlignment = Alignment.Center
+    val tokens = LocalCalcHubTokens.current
+    val isMinimalBlack = tokens.skin == CalcHubSkin.MINIMAL_BLACK
+    Surface(
+        modifier = Modifier.size(40.dp),
+        shape = RoundedCornerShape(cornerRadius),
+        color = Color.Transparent,
+        border = if (isMinimalBlack) BorderStroke(1.dp, tokens.cardBorder) else null
     ) {
-        Icon(
-            imageVector = calculator.icon,
-            contentDescription = null,
-            tint = Color.White,
-            modifier = Modifier.size(iconSize)
-        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    if (isMinimalBlack) {
+                        SolidColor(tokens.surfaceLow)
+                    } else {
+                        Brush.linearGradient(listOf(gradStart, gradEnd))
+                    }
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = calculator.icon,
+                contentDescription = null,
+                tint = if (isMinimalBlack) tokens.inkPrimary else Color.White,
+                modifier = Modifier.size(iconSize)
+            )
+        }
     }
 }
 

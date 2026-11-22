@@ -1,4 +1,5 @@
 package com.hsb.calchub.domain.logic.tax
+
 /**
  * Calculator logic for Goods and Services Tax (GST).
  * Calculates GST amount and total amount inclusive or exclusive of GST.
@@ -16,8 +17,21 @@ object GstCalculator {
      *  - Third: Total Amount (Base + GST)
      */
     fun calculate(amount: Double, gstRate: Double = 18.0, isInclusive: Boolean = false): Triple<Double, Double, Double> {
-        val gstAmount = if (isInclusive) amount - (amount / (1 + gstRate / 100)) else amount * (gstRate / 100)
-        val totalAmount = if (isInclusive) amount else amount + gstAmount
-        return Triple(amount, gstAmount, totalAmount)
+        if (!amount.isFinite() || !gstRate.isFinite() || amount <= 0.0 || gstRate < 0.0) {
+            return Triple(0.0, 0.0, 0.0)
+        }
+        val divisor = 1.0 + gstRate / 100.0
+        if (divisor <= 0.0) {
+            return Triple(0.0, 0.0, 0.0)
+        }
+        return if (isInclusive) {
+            val baseAmount = amount / divisor
+            val gstAmount = amount - baseAmount
+            Triple(baseAmount, gstAmount, amount)
+        } else {
+            val gstAmount = amount * (gstRate / 100.0)
+            val totalAmount = amount + gstAmount
+            Triple(amount, gstAmount, totalAmount)
+        }
     }
 }

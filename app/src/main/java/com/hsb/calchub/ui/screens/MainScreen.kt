@@ -39,6 +39,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hsb.calchub.di.LocalAppContainer
+import com.hsb.calchub.ui.components.AboutCalcHubDialog
 import com.hsb.calchub.ui.components.AppearanceThemeSheet
 import com.hsb.calchub.ui.components.NeonNavBar
 import com.hsb.calchub.ui.components.OfflinePrivacyDialog
@@ -70,6 +71,7 @@ fun MainScreen(
 
     var showThemeSheet by rememberSaveable { mutableStateOf(false) }
     var showPrivacyDialog by rememberSaveable { mutableStateOf(false) }
+    var showAboutDialog by rememberSaveable { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -83,18 +85,12 @@ fun MainScreen(
                     onOpenPrivacy = { showPrivacyDialog = true },
                     onOpenThemeSheet = { showThemeSheet = true }
                 )
-            },
-            bottomBar = {
-                NeonNavBar(
-                    selectedItem = activeTab,
-                    onItemSelected = setTab
-                )
             }
         ) { innerPadding ->
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding)
+                    .padding(top = innerPadding.calculateTopPadding())
             ) {
                 Crossfade(
                     targetState = activeTab,
@@ -118,6 +114,12 @@ fun MainScreen(
             }
         }
 
+        NeonNavBar(
+            selectedItem = activeTab,
+            onItemSelected = setTab,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
+
         if (showThemeSheet) {
             AppearanceThemeSheet(
                 preferences = themePrefs,
@@ -128,12 +130,20 @@ fun MainScreen(
                     showThemeSheet = false
                     showPrivacyDialog = true
                 },
+                onOpenAboutInfo = {
+                    showThemeSheet = false
+                    showAboutDialog = true
+                },
                 onDismiss = { showThemeSheet = false }
             )
         }
 
         if (showPrivacyDialog) {
             OfflinePrivacyDialog(onDismiss = { showPrivacyDialog = false })
+        }
+
+        if (showAboutDialog) {
+            AboutCalcHubDialog(onDismiss = { showAboutDialog = false })
         }
     }
 }
@@ -180,7 +190,7 @@ private fun HubTopHeader(
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = "30+ Financial Calculators",
+                    text = "40+ Financial Calculators",
                     style = MaterialTheme.typography.labelSmall,
                     color = tokens.inkSecondary,
                     maxLines = 1,

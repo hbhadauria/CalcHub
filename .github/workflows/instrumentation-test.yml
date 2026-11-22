@@ -1,9 +1,11 @@
-name: Run Instrumentation Tests
+name: Release - Instrumentation Tests
 
 # Trigger via manual dispatch or reusable workflow call from release.yml
 on:
   workflow_call:
   workflow_dispatch:
+
+permissions: {}
 
 jobs:
   instrumentation-test:
@@ -15,6 +17,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+        with:
+          persist-credentials: false
 
       - name: Set up Temurin JDK 25
         uses: actions/setup-java@v5

@@ -7,17 +7,15 @@ class ScssCalculatorTest {
 
     @Test
     fun `calculate SCSS returns correctly`() {
-        val investment = 100000.0
-        val interestRate = 8.2
-        
-        val result = ScssCalculator.calculate(investment, interestRate)
-        
-        // Quarterly Interest = (100000 * 8.2%) / 4 = 2050
-        // Yearly = 8200
-        // Total 5 Years = 41000
-        
+        val result = ScssCalculator.calculate(100000.0, 8.2)
         assertEquals(100000.0, result.first, 0.01)
         assertEquals(41000.0, result.second, 0.01)
         assertEquals(141000.0, result.third, 0.01)
+    }
+
+    @Test
+    fun `calculate SCSS guards negative and zero inputs`() {
+        assertEquals(0.0, ScssCalculator.calculate(-5000.0, 8.2).third, 0.01)
+        assertEquals(0.0, ScssCalculator.calculate(100000.0, -2.0).third, 0.01)
     }
 }

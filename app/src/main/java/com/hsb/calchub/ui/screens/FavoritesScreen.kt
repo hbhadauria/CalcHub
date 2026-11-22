@@ -49,6 +49,7 @@ import com.hsb.calchub.di.LocalAppContainer
 import com.hsb.calchub.domain.model.allCalculators
 import com.hsb.calchub.ui.components.NeonCard
 import com.hsb.calchub.ui.components.NeonSearch
+import com.hsb.calchub.ui.components.floatingNavBottomPadding
 import com.hsb.calchub.ui.components.label
 import com.hsb.calchub.ui.theme.CategoryPalettes
 import com.hsb.calchub.ui.theme.LocalCalcHubTokens
@@ -78,11 +79,13 @@ fun FavoritesScreen(
         }
     }
 
+    val bottomNavClearance = floatingNavBottomPadding()
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .imePadding(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 6.dp, bottom = 18.dp),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 6.dp, bottom = bottomNavClearance),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item(key = "fav_header") {

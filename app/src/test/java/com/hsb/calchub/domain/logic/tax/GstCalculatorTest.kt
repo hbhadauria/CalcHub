@@ -7,33 +7,28 @@ class GstCalculatorTest {
 
     @Test
     fun `calculate GST exclusive returns correctly`() {
-        val amount = 1000.0
-        val gstRate = 18.0
-        val isInclusive = false
-        
-        val result = GstCalculator.calculate(amount, gstRate, isInclusive)
-        
-        // GST = 1000 * 18% = 180
-        // Total = 1180
-        
+        val result = GstCalculator.calculate(1000.0, 18.0, isInclusive = false)
         assertEquals(1000.0, result.first, 0.01)
         assertEquals(180.0, result.second, 0.01)
         assertEquals(1180.0, result.third, 0.01)
     }
 
     @Test
-    fun `calculate GST inclusive returns correctly`() {
-        val amount = 1180.0
-        val gstRate = 18.0
-        val isInclusive = true
-        
-        val result = GstCalculator.calculate(amount, gstRate, isInclusive)
-        
-        // Original Amount = 1180 / (1 + 18/100) = 1180 / 1.18 = 1000
-        // GST = 1180 - 1000 = 180
-        
-        assertEquals(1180.0, result.first, 0.01)
+    fun `calculate GST inclusive extracts base amount and GST accurately`() {
+        val result = GstCalculator.calculate(1180.0, 18.0, isInclusive = true)
+        assertEquals(1000.0, result.first, 0.01)
         assertEquals(180.0, result.second, 0.01)
-        assertEquals(1180.0, result.third, 0.01) // Total amount remains same as input for inclusive
+        assertEquals(1180.0, result.third, 0.01)
+    }
+
+    @Test
+    fun `calculate GST guards against zero rate and invalid inputs`() {
+        val zeroRate = GstCalculator.calculate(1000.0, 0.0, isInclusive = true)
+        assertEquals(1000.0, zeroRate.first, 0.01)
+        assertEquals(0.0, zeroRate.second, 0.01)
+        assertEquals(1000.0, zeroRate.third, 0.01)
+
+        assertEquals(0.0, GstCalculator.calculate(-100.0, 18.0, false).third, 0.01)
+        assertEquals(0.0, GstCalculator.calculate(1000.0, -5.0, true).third, 0.01)
     }
 }

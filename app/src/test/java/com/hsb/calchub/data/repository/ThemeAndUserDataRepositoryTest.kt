@@ -43,6 +43,9 @@ class ThemeAndUserDataRepositoryTest {
         assertEquals(CalcHubSkin.LEDGER, reloaded.preferences.value.skin)
         assertEquals(ThemePolarity.DARK, reloaded.preferences.value.polarity)
         assertEquals(GradientMode.SUNSET, reloaded.preferences.value.gradientMode)
+
+        repo.setSkin(CalcHubSkin.MINIMAL_BLACK)
+        assertEquals(CalcHubSkin.MINIMAL_BLACK, ThemeRepository(context).preferences.value.skin)
     }
 
     @Test

@@ -23,13 +23,20 @@ object PpfCalculator {
         interestRate: Double,
         timePeriodYears: Double = 15.0
     ): Triple<Double, Double, Double> {
-        val i = interestRate / 100
+        if (!yearlyInvestment.isFinite() || !interestRate.isFinite() || !timePeriodYears.isFinite() ||
+            yearlyInvestment <= 0.0 || timePeriodYears <= 0.0 || interestRate < 0.0
+        ) {
+            return Triple(0.0, 0.0, 0.0)
+        }
         val n = timePeriodYears
-        
-        val totalValue = yearlyInvestment * ((1 + i).pow(n) - 1) / i * (1 + i)
         val investedAmount = yearlyInvestment * n
+        val totalValue = if (interestRate == 0.0) {
+            investedAmount
+        } else {
+            val i = interestRate / 100.0
+            yearlyInvestment * ((1.0 + i).pow(n) - 1.0) / i * (1.0 + i)
+        }
         val estimatedReturns = totalValue - investedAmount
-        
         return Triple(investedAmount, estimatedReturns, totalValue)
     }
 }

@@ -9,7 +9,8 @@ import com.hsb.calchub.domain.model.CalculatorCategory
 enum class CalcHubSkin(val title: String, val subtitle: String) {
     AURORA("Aurora", "Vibrant colors with smooth modern cards"),
     LEDGER("Ledger Paper", "Warm paper tones with classic print styling"),
-    MATRIX("Dot Matrix", "Retro digital display with high contrast")
+    MATRIX("Dot Matrix", "Retro digital display with high contrast"),
+    MINIMAL_BLACK("Minimal Black", "Pure AMOLED black with clean monochrome contrast")
 }
 
 /**
@@ -53,7 +54,7 @@ data class CategoryAccentPalette(
 object CategoryPalettes {
     val All = CategoryAccentPalette(
         category = CalculatorCategory.POPULAR,
-        label = "All 30+",
+        label = "All 40+",
         gradStart = Color(0xFF475569),
         gradEnd = Color(0xFF1E293B),
         badgeGradStart = Color(0xFF334155),

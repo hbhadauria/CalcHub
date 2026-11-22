@@ -1,4 +1,5 @@
 package com.hsb.calchub.domain.logic.trading
+
 /**
  * Calculator logic for Stock Brokerage.
  * Calculates the total brokerage and taxes for equity delivery or intraday trades.
@@ -16,9 +17,14 @@ object BrokerageCalculator {
      *  - Third: Net Value (Trade Value - Charges)
      */
     fun calculate(tradeValue: Double, brokerageRate: Double = 0.03, isIntraday: Boolean = false): Triple<Double, Double, Double> {
-        val brokerage = tradeValue * (brokerageRate / 100)
+        if (!tradeValue.isFinite() || !brokerageRate.isFinite() ||
+            tradeValue <= 0.0 || brokerageRate < 0.0
+        ) {
+            return Triple(0.0, 0.0, 0.0)
+        }
+        val brokerage = tradeValue * (brokerageRate / 100.0)
         val stt = if (isIntraday) tradeValue * 0.00025 else tradeValue * 0.001
         val totalCharges = brokerage + stt
-        return Triple(tradeValue, totalCharges, tradeValue - totalCharges)
+        return Triple(tradeValue, totalCharges, (tradeValue - totalCharges).coerceAtLeast(0.0))
     }
 }

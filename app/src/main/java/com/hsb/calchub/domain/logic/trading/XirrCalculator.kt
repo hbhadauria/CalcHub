@@ -1,4 +1,5 @@
 package com.hsb.calchub.domain.logic.trading
+
 /**
  * Calculator logic for XIRR (Extended Internal Rate of Return).
  * Simplified implementation for return percentage calculation.
@@ -15,9 +16,17 @@ object XirrCalculator {
      *  - Third: Return Percentage
      */
     fun calculate(investments: List<Double>, returns: Double): Triple<Double, Double, Double> {
+        if (!returns.isFinite() || returns < 0.0 || investments.isEmpty() ||
+            investments.any { !it.isFinite() || it < 0.0 }
+        ) {
+            return Triple(0.0, 0.0, 0.0)
+        }
         val totalInvested = investments.sum()
+        if (totalInvested <= 0.0) {
+            return Triple(0.0, 0.0, 0.0)
+        }
         val profit = returns - totalInvested
-        val returnPercent = (profit / totalInvested) * 100
+        val returnPercent = (profit / totalInvested) * 100.0
         return Triple(totalInvested, profit, returnPercent)
     }
 }

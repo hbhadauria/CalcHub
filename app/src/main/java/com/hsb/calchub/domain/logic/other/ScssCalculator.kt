@@ -1,4 +1,5 @@
 package com.hsb.calchub.domain.logic.other
+
 /**
  * Calculator logic for Senior Citizens Savings Scheme (SCSS).
  * SCSS is a government-backed retirement benefits program.
@@ -15,9 +16,14 @@ object ScssCalculator {
      *  - Third: Total Amount (Principal + Interest)
      */
     fun calculate(investment: Double, interestRate: Double = 8.2): Triple<Double, Double, Double> {
+        if (!investment.isFinite() || !interestRate.isFinite() ||
+            investment <= 0.0 || interestRate < 0.0
+        ) {
+            return Triple(0.0, 0.0, 0.0)
+        }
         val tenure = 5.0
-        val quarterlyInterest = (investment * interestRate / 100) / 4
-        val yearlyInterest = quarterlyInterest * 4
+        val quarterlyInterest = (investment * interestRate / 100.0) / 4.0
+        val yearlyInterest = quarterlyInterest * 4.0
         val totalInterest = yearlyInterest * tenure
         return Triple(investment, totalInterest, investment + totalInterest)
     }

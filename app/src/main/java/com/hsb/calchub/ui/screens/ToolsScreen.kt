@@ -2,6 +2,7 @@ package com.hsb.calchub.ui.screens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,6 +28,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -46,6 +48,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -61,7 +68,7 @@ import com.hsb.calchub.ui.components.CalculatorInput
 import com.hsb.calchub.ui.components.NeonCard
 import com.hsb.calchub.ui.components.NeonSearch
 import com.hsb.calchub.ui.components.ResultRow
-import com.hsb.calchub.ui.components.SegmentedPillGroup
+import com.hsb.calchub.ui.components.floatingNavBottomPadding
 import com.hsb.calchub.ui.components.formatCompactINR
 import com.hsb.calchub.ui.components.label
 import com.hsb.calchub.ui.theme.CategoryPalettes
@@ -106,20 +113,16 @@ fun ToolsScreen(
             color = tokens.inkPrimary
         )
         Text(
-            text = "Quick utilities, strategy compare, local vault & 30+ formulas",
+            text = "Quick utilities, strategy compare, local vault & 40+ formulas",
             style = MaterialTheme.typography.bodySmall,
             color = tokens.inkSecondary
         )
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        SegmentedPillGroup(
-            options = ToolsLabTab.entries,
-            selectedOption = activeTab,
-            onOptionSelected = { tab -> userDataRepository.setSelectedToolsTab(tab.ordinal) },
-            labelProvider = { it.label },
-            compact = true,
-            modifier = Modifier.fillMaxWidth()
+        ToolsUnderlineTabBar(
+            activeTab = activeTab,
+            onTabSelected = { tab -> userDataRepository.setSelectedToolsTab(tab.ordinal) }
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -130,6 +133,57 @@ fun ToolsScreen(
             ToolsLabTab.VAULT -> ToolsVaultSection(onCalculatorClick = onCalculatorClick)
             ToolsLabTab.FORMULAS -> ToolsFormulasSection(onCalculatorClick = onCalculatorClick)
         }
+    }
+}
+
+@Composable
+private fun ToolsUnderlineTabBar(
+    activeTab: ToolsLabTab,
+    onTabSelected: (ToolsLabTab) -> Unit
+) {
+    val tokens = LocalCalcHubTokens.current
+    val haptic = LocalHapticFeedback.current
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            ToolsLabTab.entries.forEach { tab ->
+                val isSelected = tab == activeTab
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
+                        .semantics { this.selected = isSelected }
+                        .clickable(role = Role.Tab) {
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            onTabSelected(tab)
+                        }
+                        .padding(top = 6.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = tab.label,
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                        ),
+                        color = if (isSelected) tokens.accentPrimary else tokens.inkSecondary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(0.72f)
+                            .height(2.5.dp)
+                            .clip(RoundedCornerShape(999.dp))
+                            .background(if (isSelected) tokens.accentPrimary else Color.Transparent)
+                    )
+                }
+            }
+        }
+        HorizontalDivider(color = tokens.cardBorder)
     }
 }
 
@@ -159,8 +213,10 @@ private fun ToolsUtilitiesSection() {
 
     val realReturnPct = (((1.0 + expectedReturn / 100.0) / (1.0 + inflationRate / 100.0)) - 1.0) * 100.0
 
+    val bottomNavClearance = floatingNavBottomPadding()
+
     LazyColumn(
-        contentPadding = PaddingValues(bottom = 18.dp),
+        contentPadding = PaddingValues(bottom = bottomNavClearance),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         item(key = "util_inr_converter") {
@@ -314,8 +370,10 @@ private fun ToolsCompareSection(
     val delta = sipFinal - loanTotalAvoided
     val sipWins = delta >= 0.0
 
+    val bottomNavClearance = floatingNavBottomPadding()
+
     LazyColumn(
-        contentPadding = PaddingValues(bottom = 18.dp),
+        contentPadding = PaddingValues(bottom = bottomNavClearance),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         item(key = "compare_verdict") {
@@ -479,8 +537,10 @@ private fun ToolsVaultSection(
 
     val scenarios by userDataRepository.savedScenarios.collectAsStateWithLifecycle()
 
+    val bottomNavClearance = floatingNavBottomPadding()
+
     LazyColumn(
-        contentPadding = PaddingValues(bottom = 18.dp),
+        contentPadding = PaddingValues(bottom = bottomNavClearance),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item(key = "vault_header") {
@@ -667,15 +727,17 @@ private fun ToolsFormulasSection(
         }
     }
 
+    val bottomNavClearance = floatingNavBottomPadding()
+
     LazyColumn(
-        contentPadding = PaddingValues(bottom = 18.dp),
+        contentPadding = PaddingValues(bottom = bottomNavClearance),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         item(key = "formula_search") {
             NeonSearch(
                 query = formulaSearch,
                 onQueryChange = { formulaSearch = it },
-                placeholder = "Search 30+ financial formulas (FV, EMI, XIRR...)"
+                placeholder = "Search 40+ financial formulas (FV, EMI, XIRR...)"
             )
         }
 
@@ -688,13 +750,21 @@ private fun ToolsFormulasSection(
                         onClick = { selectedCategory = cat },
                         label = {
                             Text(
-                                text = cat?.label() ?: "All 30+",
+                                text = cat?.label() ?: "All 40+",
                                 style = MaterialTheme.typography.labelMedium
                             )
                         },
                         colors = FilterChipDefaults.filterChipColors(
+                            containerColor = tokens.surfaceLow,
+                            labelColor = tokens.inkPrimary,
                             selectedContainerColor = tokens.accentContainer,
                             selectedLabelColor = tokens.onAccentContainer
+                        ),
+                        border = FilterChipDefaults.filterChipBorder(
+                            enabled = true,
+                            selected = selected,
+                            borderColor = tokens.cardBorder,
+                            selectedBorderColor = tokens.accentPrimary
                         )
                     )
                 }

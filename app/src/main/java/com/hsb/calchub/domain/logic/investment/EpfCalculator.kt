@@ -1,10 +1,10 @@
 package com.hsb.calchub.domain.logic.investment
 
-import kotlin.math.pow
+import kotlin.math.roundToInt
 
 /**
  * Calculator logic for Employee Provident Fund (EPF).
- * EPF is a retirement savings scheme for salaried employees in India.
+ * Models monthly EPF contributions with monthly interest accrual credited at the end of each 12-month year.
  */
 object EpfCalculator {
     /**
@@ -23,14 +23,36 @@ object EpfCalculator {
         interestRate: Double = 8.25,
         timePeriodYears: Double
     ): Triple<Double, Double, Double> {
-        val i = interestRate / 100
-        val n = timePeriodYears
-        val yearlyContribution = monthlyContribution * 12
-        
-        val totalValue = yearlyContribution * ((1 + i).pow(n) - 1) / i * (1 + i)
-        val investedAmount = yearlyContribution * n
-        val estimatedReturns = totalValue - investedAmount
-        
-        return Triple(investedAmount, estimatedReturns, totalValue)
+        if (!monthlyContribution.isFinite() || !interestRate.isFinite() || !timePeriodYears.isFinite() ||
+            monthlyContribution <= 0.0 || timePeriodYears <= 0.0 || interestRate < 0.0
+        ) {
+            return Triple(0.0, 0.0, 0.0)
+        }
+
+        val totalMonths = (timePeriodYears * 12.0).roundToInt().coerceAtLeast(0)
+        if (totalMonths == 0) {
+            return Triple(0.0, 0.0, 0.0)
+        }
+        val investedAmount = monthlyContribution * totalMonths
+        if (interestRate == 0.0) {
+            return Triple(investedAmount, 0.0, investedAmount)
+        }
+
+        val monthlyRate = (interestRate / 100.0) / 12.0
+        var balance = 0.0
+        var accruedYearInterest = 0.0
+
+        for (m in 1..totalMonths) {
+            balance += monthlyContribution
+            accruedYearInterest += balance * monthlyRate
+            if (m % 12 == 0) {
+                balance += accruedYearInterest
+                accruedYearInterest = 0.0
+            }
+        }
+        balance += accruedYearInterest
+
+        val estimatedReturns = balance - investedAmount
+        return Triple(investedAmount, estimatedReturns, balance)
     }
 }

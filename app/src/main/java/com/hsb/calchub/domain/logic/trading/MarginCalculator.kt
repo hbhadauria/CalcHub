@@ -1,4 +1,5 @@
 package com.hsb.calchub.domain.logic.trading
+
 /**
  * Calculator logic for Trading Margin.
  * Calculates the margin required to take a position based on leverage.
@@ -16,9 +17,13 @@ object MarginCalculator {
      *  - Third: Total Value (Same as Exposure)
      */
     fun calculate(quantity: Double, price: Double, leverage: Double = 5.0): Triple<Double, Double, Double> {
+        if (!quantity.isFinite() || !price.isFinite() || !leverage.isFinite() ||
+            quantity <= 0.0 || price <= 0.0 || leverage <= 0.0
+        ) {
+            return Triple(0.0, 0.0, 0.0)
+        }
         val totalValue = quantity * price
         val marginRequired = totalValue / leverage
-        val exposure = totalValue
-        return Triple(marginRequired, exposure, totalValue)
+        return Triple(marginRequired, totalValue, totalValue)
     }
 }

@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.sp
  */
 fun calcHubTypography(skin: CalcHubSkin): Typography {
     val displayFamily = when (skin) {
-        CalcHubSkin.AURORA -> FontFamily.SansSerif
+        CalcHubSkin.AURORA, CalcHubSkin.MINIMAL_BLACK -> FontFamily.SansSerif
         CalcHubSkin.LEDGER -> FontFamily.Serif
         CalcHubSkin.MATRIX -> FontFamily.Monospace
     }

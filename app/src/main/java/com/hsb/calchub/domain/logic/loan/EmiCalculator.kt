@@ -23,18 +23,20 @@ object EmiCalculator {
         interestRate: Double,
         tenureYears: Double
     ): Triple<Double, Double, Double> {
-        val r = interestRate / 12 / 100
-        val n = tenureYears * 12
-        
+        if (!loanAmount.isFinite() || !interestRate.isFinite() || !tenureYears.isFinite() ||
+            loanAmount <= 0.0 || tenureYears <= 0.0 || interestRate < 0.0
+        ) {
+            return Triple(0.0, 0.0, 0.0)
+        }
+        val n = tenureYears * 12.0
         val emi = if (interestRate == 0.0) {
             loanAmount / n
         } else {
-            (loanAmount * r * (1 + r).pow(n)) / ((1 + r).pow(n) - 1)
+            val r = interestRate / 12.0 / 100.0
+            (loanAmount * r * (1.0 + r).pow(n)) / ((1.0 + r).pow(n) - 1.0)
         }
-        
         val totalAmountPayable = emi * n
         val totalInterest = totalAmountPayable - loanAmount
-        
         return Triple(emi, totalInterest, totalAmountPayable)
     }
 }

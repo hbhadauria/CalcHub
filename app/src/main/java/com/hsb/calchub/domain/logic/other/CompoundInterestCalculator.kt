@@ -1,5 +1,7 @@
 package com.hsb.calchub.domain.logic.other
+
 import kotlin.math.pow
+
 /**
  * Calculator logic for Compound Interest.
  * Compound interest is the interest on a loan or deposit calculated based on both the initial principal and the accumulated interest from previous periods.
@@ -18,10 +20,15 @@ object CompoundInterestCalculator {
      *  - Third: Total Amount (Principal + Interest)
      */
     fun calculate(principal: Double, rate: Double, timeYears: Double, compoundingFrequency: Int = 1): Triple<Double, Double, Double> {
-        val r = rate / 100
-        val n = compoundingFrequency
+        if (!principal.isFinite() || !rate.isFinite() || !timeYears.isFinite() ||
+            principal <= 0.0 || rate < 0.0 || timeYears < 0.0
+        ) {
+            return Triple(0.0, 0.0, 0.0)
+        }
+        val r = rate / 100.0
+        val n = compoundingFrequency.coerceAtLeast(1)
         val t = timeYears
-        val totalValue = principal * (1 + r / n).pow(n * t)
+        val totalValue = principal * (1.0 + r / n).pow(n * t)
         val interest = totalValue - principal
         return Triple(principal, interest, totalValue)
     }

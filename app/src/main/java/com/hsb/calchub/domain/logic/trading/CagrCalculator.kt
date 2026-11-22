@@ -1,5 +1,7 @@
 package com.hsb.calchub.domain.logic.trading
+
 import kotlin.math.pow
+
 /**
  * Calculator logic for Compound Annual Growth Rate (CAGR).
  * CAGR is the mean annual growth rate of an investment over a specified time period longer than one year.
@@ -17,8 +19,13 @@ object CagrCalculator {
      *  - Third: Absolute Profit/Loss
      */
     fun calculate(initialValue: Double, finalValue: Double, years: Double): Triple<Double, Double, Double> {
-        val cagr = ((finalValue / initialValue).pow(1 / years) - 1) * 100
-        val totalReturn = ((finalValue - initialValue) / initialValue) * 100
+        if (!initialValue.isFinite() || !finalValue.isFinite() || !years.isFinite() ||
+            initialValue <= 0.0 || finalValue < 0.0 || years <= 0.0
+        ) {
+            return Triple(0.0, 0.0, 0.0)
+        }
+        val cagr = ((finalValue / initialValue).pow(1.0 / years) - 1.0) * 100.0
+        val totalReturn = ((finalValue - initialValue) / initialValue) * 100.0
         return Triple(cagr, totalReturn, finalValue - initialValue)
     }
 }

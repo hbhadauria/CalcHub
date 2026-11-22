@@ -79,6 +79,7 @@ fun buildCalcHubTokens(
     CalcHubSkin.AURORA -> buildAuroraTokens(isDark, gradientMode, category)
     CalcHubSkin.LEDGER -> buildLedgerTokens(isDark, gradientMode, category)
     CalcHubSkin.MATRIX -> buildMatrixTokens(isDark, gradientMode, category)
+    CalcHubSkin.MINIMAL_BLACK -> buildMinimalBlackTokens(isDark, gradientMode, category)
 }
 
 private fun buildAuroraTokens(
@@ -211,6 +212,48 @@ private fun buildMatrixTokens(
         chartStart = chartG,
         chartEnd = accent,
         useGradientFill = true
+    )
+}
+
+private fun buildMinimalBlackTokens(
+    isDark: Boolean,
+    gradientMode: GradientMode,
+    category: CalculatorCategory
+): CalcHubDesignTokens {
+    val heroSolid = pickColor(isDark, Color(0xFF0D0D0D), Color(0xFFFAFAFA))
+    return CalcHubDesignTokens(
+        skin = CalcHubSkin.MINIMAL_BLACK,
+        isDark = isDark,
+        gradientMode = gradientMode,
+        activeCategory = category,
+        appBackground = pickColor(isDark, Color(0xFF000000), Color(0xFFFFFFFF)),
+        surfaceLowest = pickColor(isDark, Color(0xFF0D0D0D), Color(0xFFFAFAFA)),
+        surfaceLow = pickColor(isDark, Color(0xFF161616), Color(0xFFF4F4F5)),
+        surfaceContainer = pickColor(isDark, Color(0xFF1C1C1F), Color(0xFFE4E4E7)),
+        surfaceHigh = pickColor(isDark, Color(0xFF27272A), Color(0xFFD4D4D8)),
+        surfaceToolbar = pickColor(isDark, Color(0xFF000000), Color(0xFFFAFAFA)),
+        inkPrimary = pickColor(isDark, Color(0xFFFFFFFF), Color(0xFF09090B)),
+        inkSecondary = pickColor(isDark, Color(0xFFA1A1AA), Color(0xFF52525B)),
+        inkMuted = pickColor(isDark, Color(0xFF71717A), Color(0xFF71717A)),
+        accentPrimary = pickColor(isDark, Color(0xFFFFFFFF), Color(0xFF09090B)),
+        onAccent = pickColor(isDark, Color(0xFF000000), Color(0xFFFFFFFF)),
+        accentContainer = pickColor(isDark, Color(0xFF1F1F23), Color(0xFFE4E4E7)),
+        onAccentContainer = pickColor(isDark, Color(0xFFFFFFFF), Color(0xFF09090B)),
+        gainInk = pickColor(isDark, Color(0xFFE4E4E7), Color(0xFF18181B)),
+        gainBg = pickColor(isDark, Color(0xFF18181B), Color(0xFFF4F4F5)),
+        lossInk = pickColor(isDark, Color(0xFFD4D4D8), Color(0xFF3F3F46)),
+        lossBg = pickColor(isDark, Color(0xFF1F1F23), Color(0xFFE4E4E7)),
+        cardBorder = pickColor(isDark, Color(0x1FFFFFFF), Color(0x1F09090B)),
+        trackBg = pickColor(isDark, Color(0xFF27272A), Color(0xFFD4D4D8)),
+        highlightBg = Color.Transparent,
+        heroCornerRadius = 18.dp,
+        cardCornerRadius = 14.dp,
+        pillCornerRadius = 999.dp,
+        heroWashStart = heroSolid,
+        heroWashEnd = heroSolid,
+        chartStart = pickColor(isDark, Color(0xFFFFFFFF), Color(0xFF09090B)),
+        chartEnd = Color(0xFF71717A),
+        useGradientFill = false
     )
 }
 

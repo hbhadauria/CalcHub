@@ -6,14 +6,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
@@ -40,18 +35,16 @@ import com.hsb.calchub.data.repository.SavedScenario
 import com.hsb.calchub.di.LocalAppContainer
 import com.hsb.calchub.domain.logic.CalculatorLogic
 import com.hsb.calchub.ui.components.CalculatorInput
-import com.hsb.calchub.ui.components.CalculatorScaffold
-import com.hsb.calchub.ui.components.DonutChart
-import com.hsb.calchub.ui.components.DonutChartData
+import com.hsb.calchub.ui.components.CalculatorScrollScaffold
 import com.hsb.calchub.ui.components.FireTimelineChart
+import com.hsb.calchub.ui.components.InvestedReturnsDonutCard
 import com.hsb.calchub.ui.components.NeonCard
 import com.hsb.calchub.ui.components.OdometerText
 import com.hsb.calchub.ui.components.ResultRow
 import com.hsb.calchub.ui.components.formatCompactINR
+import com.hsb.calchub.ui.components.rememberInrFormat
 import com.hsb.calchub.ui.theme.LocalCalcHubTokens
 import kotlinx.coroutines.launch
-import java.text.NumberFormat
-import java.util.Locale
 import kotlin.math.roundToInt
 
 /**
@@ -93,11 +86,7 @@ fun RetirementCalculatorScreen(onBackClick: () -> Unit) {
     val totalContributed = safeMonthlySip * yearsToRetire * 12.0
     val wealthCompounded = (safeCorpus - totalContributed).coerceAtLeast(0.0)
 
-    val inrFormat = remember {
-        NumberFormat.getCurrencyInstance(Locale.Builder().setLanguage("en").setRegion("IN").build()).apply {
-            maximumFractionDigits = 0
-        }
-    }
+    val inrFormat = rememberInrFormat()
     val compactCorpus = remember(safeCorpus) { formatCompactINR(safeCorpus, inrFormat) }
     val compactSip = remember(safeMonthlySip) { formatCompactINR(safeMonthlySip, inrFormat) }
 
@@ -131,131 +120,116 @@ fun RetirementCalculatorScreen(onBackClick: () -> Unit) {
         }
     }
 
-    CalculatorScaffold(
+    CalculatorScrollScaffold(
         title = "Retirement / FIRE",
         onBackClick = onBackClick,
         calculatorId = "retirement",
-        onSaveScenario = saveToVault
-    ) { paddingValues ->
+        onSaveScenario = saveToVault,
+        verticalSpacing = 14.dp,
+        bottomSpacerHeight = 24.dp
+    ) {
         val tokens = LocalCalcHubTokens.current
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+        NeonCard(
+            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+            useGradientBorder = true
         ) {
-            NeonCard(
-                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-                useGradientBorder = true
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .clip(CircleShape)
-                            .background(tokens.accentPrimary)
-                    )
-                    Text(
-                        text = "TARGET CORPUS AT AGE ${safeRetireAge.roundToInt()}",
-                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                        color = tokens.accentPrimary
-                    )
-                }
-                Spacer(modifier = Modifier.height(6.dp))
-                OdometerText(
-                    text = compactCorpus,
-                    style = MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.ExtraBold),
-                    color = tokens.inkPrimary,
-                    highlightLedger = true,
-                    useDotMatrixInMatrixSkin = true
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .clip(CircleShape)
+                        .background(tokens.accentPrimary)
                 )
-                Spacer(modifier = Modifier.height(10.dp))
-                HorizontalDivider(color = tokens.cardBorder)
-                Spacer(modifier = Modifier.height(10.dp))
-                ResultRow("Monthly SIP Needed", "${inrFormat.format(safeMonthlySip)}/mo", isTotal = true)
-                ResultRow(
-                    "Annual Expense @ ${safeRetireAge.roundToInt()}",
-                    formatCompactINR(if (futureAnnualExpenses.isFinite()) futureAnnualExpenses else 0.0, inrFormat)
+                Text(
+                    text = "TARGET CORPUS AT AGE ${safeRetireAge.roundToInt()}",
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                    color = tokens.accentPrimary
                 )
-                ResultRow("Accumulation Horizon", "${yearsToRetire.roundToInt()} yrs")
             }
-
-            FireTimelineChart(
-                currentAge = safeCurrentAge.roundToInt(),
-                retireAge = safeRetireAge.roundToInt()
+            Spacer(modifier = Modifier.height(6.dp))
+            OdometerText(
+                text = compactCorpus,
+                style = MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.ExtraBold),
+                color = tokens.inkPrimary,
+                highlightLedger = true,
+                useDotMatrixInMatrixSkin = true
             )
-
-            NeonCard {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    DonutChart(
-                        data = listOf(
-                            DonutChartData(totalContributed, tokens.chartStart, "SIP Invested"),
-                            DonutChartData(wealthCompounded, tokens.chartEnd, "Compounding")
-                        ),
-                        centerLabelText = "Corpus Split"
-                    )
-                }
-            }
-
-            NeonCard {
-                CalculatorInput(
-                    label = "Current Age",
-                    value = safeCurrentAge,
-                    onValueChange = { next ->
-                        currentAge = next
-                        if (retirementAge <= next) {
-                            retirementAge = (next + 1.0).coerceAtMost(75.0)
-                        }
-                    },
-                    range = 18.0..60.0,
-                    symbol = "Yr"
-                )
-                Spacer(modifier = Modifier.height(14.dp))
-                CalculatorInput(
-                    label = "Target Retirement Age",
-                    value = safeRetireAge,
-                    onValueChange = { next ->
-                        retirementAge = next.coerceAtLeast(safeCurrentAge + 1.0)
-                    },
-                    range = (safeCurrentAge + 1.0).coerceAtMost(74.0)..75.0,
-                    symbol = "Yr"
-                )
-                Spacer(modifier = Modifier.height(14.dp))
-                CalculatorInput(
-                    label = "Current Monthly Expenses",
-                    value = monthlyExpenses,
-                    onValueChange = { monthlyExpenses = it },
-                    range = 10_000.0..300_000.0,
-                    symbol = "₹"
-                )
-                Spacer(modifier = Modifier.height(14.dp))
-                CalculatorInput(
-                    label = "Expected Inflation (p.a)",
-                    value = inflationRate,
-                    onValueChange = { inflationRate = it },
-                    range = 3.0..12.0,
-                    symbol = "%"
-                )
-                Spacer(modifier = Modifier.height(14.dp))
-                CalculatorInput(
-                    label = "Expected Return (p.a)",
-                    value = expectedReturn,
-                    onValueChange = { expectedReturn = it },
-                    range = 6.0..18.0,
-                    symbol = "%"
-                )
-            }
-
-            SnackbarHost(hostState = snackbarHostState)
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(10.dp))
+            HorizontalDivider(color = tokens.cardBorder)
+            Spacer(modifier = Modifier.height(10.dp))
+            ResultRow("Monthly SIP Needed", "${inrFormat.format(safeMonthlySip)}/mo", isTotal = true)
+            ResultRow(
+                "Annual Expense @ ${safeRetireAge.roundToInt()}",
+                formatCompactINR(if (futureAnnualExpenses.isFinite()) futureAnnualExpenses else 0.0, inrFormat)
+            )
+            ResultRow("Accumulation Horizon", "${yearsToRetire.roundToInt()} yrs")
         }
+
+        NeonCard {
+            CalculatorInput(
+                label = "Current Age",
+                value = safeCurrentAge,
+                onValueChange = { next ->
+                    currentAge = next
+                    if (retirementAge <= next) {
+                        retirementAge = (next + 1.0).coerceAtMost(75.0)
+                    }
+                },
+                range = 18.0..60.0,
+                symbol = "Yr"
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            CalculatorInput(
+                label = "Target Retirement Age",
+                value = safeRetireAge,
+                onValueChange = { next ->
+                    retirementAge = next.coerceAtLeast(safeCurrentAge + 1.0)
+                },
+                range = (safeCurrentAge + 1.0).coerceAtMost(74.0)..75.0,
+                symbol = "Yr"
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            CalculatorInput(
+                label = "Current Monthly Expenses",
+                value = monthlyExpenses,
+                onValueChange = { monthlyExpenses = it },
+                range = 10_000.0..300_000.0,
+                symbol = "₹"
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            CalculatorInput(
+                label = "Expected Inflation (p.a)",
+                value = inflationRate,
+                onValueChange = { inflationRate = it },
+                range = 3.0..12.0,
+                symbol = "%"
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            CalculatorInput(
+                label = "Expected Return (p.a)",
+                value = expectedReturn,
+                onValueChange = { expectedReturn = it },
+                range = 6.0..18.0,
+                symbol = "%"
+            )
+        }
+
+        FireTimelineChart(
+            currentAge = safeCurrentAge.roundToInt(),
+            retireAge = safeRetireAge.roundToInt()
+        )
+
+        InvestedReturnsDonutCard(
+            invested = totalContributed,
+            returns = wealthCompounded,
+            investedLabel = "SIP Invested",
+            returnsLabel = "Compounding",
+            centerLabelText = "Corpus Split"
+        )
+
+        SnackbarHost(hostState = snackbarHostState)
     }
 }
