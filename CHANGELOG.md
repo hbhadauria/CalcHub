@@ -2,7 +2,7 @@
 
 All notable changes to CalcHub will be documented in this file.
 
-## [Unreleased]
+## [3.1.0] - 2026-11-22
 
 ### Added
 - **Minimal Black Theme**: Added a pure dark monochrome appearance option alongside Aurora, Ledger Paper, and Dot Matrix

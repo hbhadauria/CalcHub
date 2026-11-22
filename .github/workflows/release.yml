@@ -109,6 +109,24 @@ jobs:
 
           # Write back
           printf 'VERSION_CODE=%s\nVERSION_NAME=%s\n' "$NEW_CODE" "$NEW_NAME" > "$FILE"
+
+          # Promote [Unreleased] in CHANGELOG.md when version_name increases and unreleased notes exist
+          if [ -n "$INPUT_VERSION_NAME" ] && [ "$NEW_NAME" != "$VERSION_NAME" ] && [ "$(printf '%s\n%s\n' "$VERSION_NAME" "$NEW_NAME" | sort -V | tail -n 1)" = "$NEW_NAME" ] && [ -f "CHANGELOG.md" ] && ! grep -qF "## [$NEW_NAME]" CHANGELOG.md; then
+            UNRELEASED_NOTES=$(awk '
+              /^## \[Unreleased\][[:space:]]*$/ { flag=1; next }
+              /^## \[/ { flag=0 }
+              /^---$/ { flag=0 }
+              flag { print }
+            ' CHANGELOG.md)
+            if [ -n "$(printf '%s' "$UNRELEASED_NOTES" | tr -d '[:space:]')" ]; then
+              RELEASE_DATE=$(date -u +%Y-%m-%d)
+              awk -v header="## [$NEW_NAME] - $RELEASE_DATE" '
+                !replaced && /^## \[Unreleased\][[:space:]]*$/ { print header; replaced=1; next }
+                { print }
+              ' CHANGELOG.md > CHANGELOG.md.tmp && mv CHANGELOG.md.tmp CHANGELOG.md
+              echo "Updated CHANGELOG.md: promoted [Unreleased] to [$NEW_NAME] - $RELEASE_DATE"
+            fi
+          fi
           
           {
             echo "version_code=$NEW_CODE"
@@ -118,12 +136,12 @@ jobs:
           # Display
           echo "Bumping version: $VERSION_NAME ($VERSION_CODE) -> $NEW_NAME ($NEW_CODE)"
 
-      # Commit the updated version properties file back to the repo
+      # Commit the updated version.properties (and CHANGELOG.md when applicable) back to the repo
       - name: Commit & Push
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: "ci: bump version to ${{ steps.bump.outputs.version_name }} (${{ steps.bump.outputs.version_code }}) [skip ci]"
-          file_pattern: version.properties
+          file_pattern: version.properties CHANGELOG.md
 
 
   security-scan:
@@ -169,90 +187,3 @@ jobs:
     with:
       track: ${{ github.event.inputs.track }}
     secrets: inherit
-
-  create-github-release:
-    needs: [version-bump, build]
-    if: ${{ always() && !cancelled() && needs.version-bump.result == 'success' && needs.build.result == 'success' }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-        with:
-          ref: main
-          fetch-depth: 0
-
-      # Parse CHANGELOG.md to find sections for the current version (falling back to Unreleased)
-      - name: Extract Release Notes from CHANGELOG
-        id: extract_notes
-        env:
-          RELEASE_VERSION: ${{ needs.version-bump.outputs.new_version_name }}
-          RELEASE_CODE: ${{ needs.version-bump.outputs.new_version_code }}
-        run: |
-          # Extract content between version header and next version or separator
-          NOTES=$(awk -v target="## [$RELEASE_VERSION]" '
-            index($0, target) == 1 { flag=1; next }
-            /^## \[/ { flag=0 }
-            /^---$/ { flag=0 }
-            flag { print }
-          ' CHANGELOG.md)
-          
-          # Fall back to [Unreleased] if versioned header isn't in CHANGELOG.md yet
-          if [ -z "$(printf '%s' "$NOTES" | tr -d '[:space:]')" ]; then
-            NOTES=$(awk '
-              /^## \[Unreleased\]/ { flag=1; next }
-              /^## \[/ { flag=0 }
-              /^---$/ { flag=0 }
-              flag { print }
-            ' CHANGELOG.md)
-          fi
-
-          # If still empty, create basic release notes
-          if [ -z "$(printf '%s' "$NOTES" | tr -d '[:space:]')" ]; then
-            NOTES="Release version $RELEASE_VERSION (Build $RELEASE_CODE)"
-          fi
-          
-          # Save to file for multiline content
-          printf '%s\n' "$NOTES" > release_notes.md
-          
-          echo "Release notes extracted for version $RELEASE_VERSION"
-          cat release_notes.md
-
-      # Tag the release version in git
-      - name: Create Git Tag
-        env:
-          RELEASE_VERSION: ${{ needs.version-bump.outputs.new_version_name }}
-          RELEASE_CODE: ${{ needs.version-bump.outputs.new_version_code }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag -a "v$RELEASE_VERSION" -m "Release v$RELEASE_VERSION (Build $RELEASE_CODE)"
-          git push origin "v$RELEASE_VERSION"
-          git config --local --unset-all http.https://github.com/.extraheader || true
-
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ needs.version-bump.outputs.new_version_name }}
-          name: CalcHub v${{ needs.version-bump.outputs.new_version_name }} (Build ${{ needs.version-bump.outputs.new_version_code }})
-          body_path: release_notes.md
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Verify GitHub Release Notes
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_VERSION: ${{ needs.version-bump.outputs.new_version_name }}
-        run: |
-          TAG="v$RELEASE_VERSION"
-          BODY=$(gh release view "$TAG" --json body --jq .body)
-          echo "Release body length: ${#BODY}"
-
-          if [ -z "$(printf '%s' "$BODY" | tr -d '[:space:]')" ] || printf '%s\n' "$BODY" | grep -q "^Release version "; then
-            echo "::error::Release notes fell back to empty or 1-line placeholder for $TAG"
-            exit 1
-          fi
