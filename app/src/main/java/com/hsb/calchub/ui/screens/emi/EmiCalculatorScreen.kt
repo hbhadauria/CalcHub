@@ -27,6 +27,7 @@ import com.hsb.calchub.data.repository.RecentCalculation
 import com.hsb.calchub.data.repository.SavedScenario
 import com.hsb.calchub.di.LocalAppContainer
 import com.hsb.calchub.domain.logic.CalculatorLogic
+import com.hsb.calchub.domain.logic.loan.LoanScheduleCalculator
 import com.hsb.calchub.ui.components.CalculatorInput
 import com.hsb.calchub.ui.components.CalculatorScaffold
 import com.hsb.calchub.ui.components.DonutChart
@@ -40,43 +41,6 @@ import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
 import kotlin.math.roundToInt
-
-internal data class AmortizationSummary(
-    val yearlyBreakdown: List<Pair<Double, Double>>,
-    val crossoverYear: Int
-)
-
-internal fun computeAmortizationSummary(
-    principal: Double,
-    annualInterestRate: Double,
-    tenureYears: Int,
-    monthlyEmi: Double
-): AmortizationSummary {
-    val safeYears = tenureYears.coerceAtLeast(1)
-    val r = (annualInterestRate / 12.0 / 100.0).coerceAtLeast(0.0)
-    var balance = principal.coerceAtLeast(0.0)
-    val yearly = mutableListOf<Pair<Double, Double>>()
-    var crossover = safeYears
-
-    for (yr in 1..safeYears) {
-        var yrPrin = 0.0
-        var yrIntr = 0.0
-        for (m in 1..12) {
-            if (balance <= 0.0) break
-            val intr = balance * r
-            val prin = (monthlyEmi - intr).coerceIn(0.0, balance)
-            yrPrin += prin
-            yrIntr += intr
-            balance -= prin
-        }
-        yearly.add(yrPrin to yrIntr)
-        if (crossover == safeYears && yrPrin > yrIntr) {
-            crossover = yr
-        }
-    }
-
-    return AmortizationSummary(yearlyBreakdown = yearly, crossoverYear = crossover)
-}
 
 /**
  * Interactive EMI Calculator displaying Monthly EMI Verdict, yearly Principal-vs-Interest
@@ -96,7 +60,7 @@ fun EmiCalculatorScreen(onBackClick: () -> Unit) {
 
     val yearsInt = tenureYears.roundToInt().coerceAtLeast(1)
     val amortization = remember(loanAmount, interestRate, yearsInt, emi) {
-        computeAmortizationSummary(loanAmount, interestRate, yearsInt, emi)
+        LoanScheduleCalculator.computeAmortizationSummary(loanAmount, interestRate, yearsInt, emi)
     }
 
     val inrFormat = remember {

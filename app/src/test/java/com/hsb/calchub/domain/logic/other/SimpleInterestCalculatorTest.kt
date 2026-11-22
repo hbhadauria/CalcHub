@@ -7,16 +7,15 @@ class SimpleInterestCalculatorTest {
 
     @Test
     fun `calculate Simple Interest returns correctly`() {
-        val principal = 10000.0
-        val rate = 10.0
-        val timeYears = 2.0
-        
-        val result = SimpleInterestCalculator.calculate(principal, rate, timeYears)
-        
-        // Interest = 10000 * 10 * 2 / 100 = 2000
-        
+        val result = SimpleInterestCalculator.calculate(10000.0, 10.0, 2.0)
         assertEquals(10000.0, result.first, 0.01)
         assertEquals(2000.0, result.second, 0.01)
         assertEquals(12000.0, result.third, 0.01)
+    }
+
+    @Test
+    fun `calculate Simple Interest guards invalid inputs`() {
+        assertEquals(0.0, SimpleInterestCalculator.calculate(0.0, 10.0, 2.0).third, 0.01)
+        assertEquals(0.0, SimpleInterestCalculator.calculate(10000.0, -5.0, 2.0).third, 0.01)
     }
 }

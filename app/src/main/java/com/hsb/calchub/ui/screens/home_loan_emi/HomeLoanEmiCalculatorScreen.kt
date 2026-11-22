@@ -34,6 +34,7 @@ import com.hsb.calchub.data.repository.RecentCalculation
 import com.hsb.calchub.data.repository.SavedScenario
 import com.hsb.calchub.di.LocalAppContainer
 import com.hsb.calchub.domain.logic.CalculatorLogic
+import com.hsb.calchub.domain.logic.loan.LoanScheduleCalculator
 import com.hsb.calchub.ui.components.CalculatorScaffold
 import com.hsb.calchub.ui.components.LoanAmortizationChart
 import com.hsb.calchub.ui.components.NeonCard
@@ -51,62 +52,6 @@ import kotlin.math.roundToInt
 private enum class HomeLoanPlanMode(val label: String) {
     STANDARD("Standard EMI"),
     EXTRA_EMI("+1 Extra EMI / yr")
-}
-
-private data class HomeLoanSchedule(
-    val yearlyBreakdown: List<Pair<Double, Double>>,
-    val crossoverYear: Int,
-    val totalInterest: Double,
-    val totalMonths: Int
-)
-
-private fun simulateHomeLoanSchedule(
-    principal: Double,
-    annualRate: Double,
-    tenureYears: Int,
-    monthlyEmi: Double,
-    extraEmiEachYear: Boolean
-): HomeLoanSchedule {
-    val maxMonths = (tenureYears.coerceAtLeast(1) * 12).coerceAtLeast(1)
-    val r = (annualRate / 12.0 / 100.0).coerceAtLeast(0.0)
-    var balance = principal.coerceAtLeast(0.0)
-    var cumInterest = 0.0
-    var monthsUsed = 0
-    val yearly = mutableListOf<Pair<Double, Double>>()
-    var crossover = tenureYears.coerceAtLeast(1)
-
-    var yrPrin = 0.0
-    var yrIntr = 0.0
-
-    for (m in 1..maxMonths) {
-        if (balance <= 0.01) break
-        monthsUsed = m
-        val intr = balance * r
-        val baseDue = (monthlyEmi - intr).coerceAtLeast(0.0)
-        val extra = if (extraEmiEachYear && m % 12 == 0) monthlyEmi else 0.0
-        val prinPaid = (baseDue + extra).coerceIn(0.0, balance)
-        balance -= prinPaid
-        cumInterest += intr
-        yrPrin += prinPaid
-        yrIntr += intr
-
-        if (m % 12 == 0 || balance <= 0.01 || m == maxMonths) {
-            yearly.add(yrPrin to yrIntr)
-            val yrIdx = yearly.size
-            if (crossover == tenureYears.coerceAtLeast(1) && yrPrin > yrIntr) {
-                crossover = yrIdx
-            }
-            yrPrin = 0.0
-            yrIntr = 0.0
-        }
-    }
-
-    return HomeLoanSchedule(
-        yearlyBreakdown = yearly,
-        crossoverYear = crossover,
-        totalInterest = cumInterest,
-        totalMonths = monthsUsed.coerceAtLeast(1)
-    )
 }
 
 /**
@@ -128,10 +73,10 @@ fun HomeLoanEmiCalculatorScreen(onBackClick: () -> Unit) {
 
     val yearsInt = tenureYears.roundToInt().coerceAtLeast(1)
     val baseSchedule = remember(loanAmount, interestRate, yearsInt, emi) {
-        simulateHomeLoanSchedule(loanAmount, interestRate, yearsInt, emi, extraEmiEachYear = false)
+        LoanScheduleCalculator.simulateHomeLoanSchedule(loanAmount, interestRate, yearsInt, emi, extraEmiEachYear = false)
     }
     val prepaySchedule = remember(loanAmount, interestRate, yearsInt, emi) {
-        simulateHomeLoanSchedule(loanAmount, interestRate, yearsInt, emi, extraEmiEachYear = true)
+        LoanScheduleCalculator.simulateHomeLoanSchedule(loanAmount, interestRate, yearsInt, emi, extraEmiEachYear = true)
     }
 
     val isPrepay = mode == HomeLoanPlanMode.EXTRA_EMI

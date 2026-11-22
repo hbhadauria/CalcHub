@@ -1,8 +1,11 @@
 package com.hsb.calchub.domain.logic.investment
 
+import kotlin.math.pow
+import kotlin.math.roundToInt
+
 /**
  * Calculator logic for Recurring Deposit (RD).
- * RD is a special kind of term deposit offered by banks which help people with regular incomes to deposit a fixed amount every month into their recurring deposit account and earn interest at the rate applicable to Fixed Deposits.
+ * Uses standard Indian bank quarterly compounding on each monthly deposit installment.
  */
 object RdCalculator {
     /**
@@ -21,11 +24,27 @@ object RdCalculator {
         interestRate: Double,
         timePeriodYears: Double
     ): Triple<Double, Double, Double> {
-        val n = timePeriodYears * 12
-        val totalValue = monthlyDeposit * n + (monthlyDeposit * n * (n + 1) / 24) * (interestRate / 100)
-        val investedAmount = monthlyDeposit * n
+        if (!monthlyDeposit.isFinite() || !interestRate.isFinite() || !timePeriodYears.isFinite() ||
+            monthlyDeposit <= 0.0 || timePeriodYears <= 0.0 || interestRate < 0.0
+        ) {
+            return Triple(0.0, 0.0, 0.0)
+        }
+        val months = (timePeriodYears * 12.0).roundToInt().coerceAtLeast(0)
+        if (months == 0) {
+            return Triple(0.0, 0.0, 0.0)
+        }
+        val investedAmount = monthlyDeposit * months
+        val totalValue = if (interestRate == 0.0) {
+            investedAmount
+        } else {
+            val r = interestRate / 100.0
+            var maturity = 0.0
+            for (k in 1..months) {
+                maturity += monthlyDeposit * (1.0 + r / 4.0).pow(4.0 * k / 12.0)
+            }
+            maturity
+        }
         val estimatedReturns = totalValue - investedAmount
-        
         return Triple(investedAmount, estimatedReturns, totalValue)
     }
 }

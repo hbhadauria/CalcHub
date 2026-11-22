@@ -1,4 +1,5 @@
 package com.hsb.calchub.domain.logic.trading
+
 /**
  * Calculator logic for Stock Price Averaging.
  * Calculates the average price of a stock when bought at different prices.
@@ -17,6 +18,14 @@ object StockAverageCalculator {
      *  - Third: Total Investment Amount
      */
     fun calculate(firstQuantity: Double, firstPrice: Double, secondQuantity: Double, secondPrice: Double): Triple<Double, Double, Double> {
+        if (!firstQuantity.isFinite() || !firstPrice.isFinite() ||
+            !secondQuantity.isFinite() || !secondPrice.isFinite() ||
+            firstQuantity < 0.0 || secondQuantity < 0.0 ||
+            firstPrice < 0.0 || secondPrice < 0.0 ||
+            firstQuantity + secondQuantity <= 0.0
+        ) {
+            return Triple(0.0, 0.0, 0.0)
+        }
         val totalQuantity = firstQuantity + secondQuantity
         val totalInvestment = (firstQuantity * firstPrice) + (secondQuantity * secondPrice)
         val averagePrice = totalInvestment / totalQuantity

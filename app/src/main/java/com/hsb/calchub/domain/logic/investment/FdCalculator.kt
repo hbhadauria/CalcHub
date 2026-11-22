@@ -25,13 +25,18 @@ object FdCalculator {
         timePeriodYears: Double,
         compoundingFrequency: Int = 4
     ): Triple<Double, Double, Double> {
-        val r = rateOfInterest / 100
-        val n = compoundingFrequency
+        if (!totalInvestment.isFinite() || !rateOfInterest.isFinite() || !timePeriodYears.isFinite() ||
+            totalInvestment <= 0.0 || rateOfInterest < 0.0 || timePeriodYears < 0.0
+        ) {
+            return Triple(0.0, 0.0, 0.0)
+        }
+        val r = rateOfInterest / 100.0
+        val n = compoundingFrequency.coerceAtLeast(1)
         val t = timePeriodYears
-        
-        val totalValue = totalInvestment * (1 + r / n).pow(n * t)
+
+        val totalValue = totalInvestment * (1.0 + r / n).pow(n * t)
         val estimatedReturns = totalValue - totalInvestment
-        
+
         return Triple(totalInvestment, estimatedReturns, totalValue)
     }
 }

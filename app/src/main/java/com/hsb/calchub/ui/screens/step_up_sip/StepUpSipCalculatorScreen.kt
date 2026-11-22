@@ -36,14 +36,16 @@ import com.hsb.calchub.di.LocalAppContainer
 import com.hsb.calchub.domain.logic.CalculatorLogic
 import com.hsb.calchub.ui.components.CalculatorInput
 import com.hsb.calchub.ui.components.CalculatorScaffold
+import com.hsb.calchub.ui.components.InflationAdjustedSummaryCard
+import com.hsb.calchub.ui.components.InflationAdjustmentControl
 import com.hsb.calchub.ui.components.NeonCard
 import com.hsb.calchub.ui.components.ResultCard
 import com.hsb.calchub.ui.components.ResultRow
 import com.hsb.calchub.ui.components.SegmentedPillGroup
 import com.hsb.calchub.ui.components.WealthGrowthSplineChart
+import com.hsb.calchub.ui.components.formatCompactINR
 import com.hsb.calchub.ui.screens.sip.SipCoreInputsSection
 import com.hsb.calchub.ui.screens.sip.SipGainsDonut
-import com.hsb.calchub.ui.components.formatCompactINR
 import com.hsb.calchub.ui.theme.LocalCalcHubTokens
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
@@ -55,51 +57,9 @@ private enum class StepUpSipMode(val label: String) {
     REGULAR("Regular SIP")
 }
 
-private data class StepUpProjection(
-    val investedAmount: Double,
-    val estimatedReturns: Double,
-    val totalValue: Double,
-    val yearlyPoints: List<Pair<Double, Double>>,
-    val finalMonthlySip: Double
-)
-
-private fun simulateStepUpSip(
-    initialMonthly: Double,
-    annualStepUpPct: Double,
-    annualReturnPct: Double,
-    years: Int
-): StepUpProjection {
-    val monthlyRate = (annualReturnPct / 12.0 / 100.0).coerceAtLeast(0.0)
-    val safeYears = years.coerceAtLeast(1)
-    var currentMonthly = initialMonthly.coerceAtLeast(0.0)
-    var totalInvested = 0.0
-    var corpus = 0.0
-    val points = mutableListOf(0.0 to 0.0)
-
-    for (yr in 1..safeYears) {
-        for (m in 1..12) {
-            totalInvested += currentMonthly
-            corpus = (corpus + currentMonthly) * (1.0 + monthlyRate)
-        }
-        points.add(totalInvested to corpus)
-        if (yr < safeYears) {
-            currentMonthly *= (1.0 + annualStepUpPct.coerceAtLeast(0.0) / 100.0)
-        }
-    }
-
-    val gain = (corpus - totalInvested).coerceAtLeast(0.0)
-    return StepUpProjection(
-        investedAmount = totalInvested,
-        estimatedReturns = gain,
-        totalValue = corpus,
-        yearlyPoints = points,
-        finalMonthlySip = currentMonthly
-    )
-}
-
 /**
  * Interactive Step-Up SIP Calculator with annual top-up compounding, Regular SIP delta comparison,
- * and Canvas + PathMeasure spline visualization.
+ * optional inflation adjustment, and Canvas + PathMeasure spline visualization.
  */
 @Composable
 fun StepUpSipCalculatorScreen(onBackClick: () -> Unit) {
@@ -110,10 +70,12 @@ fun StepUpSipCalculatorScreen(onBackClick: () -> Unit) {
     var annualStepUpPct by rememberSaveable { mutableDoubleStateOf(10.0) }
     var expectedReturnRate by rememberSaveable { mutableDoubleStateOf(12.0) }
     var timePeriodYears by rememberSaveable { mutableDoubleStateOf(15.0) }
+    var adjustForInflation by rememberSaveable { mutableStateOf(false) }
+    var inflationRate by rememberSaveable { mutableDoubleStateOf(6.0) }
 
     val yearsInt = timePeriodYears.roundToInt().coerceAtLeast(1)
     val stepUpProj = remember(monthlyInvestment, annualStepUpPct, expectedReturnRate, yearsInt) {
-        simulateStepUpSip(monthlyInvestment, annualStepUpPct, expectedReturnRate, yearsInt)
+        CalculatorLogic.calculateStepUpSIP(monthlyInvestment, annualStepUpPct, expectedReturnRate, yearsInt)
     }
     val (regInvested, regReturns, regTotal) = remember(monthlyInvestment, expectedReturnRate, timePeriodYears) {
         CalculatorLogic.calculateSIP(monthlyInvestment, expectedReturnRate, timePeriodYears)
@@ -137,6 +99,14 @@ fun StepUpSipCalculatorScreen(onBackClick: () -> Unit) {
     val shownTotal = if (mode == StepUpSipMode.STEP_UP) stepUpProj.totalValue else regTotal
     val shownPoints = if (mode == StepUpSipMode.STEP_UP) stepUpProj.yearlyPoints else regularPoints
     val stepUpAdvantage = (stepUpProj.totalValue - regTotal).coerceAtLeast(0.0)
+
+    val shownRealTotal = remember(shownTotal, inflationRate, yearsInt, adjustForInflation) {
+        if (adjustForInflation) {
+            CalculatorLogic.adjustForInflation(shownTotal, inflationRate, yearsInt.toDouble())
+        } else {
+            shownTotal
+        }
+    }
 
     val inrFormat = remember {
         NumberFormat.getCurrencyInstance(Locale.Builder().setLanguage("en").setRegion("IN").build()).apply {
@@ -209,6 +179,16 @@ fun StepUpSipCalculatorScreen(onBackClick: () -> Unit) {
                 onSaveScenario = saveToVault
             )
 
+            if (adjustForInflation) {
+                InflationAdjustedSummaryCard(
+                    nominalValue = shownTotal,
+                    realValue = shownRealTotal,
+                    investedAmount = shownInvested,
+                    inflationRate = inflationRate,
+                    years = yearsInt.toDouble()
+                )
+            }
+
             Surface(
                 shape = RoundedCornerShape(tokens.cardCornerRadius),
                 color = tokens.gainBg,
@@ -267,16 +247,25 @@ fun StepUpSipCalculatorScreen(onBackClick: () -> Unit) {
                 timePeriodYears = timePeriodYears,
                 onTimePeriodYearsChange = { timePeriodYears = it },
                 monthlyLabel = "Starting Monthly SIP",
-                returnLabel = "Expected Return (p.a)"
-            ) {
-                CalculatorInput(
-                    label = "Annual Step-Up",
-                    value = annualStepUpPct,
-                    onValueChange = { annualStepUpPct = it },
-                    range = 0.0..30.0,
-                    symbol = "%"
-                )
-            }
+                returnLabel = "Expected Return (p.a)",
+                afterMonthlyContent = {
+                    CalculatorInput(
+                        label = "Annual Step-Up",
+                        value = annualStepUpPct,
+                        onValueChange = { annualStepUpPct = it },
+                        range = 0.0..30.0,
+                        symbol = "%"
+                    )
+                },
+                footerContent = {
+                    InflationAdjustmentControl(
+                        enabled = adjustForInflation,
+                        onEnabledChange = { adjustForInflation = it },
+                        inflationRate = inflationRate,
+                        onInflationRateChange = { inflationRate = it }
+                    )
+                }
+            )
 
             SnackbarHost(hostState = snackbarHostState)
             Spacer(modifier = Modifier.height(24.dp))

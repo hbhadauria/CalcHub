@@ -7,18 +7,35 @@ class LumpsumCalculatorTest {
 
     @Test
     fun `calculate Lumpsum returns correctly`() {
-        val totalInvestment = 100000.0
-        val expectedReturnRate = 12.0
-        val timePeriodYears = 5.0
-
-        val result = LumpsumCalculator.calculate(totalInvestment, expectedReturnRate, timePeriodYears)
-
-        // A = P(1 + r/100)^t
-        // A = 100000 * (1.12)^5
-        // A ≈ 100000 * 1.7623 = 176234
-        
+        val result = LumpsumCalculator.calculate(100000.0, 12.0, 5.0)
         assertEquals(100000.0, result.first, 0.01)
         assertEquals(176234.0, result.third, 1.0)
         assertEquals(76234.0, result.second, 1.0)
+    }
+
+    @Test
+    fun `calculate Lumpsum handles zero years and zero rate`() {
+        val zeroYears = LumpsumCalculator.calculate(100000.0, 12.0, 0.0)
+        assertEquals(100000.0, zeroYears.third, 0.01)
+        assertEquals(0.0, zeroYears.second, 0.01)
+
+        val zeroRate = LumpsumCalculator.calculate(100000.0, 0.0, 5.0)
+        assertEquals(100000.0, zeroRate.third, 0.01)
+        assertEquals(0.0, zeroRate.second, 0.01)
+    }
+
+    @Test
+    fun `calculate Lumpsum guards invalid inputs`() {
+        listOf(
+            LumpsumCalculator.calculate(0.0, 12.0, 5.0),
+            LumpsumCalculator.calculate(-1000.0, 12.0, 5.0),
+            LumpsumCalculator.calculate(100000.0, -5.0, 5.0),
+            LumpsumCalculator.calculate(100000.0, 12.0, -1.0),
+            LumpsumCalculator.calculate(Double.NaN, 12.0, 5.0)
+        ).forEach {
+            assertEquals(0.0, it.first, 0.01)
+            assertEquals(0.0, it.second, 0.01)
+            assertEquals(0.0, it.third, 0.01)
+        }
     }
 }

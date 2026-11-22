@@ -1,32 +1,36 @@
 package com.hsb.calchub.domain.logic.loan
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class FlatVsReducingCalculatorTest {
 
     @Test
-    fun `calculate Flat vs Reducing returns correctly`() {
+    fun `calculate Flat vs Reducing compares same quoted rate accurately`() {
         val loanAmount = 100000.0
-        val flatRate = 10.0
+        val rate = 10.0
         val tenureYears = 1.0
-        
-        val result = FlatVsReducingCalculator.calculate(loanAmount, flatRate, tenureYears)
-        
-        // Flat Interest = 100000 * 10% * 1 = 10000
-        // Total Flat = 110000
-        // EMI Flat = 110000 / 12 = 9166.67
-        assertEquals(9166.67, result.first, 1.0)
-        
-        // Reducing Rate approx = 10 * 1.8 = 18% (as per logic)
-        // EMI Reducing at 18% for 1 year
-        // r = 1.5% = 0.015
-        // EMI = 100000 * 0.015 * (1.015)^12 / ((1.015)^12 - 1)
-        // EMI ≈ 9168
-        
-        assertEquals(9168.0, result.second, 10.0)
-        
-        // Difference
+
+        val result = FlatVsReducingCalculator.calculate(loanAmount, rate, tenureYears)
+
+        // Flat EMI = (100000 + 10000) / 12 = 9166.67
+        assertEquals(9166.67, result.first, 0.1)
+        // Reducing EMI at same 10% = 8791.59
+        assertEquals(8791.59, result.second, 0.1)
+        // Flat EMI is strictly higher than reducing EMI at positive rate
         assertEquals(result.first - result.second, result.third, 0.01)
+        assertTrue(result.third > 0.0)
+    }
+
+    @Test
+    fun `calculate Flat vs Reducing handles zero rate and invalid inputs`() {
+        val zeroRate = FlatVsReducingCalculator.calculate(120000.0, 0.0, 1.0)
+        assertEquals(10000.0, zeroRate.first, 0.01)
+        assertEquals(10000.0, zeroRate.second, 0.01)
+        assertEquals(0.0, zeroRate.third, 0.01)
+
+        assertEquals(0.0, FlatVsReducingCalculator.calculate(0.0, 10.0, 2.0).first, 0.01)
+        assertEquals(0.0, FlatVsReducingCalculator.calculate(100000.0, -5.0, 2.0).first, 0.01)
     }
 }

@@ -23,9 +23,13 @@ object LumpsumCalculator {
         expectedReturnRate: Double,
         timePeriodYears: Double
     ): Triple<Double, Double, Double> {
-        val totalValue = totalInvestment * (1 + expectedReturnRate / 100).pow(timePeriodYears)
+        if (!totalInvestment.isFinite() || !expectedReturnRate.isFinite() || !timePeriodYears.isFinite() ||
+            totalInvestment <= 0.0 || expectedReturnRate < 0.0 || timePeriodYears < 0.0
+        ) {
+            return Triple(0.0, 0.0, 0.0)
+        }
+        val totalValue = totalInvestment * (1.0 + expectedReturnRate / 100.0).pow(timePeriodYears)
         val estimatedReturns = totalValue - totalInvestment
-        
         return Triple(totalInvestment, estimatedReturns, totalValue)
     }
 }

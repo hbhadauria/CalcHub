@@ -26,6 +26,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -530,5 +532,148 @@ fun ResultRow(
             ),
             color = if (isTotal) tokens.accentPrimary else tokens.inkPrimary
         )
+    }
+}
+
+/**
+ * Reusable inflation-adjustment toggle and rate slider for investment calculators.
+ */
+@Composable
+fun InflationAdjustmentControl(
+    enabled: Boolean,
+    onEnabledChange: (Boolean) -> Unit,
+    inflationRate: Double,
+    onInflationRateChange: (Double) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val tokens = LocalCalcHubTokens.current
+    Column(modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Adjust for Inflation",
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
+                    color = tokens.inkPrimary
+                )
+                Text(
+                    text = "Discount maturity to today's purchasing power",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = tokens.inkMuted
+                )
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            Switch(
+                checked = enabled,
+                onCheckedChange = onEnabledChange,
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = tokens.onAccent,
+                    checkedTrackColor = tokens.accentPrimary,
+                    uncheckedTrackColor = tokens.surfaceContainer,
+                    uncheckedBorderColor = tokens.cardBorder
+                ),
+                modifier = Modifier.semantics {
+                    contentDescription = "Adjust for Inflation"
+                }
+            )
+        }
+        if (enabled) {
+            Spacer(modifier = Modifier.height(12.dp))
+            CalculatorInput(
+                label = "Expected Inflation (p.a)",
+                value = inflationRate,
+                onValueChange = onInflationRateChange,
+                range = 0.0..15.0,
+                symbol = "%"
+            )
+        }
+    }
+}
+
+/**
+ * Displays Today's Value (inflation-adjusted purchasing power) alongside nominal maturity and real gain.
+ */
+@Composable
+fun InflationAdjustedSummaryCard(
+    nominalValue: Double,
+    realValue: Double,
+    investedAmount: Double,
+    inflationRate: Double,
+    years: Double,
+    modifier: Modifier = Modifier
+) {
+    val tokens = LocalCalcHubTokens.current
+    val currencyFormat = remember {
+        NumberFormat.getCurrencyInstance(Locale.Builder().setLanguage("en").setRegion("IN").build()).apply {
+            maximumFractionDigits = 0
+        }
+    }
+    val safeReal = if (realValue.isFinite()) realValue.coerceAtLeast(0.0) else 0.0
+    val safeNominal = if (nominalValue.isFinite()) nominalValue.coerceAtLeast(0.0) else 0.0
+    val safeInvested = if (investedAmount.isFinite()) investedAmount.coerceAtLeast(0.0) else 0.0
+    val realGain = safeReal - safeInvested
+
+    NeonCard(modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "TODAY'S VALUE (INFLATION-ADJUSTED)",
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                color = tokens.accentPrimary,
+                modifier = Modifier.weight(1f)
+            )
+            Surface(
+                shape = RoundedCornerShape(999.dp),
+                color = tokens.surfaceLow,
+                border = BorderStroke(1.dp, tokens.cardBorder)
+            ) {
+                Text(
+                    text = String.format(Locale.US, "%.1f%% / yr · %.0fy", inflationRate, years),
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        fontFeatureSettings = "tnum"
+                    ),
+                    color = tokens.inkSecondary,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(6.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Bottom
+        ) {
+            Text(
+                text = currencyFormat.format(safeReal),
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontFeatureSettings = "tnum"
+                ),
+                color = tokens.inkPrimary
+            )
+            Surface(
+                shape = RoundedCornerShape(8.dp),
+                color = tokens.surfaceContainer
+            ) {
+                Text(
+                    text = formatCompactINR(safeReal, currencyFormat),
+                    style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"),
+                    color = tokens.inkSecondary,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(10.dp))
+        HorizontalDivider(color = tokens.cardBorder)
+        Spacer(modifier = Modifier.height(8.dp))
+        ResultRow("Nominal Maturity", formatCompactINR(safeNominal, currencyFormat))
+        ResultRow("Real Gain vs. Invested", currencyFormat.format(realGain))
     }
 }

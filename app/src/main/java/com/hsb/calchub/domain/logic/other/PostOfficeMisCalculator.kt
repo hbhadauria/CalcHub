@@ -1,4 +1,5 @@
 package com.hsb.calchub.domain.logic.other
+
 /**
  * Calculator logic for Post Office Monthly Income Scheme (MIS).
  * MIS is a government-backed savings scheme that offers a fixed monthly income.
@@ -15,9 +16,14 @@ object PostOfficeMisCalculator {
      *  - Third: Total Income over 5 years (Tenure of MIS)
      */
     fun calculate(investment: Double, interestRate: Double = 7.4): Triple<Double, Double, Double> {
-        val monthlyIncome = (investment * interestRate / 100) / 12
-        val yearlyIncome = monthlyIncome * 12
-        val totalIncome5Years = yearlyIncome * 5
+        if (!investment.isFinite() || !interestRate.isFinite() ||
+            investment <= 0.0 || interestRate < 0.0
+        ) {
+            return Triple(0.0, 0.0, 0.0)
+        }
+        val monthlyIncome = (investment * interestRate / 100.0) / 12.0
+        val yearlyIncome = monthlyIncome * 12.0
+        val totalIncome5Years = yearlyIncome * 5.0
         return Triple(investment, monthlyIncome, totalIncome5Years)
     }
 }

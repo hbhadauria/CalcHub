@@ -56,42 +56,6 @@ private enum class TaxRegimeTab(val label: String) {
 }
 
 /**
- * Simplified FY 2025-26 New Tax Regime estimation with Rs 75,000 standard deduction,
- * Budget 2025 slabs, Sec 87A rebate up to Rs 12L taxable income (with marginal relief),
- * and 4% Health & Education Cess.
- */
-private fun estimateFy26NewRegimeTax(annualIncome: Double): Double {
-    val taxable = (annualIncome - 75_000.0).coerceAtLeast(0.0)
-    if (taxable <= 1_200_000.0) return 0.0
-
-    var slabTax = 0.0
-    val bands = listOf(
-        400_000.0 to 0.0,
-        400_000.0 to 0.05,
-        400_000.0 to 0.10,
-        400_000.0 to 0.15,
-        400_000.0 to 0.20,
-        400_000.0 to 0.25
-    )
-    var remaining = taxable
-    for ((bandWidth, rate) in bands) {
-        val slice = remaining.coerceAtMost(bandWidth)
-        slabTax += slice * rate
-        remaining -= slice
-        if (remaining <= 0.0) break
-    }
-    if (remaining > 0.0) {
-        slabTax += remaining * 0.30
-    }
-
-    val marginalCap = (taxable - 1_200_000.0).coerceAtLeast(0.0)
-    val taxAfterRelief = minOf(slabTax, marginalCap.coerceAtLeast(0.0).let {
-        if (taxable <= 1_275_000.0) minOf(slabTax, it) else slabTax
-    })
-    return taxAfterRelief * 1.04
-}
-
-/**
  * Interactive Income Tax Calculator featuring FY26 New Regime vs Old Regime face-off comparison,
  * winner savings banner, Donut outflow chart, and Vault persistence.
  */
@@ -106,10 +70,9 @@ fun IncomeTaxCalculatorScreen(onBackClick: () -> Unit) {
     val (_, oldTax, oldNetIncome) = remember(annualIncome, deductions) {
         CalculatorLogic.calculateIncomeTax(annualIncome, deductions)
     }
-    val newTax = remember(annualIncome) {
-        estimateFy26NewRegimeTax(annualIncome)
+    val (_, newTax, newNetIncome) = remember(annualIncome) {
+        CalculatorLogic.calculateIncomeTaxNewRegimeFy26(annualIncome)
     }
-    val newNetIncome = (annualIncome - newTax).coerceAtLeast(0.0)
 
     val newRegimeWins = newTax <= oldTax
     val savingsDelta = abs(oldTax - newTax)

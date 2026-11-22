@@ -9,12 +9,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -30,6 +32,8 @@ import com.hsb.calchub.ui.components.CalculatorInput
 import com.hsb.calchub.ui.components.CalculatorScaffold
 import com.hsb.calchub.ui.components.DonutChart
 import com.hsb.calchub.ui.components.DonutChartData
+import com.hsb.calchub.ui.components.InflationAdjustedSummaryCard
+import com.hsb.calchub.ui.components.InflationAdjustmentControl
 import com.hsb.calchub.ui.components.NeonCard
 import com.hsb.calchub.ui.components.ResultCard
 import com.hsb.calchub.ui.components.WealthGrowthSplineChart
@@ -41,7 +45,7 @@ import java.util.Locale
 import kotlin.math.roundToInt
 
 /**
- * Interactive SIP Wealth Builder featuring above-the-fold verdict card,
+ * Interactive SIP Wealth Builder featuring above-the-fold verdict card, optional inflation adjustment,
  * scrubbable Canvas + PathMeasure spline growth chart, donut breakdown, and Vault saving.
  */
 @Composable
@@ -51,6 +55,8 @@ fun SipCalculatorScreen(onBackClick: () -> Unit) {
     var monthlyInvestment by rememberSaveable { mutableDoubleStateOf(10_000.0) }
     var expectedReturnRate by rememberSaveable { mutableDoubleStateOf(12.0) }
     var timePeriodYears by rememberSaveable { mutableDoubleStateOf(15.0) }
+    var adjustForInflation by rememberSaveable { mutableStateOf(false) }
+    var inflationRate by rememberSaveable { mutableDoubleStateOf(6.0) }
 
     val (investedAmount, estimatedReturns, totalValue) = remember(
         monthlyInvestment,
@@ -58,6 +64,14 @@ fun SipCalculatorScreen(onBackClick: () -> Unit) {
         timePeriodYears
     ) {
         CalculatorLogic.calculateSIP(monthlyInvestment, expectedReturnRate, timePeriodYears)
+    }
+
+    val realTotalValue = remember(totalValue, inflationRate, timePeriodYears, adjustForInflation) {
+        if (adjustForInflation) {
+            CalculatorLogic.adjustForInflation(totalValue, inflationRate, timePeriodYears)
+        } else {
+            totalValue
+        }
     }
 
     val yearlyPoints = remember(monthlyInvestment, expectedReturnRate, timePeriodYears) {
@@ -119,7 +133,6 @@ fun SipCalculatorScreen(onBackClick: () -> Unit) {
         calculatorId = "sip",
         onSaveScenario = saveToVault
     ) { paddingValues ->
-        val tokens = LocalCalcHubTokens.current
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -137,6 +150,16 @@ fun SipCalculatorScreen(onBackClick: () -> Unit) {
                 returnsLabel = "Est. Returns",
                 onSaveScenario = saveToVault
             )
+
+            if (adjustForInflation) {
+                InflationAdjustedSummaryCard(
+                    nominalValue = totalValue,
+                    realValue = realTotalValue,
+                    investedAmount = investedAmount,
+                    inflationRate = inflationRate,
+                    years = timePeriodYears
+                )
+            }
 
             WealthGrowthSplineChart(
                 title = "Wealth Projection (Scrub to Inspect)",
@@ -156,7 +179,15 @@ fun SipCalculatorScreen(onBackClick: () -> Unit) {
                 expectedReturnRate = expectedReturnRate,
                 onExpectedReturnRateChange = { expectedReturnRate = it },
                 timePeriodYears = timePeriodYears,
-                onTimePeriodYearsChange = { timePeriodYears = it }
+                onTimePeriodYearsChange = { timePeriodYears = it },
+                footerContent = {
+                    InflationAdjustmentControl(
+                        enabled = adjustForInflation,
+                        onEnabledChange = { adjustForInflation = it },
+                        inflationRate = inflationRate,
+                        onInflationRateChange = { inflationRate = it }
+                    )
+                }
             )
 
             SnackbarHost(hostState = snackbarHostState)
@@ -167,7 +198,7 @@ fun SipCalculatorScreen(onBackClick: () -> Unit) {
 
 @Composable
 internal fun SipGainsDonut(invested: Double, returns: Double) {
-    val tokens = com.hsb.calchub.ui.theme.LocalCalcHubTokens.current
+    val tokens = LocalCalcHubTokens.current
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -192,8 +223,10 @@ internal fun SipCoreInputsSection(
     onTimePeriodYearsChange: (Double) -> Unit,
     monthlyLabel: String = "Monthly Investment",
     returnLabel: String = "Expected Return Rate (p.a)",
-    afterMonthlyContent: (@Composable () -> Unit)? = null
+    afterMonthlyContent: (@Composable () -> Unit)? = null,
+    footerContent: (@Composable () -> Unit)? = null
 ) {
+    val tokens = LocalCalcHubTokens.current
     NeonCard {
         CalculatorInput(
             label = monthlyLabel,
@@ -222,5 +255,11 @@ internal fun SipCoreInputsSection(
             range = 1.0..40.0,
             symbol = "Yr"
         )
+        if (footerContent != null) {
+            Spacer(modifier = Modifier.height(14.dp))
+            HorizontalDivider(color = tokens.cardBorder)
+            Spacer(modifier = Modifier.height(12.dp))
+            footerContent()
+        }
     }
 }

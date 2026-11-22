@@ -1,5 +1,7 @@
 package com.hsb.calchub.domain.logic.retirement
+
 import kotlin.math.pow
+
 /**
  * Calculator logic for National Pension System (NPS).
  * NPS is a voluntary, long-term retirement savings scheme designed to enable systematic savings.
@@ -17,12 +19,27 @@ object NpsCalculator {
      *  - Second: Estimated Returns
      *  - Third: Total Maturity Value
      */
-    fun calculate(monthlyContribution: Double, expectedReturnRate: Double, currentAge: Double, retirementAge: Double = 60.0): Triple<Double, Double, Double> {
+    fun calculate(
+        monthlyContribution: Double,
+        expectedReturnRate: Double,
+        currentAge: Double,
+        retirementAge: Double = 60.0
+    ): Triple<Double, Double, Double> {
+        if (!monthlyContribution.isFinite() || !expectedReturnRate.isFinite() ||
+            !currentAge.isFinite() || !retirementAge.isFinite() ||
+            monthlyContribution <= 0.0 || retirementAge <= currentAge || expectedReturnRate < 0.0
+        ) {
+            return Triple(0.0, 0.0, 0.0)
+        }
         val timePeriodYears = retirementAge - currentAge
-        val i = expectedReturnRate / 12 / 100
-        val n = timePeriodYears * 12
-        val totalValue = monthlyContribution * ((1 + i).pow(n) - 1) / i * (1 + i)
+        val n = timePeriodYears * 12.0
         val investedAmount = monthlyContribution * n
+        val totalValue = if (expectedReturnRate == 0.0) {
+            investedAmount
+        } else {
+            val i = expectedReturnRate / 12.0 / 100.0
+            monthlyContribution * ((1.0 + i).pow(n) - 1.0) / i * (1.0 + i)
+        }
         val estimatedReturns = totalValue - investedAmount
         return Triple(investedAmount, estimatedReturns, totalValue)
     }
